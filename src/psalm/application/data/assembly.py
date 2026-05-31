@@ -10,11 +10,12 @@ lines, keeping the fairness invariant the experiment depends on:
   differs only in the auxiliary target it exposes (the gold derivation), so the
   B-vs-D comparison isolates the value of parse supervision.
 
-Serialisation choice (ADR-0011): the Phase-2 pre-pretraining unit is the
-derivation-bearing surface form emitted by the Vidyut generator. The structural
-signal for H1 is the morphophonemic regularity of those forms; the gold
-derivation travels alongside as the auxiliary target for arm D. Sentence-level
-kāraka composition is deferred to a later phase and noted as a limitation.
+Serialisation choice (ADR-0012, superseding ADR-0011): the Phase-2
+pre-pretraining unit is a full kāraka-composed Sanskrit *sentence* emitted by the
+Saṃsādhanī generator. The structural signal for H1 is grammatical composition;
+the gold per-word kāraka role sequence travels alongside as the auxiliary target
+for arm D. This restores the sentence-level structure that the earlier Vidyut
+form-level stream could not provide.
 """
 
 from __future__ import annotations
@@ -43,10 +44,15 @@ def serialize_line(sentence: AnnotatedSentence, source: PrePretrainSource) -> st
 def aux_targets(sentence: AnnotatedSentence, source: PrePretrainSource) -> tuple[str, ...]:
     """Auxiliary prediction target for a sentence, non-empty only for arm D.
 
-    The kāraka-auxiliary arm predicts the gold derivation as a parallel head;
-    every other arm has no auxiliary objective.
+    The kāraka-auxiliary arm predicts the gold per-word kāraka role sequence as a
+    parallel head — the genuine sentence-level structural supervision the
+    Saṃsādhanī generator emits for free. If a sentence carries no kāraka parse
+    (e.g. a non-Saṃsādhanī fallback stream) the derivation is used instead, and
+    arms other than D expose no auxiliary objective.
     """
     if source is PrePretrainSource.PANINIAN_KARAKA_AUX:
+        if sentence.karaka_parse:
+            return tuple(role for _token, role in sentence.karaka_parse)
         return sentence.derivation
     return ()
 

@@ -2,6 +2,35 @@
 
 Status date: 2026-05-31. Host: DGX Spark, GB10 Grace-Blackwell, `aarch64`.
 
+## Re-scope: real Saṃsādhanī + corpora integrated (ADR-0012)
+
+The `panini-data-toolkit` (MIT) is now a PSALM dependency and the original
+Phase-1 blocker — the proprietary, unprovisioned Saṃsādhanī generator — is
+**resolved on this machine**:
+
+- **Real Pāṇinian sentence generator is live** (`SamsadhaniiGenerator`, container
+  at `localhost:8090`). It produces full kāraka-composed Sanskrit sentences with
+  **gold (surface, role) annotation for free**. Measured over 150 sentences:
+  150/150 distinct, bigram entropy 0.99, trigram 1.00, 100% gold parse
+  (`docs/data/phase2-samsadhani-diversity.json`). This replaces the form-level
+  Vidyut stream as the primary Pāṇinian source and **dissolves the ADR-0011
+  clause-level limitation** (now a clause-level structural prior, not form-level).
+- **Arm D auxiliary target upgraded** to the gold per-word kāraka role sequence
+  (real sentence-level parse supervision), via `aux_targets`.
+- **Real corpora provisioned** (`PaniniToolkitCorpusSource`): DCS (Apache-2.0),
+  IndicCorp v2, Itihāsa, Sāmayik — all available under
+  `PANINI_DATA_DIR=~/projects/slm-1/data`. These feed the NL continuation stream
+  and tokenizer training for the Sanskrit side.
+- Contradiction (richer data vs. stable locked design) resolved with TRIZ
+  Principle 35 (Parameter Changes): only the unit *granularity* changed; arm
+  isolation, token budgeting, tokenizer, and seeds are unchanged.
+
+Known residual limitation (honest): the kāraka-frame enumerator currently emits
+two frame templates (intransitive / transitive), so arm D's auxiliary spans two
+role sequences. Extending to oblique kārakas (karaṇa/sampradāna/apādāna/
+adhikaraṇa) is a cheap tracked follow-up and does not touch the decisive B-vs-C
+comparison.
+
 ## What is built and green
 
 The complete H1 experiment harness is implemented, unit-tested, and validated
@@ -38,9 +67,9 @@ end-to-end at micro scale:
 The scientific go/no-go cannot be honestly declared until the real battery runs.
 That is a GPU + provisioning step, not a coding step:
 
-- **Provision corpora:** BabyLM English (research-only) for NL continuation; the
-  Pāṇinian stream is already available offline via Vidyut, the Dyck control is
-  generated.
+- **Provision corpora:** Sanskrit NL continuation is now satisfied by the real
+  DCS/Itihāsa corpora via the toolkit (done). BabyLM English (research-only)
+  still to be fetched for the English continuation/peer-benchmark side.
 - **Provision eval suites:** SCAN, COGS/ReCOGS, CFQ (compositional), BLiMP
   (syntactic), ARC-Easy/HellaSwag (honest reference).
 - **Run on the GB10:** 60M proxy sanity pass, then the 100–150M battery across

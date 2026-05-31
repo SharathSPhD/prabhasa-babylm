@@ -83,6 +83,21 @@ def test_aux_targets_present_only_for_karaka_arm() -> None:
     assert aux_targets(s, PrePretrainSource.DYCK) == ()
 
 
+def test_aux_targets_prefer_gold_karaka_roles() -> None:
+    # ADR-0012: arm D's auxiliary target is the gold kāraka role sequence from
+    # the Saṃsādhanī generator, preferred over the derivation when present.
+    s = AnnotatedSentence(
+        text="रामः वनम् गच्छति",
+        karaka_parse=(("रामः", "karwA"), ("वनम्", "karma"), ("गच्छति", "kriyA")),
+        derivation=("1.3.1",),
+    )
+    assert aux_targets(s, PrePretrainSource.PANINIAN_KARAKA_AUX) == (
+        "karwA",
+        "karma",
+        "kriyA",
+    )
+
+
 def test_lines_require_configured_generator() -> None:
     bare = PrePretrainAssembler(paninian=None, dyck=None)
     with pytest.raises(RuntimeError, match="no Pāṇinian generator"):

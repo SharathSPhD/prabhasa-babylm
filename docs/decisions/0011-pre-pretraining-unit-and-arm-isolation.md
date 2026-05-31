@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (Phase 2).
+Superseded by [ADR-0012](0012-samsadhani-sentence-level-karaka-unit.md) (Phase 2).
+The arm-isolation and budgeting decisions below remain in force; only the
+*pre-pretraining unit* (form-level Vidyut → sentence-level Saṃsādhanī) changed.
 
 ## Context
 

@@ -1,0 +1,15 @@
+{
+  "samsadhani_sentences": {
+    "source": "samsadhani-generator (live container via panini-data-toolkit)",
+    "license": "MIT (toolkit); generator: UoH SCL (research use)",
+    "n_sentences": 150,
+    "distinct_sentences": 150,
+    "distinct_sentence_fraction": 1.0,
+    "word_type_token_ratio": 0.1795,
+    "bigram_entropy": 0.9917,
+    "trigram_entropy": 1.0,
+    "distinct_karaka_role_sequences": 2,
+    "pct_with_gold_parse": 100.0,
+    "note": "Sentence-level kāraka composition with gold (surface, role) per word; entropy computed over sentences. Lexicon-bounded word TTR is expected to be moderate; sentence-level distinctness is the relevant non-degeneracy signal for H1 pre-pretraining."
+  }
+}
