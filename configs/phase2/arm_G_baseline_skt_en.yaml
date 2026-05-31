@@ -1,0 +1,3 @@
+phase: phase-2-h1
+arm_id: G
+data: { pre_pretrain_source: none, pretrain_corpus: sanskrit_english, word_budget: 100000000 }

@@ -1,0 +1,4 @@
+# Primary control: replicates Hu et al. (ACL 2025).
+phase: phase-2-h1
+arm_id: C
+data: { pre_pretrain_source: dyck, pretrain_corpus: english, word_budget: 100000000 }

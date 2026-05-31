@@ -1,0 +1,9 @@
+# Sandhi/morpheme-aware SentencePiece tokenizer config (Phase 1).
+vocab_size: 32000
+model_type: unigram
+character_coverage: 0.9995
+sandhi_aware: true
+inputs:
+  - data/corpora/dcs
+  - data/corpora/gretil
+  - data/synthetic/paninian

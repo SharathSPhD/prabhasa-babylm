@@ -1,0 +1,17 @@
+# Tier-1 proxy: 60M params, 10M-word budget (~25 min/run). Ablation workhorse.
+phase: phase-2-h1
+arm_id: B
+model:
+  name: psalm-proxy-60m
+  param_count_m: 60.0
+  n_layers: 10
+  n_heads: 8
+  d_model: 512
+  max_seq_len: 1024
+data:
+  pre_pretrain_source: paninian
+  pretrain_corpus: english
+  word_budget: 10000000
+training:
+  max_steps: 4000
+  seeds: [0, 1, 2]
