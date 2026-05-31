@@ -168,3 +168,9 @@ disallow_untyped_defs = true
 ignore_missing_imports = true
 # ML infra adapters wrap untyped third-party libs; checked structurally elsewhere.
 exclude = ["src/psalm/infrastructure/ml/", "src/psalm/infrastructure/generators/external/"]
+
+# The Vidyut adapter wraps a partially-typed native extension whose enum/factory
+# attributes are not visible to the stub checker; behaviour is covered by tests.
+[[tool.mypy.overrides]]
+module = "psalm.infrastructure.generators.vidyut_source"
+disable_error_code = ["attr-defined", "no-untyped-call"]
