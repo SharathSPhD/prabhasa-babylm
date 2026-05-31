@@ -50,6 +50,8 @@ class H1Runner:
         train_cfg: TrainConfig,
         eval_sets: EvalSets,
         pretrain_max_new: int = 32,
+        decode: Callable[[list[int]], str] | None = None,
+        append_eos_to_prompt: bool = True,
     ) -> None:
         self.assembler = assembler
         self.nl_lines = nl_lines
@@ -59,6 +61,12 @@ class H1Runner:
         self.train_cfg = train_cfg
         self.eval_sets = eval_sets
         self.pretrain_max_new = pretrain_max_new
+        # Real benchmarks (SCAN/COGS) need a true detokenize; the default
+        # id-join is only meaningful for the char-proxy. For SCAN-as-task the
+        # prompt ("IN: cmd OUT:") must NOT carry EOS or the model sees the
+        # sequence as already finished.
+        self.decode = decode if decode is not None else _decode_ids
+        self.append_eos_to_prompt = append_eos_to_prompt
 
     def _arm_lines(self, arm: ExperimentArm, seed: int) -> Callable[[], Iterable[str]]:
         pre_budget = max(arm.token_budget // 10, 1)
@@ -93,15 +101,18 @@ class H1Runner:
         preds: list[str] = []
         golds: list[str] = []
         for source, gold in self.eval_sets.compositional:
+            prompt = list(self.encode(source))
+            if self.append_eos_to_prompt:
+                prompt.append(self.eos_id)
             out_ids = greedy_generate(
                 model,
-                [*self.encode(source), self.eos_id],
+                prompt,
                 max_new_tokens=self.pretrain_max_new,
                 device=cfg.device if cfg.device == "cpu" else "cuda",
                 eos_id=self.eos_id,
             )
-            preds.append(_decode_ids(out_ids))
-            golds.append(gold)
+            preds.append(self.decode(out_ids).strip())
+            golds.append(gold.strip())
         accuracy = exact_match_accuracy(preds, golds) if preds else 0.0
 
         return {
