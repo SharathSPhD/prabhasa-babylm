@@ -68,7 +68,13 @@ class HFDatasetCorpusSource:
                 f"{self.name}: the `datasets` library is not installed "
                 "(install the data extra) so the HF source cannot be streamed."
             ) from exc
-        dataset = datasets.load_dataset(self.repo_id, split=self.split)  # pragma: no cover
+        try:
+            dataset = datasets.load_dataset(self.repo_id, split=self.split)
+        except Exception as exc:  # noqa: BLE001 - any load failure is non-provisioning
+            raise SourceNotProvisionedError(
+                f"{self.name}: could not load HF dataset {self.repo_id!r} "
+                f"(split {self.split!r}): {exc}. Provision/download it first."
+            ) from exc
         for row in dataset:  # pragma: no cover - requires network/data
             text = str(row[self.text_column]).strip()
             if text:
