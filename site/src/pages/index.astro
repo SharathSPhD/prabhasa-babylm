@@ -1,0 +1,59 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="PSALM — Pāṇinian Structured pretraining for Small LAnguage Models">
+  <section>
+    <h2>The short version</h2>
+    <p>
+      Most language models learn by reading a large fraction of the internet.
+      PSALM asks a different question: can <em>structure</em> stand in for
+      <em>scale</em>? We use Pāṇini's grammar of Sanskrit — arguably the most
+      precise description of any human language ever written — as an engine that
+      manufactures unlimited, perfectly-formed example sentences, and we use those
+      to teach a small model the shape of language before it ever reads ordinary
+      text. We then add a layer of classical Indian logic (Navya-Nyāya) to make
+      its reasoning more disciplined.
+    </p>
+  </section>
+
+  <section>
+    <h2>For researchers</h2>
+    <p>
+      PSALM trains one small multilingual decoder and reads it three ways. A
+      Pāṇinian synthetic-Sanskrit pre-pretraining stage supplies a structural
+      prior with gold kāraka annotations; real Sanskrit and BabyLM English supply
+      competence and a peer-benchmarkable target. We test whether the Pāṇinian
+      prior beats a matched k-Shuffle Dyck control on compositional generalization
+      at a fixed token budget (H1), whether a six-phase Navya-Nyāya scaffold is
+      more sample-efficient to install on a grammar-structured base than on a
+      matched generic base (H2), and whether an epistemic constraint kernel
+      enforces validity by construction (H3). Every claim is reported with
+      bootstrap confidence intervals, permutation tests, and Holm–Bonferroni
+      correction against pre-registered thresholds.
+    </p>
+    <p>
+      We are explicit about scope. Grammar generates form, not facts; PSALM does
+      not chase frontier parity, and world-knowledge benchmarks appear only as
+      honest reference points. The full method, results, and limitations live in
+      the <a href="https://github.com/SharathSPhD/PSALM">paper and repository</a>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Results</h2>
+    <p>
+      Results, figures, and tables are published here as each phase closes. This
+      site is generated from the same findings that feed the paper, so the numbers
+      shown are always the verified, signed-off ones — never projections.
+    </p>
+  </section>
+
+  <section>
+    <h2>Try it</h2>
+    <p>
+      Run-from-GitHub Colab notebooks and Hugging Face Space demos will be linked
+      here so anyone can reproduce a result or talk to a model directly.
+    </p>
+  </section>
+</Base>

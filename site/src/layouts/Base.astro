@@ -1,0 +1,60 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = "Pāṇinian Structured pretraining for Small LAnguage Models" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <style is:global>
+      :root {
+        --ink: #15131a;
+        --paper: #fbf9f4;
+        --accent: #7a3b2e;
+        --muted: #6b6470;
+        --rule: #e4ddd0;
+        --max: 50rem;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.65;
+      }
+      header, main, footer { max-width: var(--max); margin-inline: auto; padding: 1.5rem; }
+      header { border-bottom: 1px solid var(--rule); }
+      nav a { color: var(--accent); text-decoration: none; margin-right: 1.25rem; font-size: 0.95rem; }
+      h1 { font-size: 2.2rem; line-height: 1.15; margin: 0.2rem 0; }
+      h2 { font-size: 1.4rem; margin-top: 2.2rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+      .tagline { color: var(--muted); font-style: italic; }
+      code { background: #efe9dd; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.9em; }
+      footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--rule); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>PSALM</h1>
+      <p class="tagline">Pāṇinian Structured pretraining for Small LAnguage Models</p>
+      <nav>
+        <a href={`${import.meta.env.BASE_URL}/`}>Overview</a>
+        <a href="https://github.com/SharathSPhD/PSALM">Code</a>
+        <a href="https://huggingface.co/qbz506">Models &amp; Data</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p>PSALM is an open research program. MIT-licensed. Built and trained on a single NVIDIA DGX Spark.</p>
+    </footer>
+  </body>
+</html>

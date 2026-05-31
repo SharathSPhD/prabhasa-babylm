@@ -84,25 +84,28 @@ class SqliteLedger:
             )
 
     def get(self, run_id: str) -> RunResult | None:
-        with self._connect() as conn, closing(
-            conn.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,))
-        ) as cur:
+        with (
+            self._connect() as conn,
+            closing(conn.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,))) as cur,
+        ):
             row = cur.fetchone()
         return self._row_to_run(row) if row is not None else None
 
     def by_arm(self, arm_id: str) -> list[RunResult]:
-        with self._connect() as conn, closing(
-            conn.execute(
-                "SELECT * FROM runs WHERE arm_id = ? ORDER BY created_at", (arm_id,)
-            )
-        ) as cur:
+        with (
+            self._connect() as conn,
+            closing(
+                conn.execute("SELECT * FROM runs WHERE arm_id = ? ORDER BY created_at", (arm_id,))
+            ) as cur,
+        ):
             rows = cur.fetchall()
         return [self._row_to_run(r) for r in rows]
 
     def all_runs(self) -> list[RunResult]:
-        with self._connect() as conn, closing(
-            conn.execute("SELECT * FROM runs ORDER BY created_at")
-        ) as cur:
+        with (
+            self._connect() as conn,
+            closing(conn.execute("SELECT * FROM runs ORDER BY created_at")) as cur,
+        ):
             rows = cur.fetchall()
         return [self._row_to_run(r) for r in rows]
 

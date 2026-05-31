@@ -41,7 +41,9 @@ class KnowledgeStore(Protocol):
 
     def add(self, note: KnowledgeNote) -> None: ...
     def get(self, note_id: str) -> KnowledgeNote | None: ...
-    def search(self, query: str, *, tags: Sequence[str] = ..., limit: int = ...) -> list[KnowledgeNote]: ...
+    def search(
+        self, query: str, *, tags: Sequence[str] = ..., limit: int = ...
+    ) -> list[KnowledgeNote]: ...
 
 
 _SCHEMA = """
@@ -94,9 +96,10 @@ class SqliteKnowledgeStore:
             )
 
     def get(self, note_id: str) -> KnowledgeNote | None:
-        with self._connect() as conn, closing(
-            conn.execute("SELECT * FROM notes WHERE note_id = ?", (note_id,))
-        ) as cur:
+        with (
+            self._connect() as conn,
+            closing(conn.execute("SELECT * FROM notes WHERE note_id = ?", (note_id,))) as cur,
+        ):
             row = cur.fetchone()
         return self._row_to_note(row) if row is not None else None
 
@@ -104,16 +107,19 @@ class SqliteKnowledgeStore:
         self, query: str, *, tags: Sequence[str] = (), limit: int = 20
     ) -> list[KnowledgeNote]:
         like = f"%{query.lower()}%"
-        with self._connect() as conn, closing(
-            conn.execute(
-                """
+        with (
+            self._connect() as conn,
+            closing(
+                conn.execute(
+                    """
                 SELECT * FROM notes
                 WHERE lower(title) LIKE ? OR lower(body) LIKE ?
                 ORDER BY created_at DESC
                 """,
-                (like, like),
-            )
-        ) as cur:
+                    (like, like),
+                )
+            ) as cur,
+        ):
             rows = cur.fetchall()
         notes = [self._row_to_note(r) for r in rows]
         if tags:

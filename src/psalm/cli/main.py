@@ -70,7 +70,9 @@ def contract_check(
         table.add_row(layer, status, "\n".join(fails) or "-")
     console.print(table)
 
-    signoff = "[green]yes[/green]" if closure.human_interpretation_signoff else "[yellow]pending[/yellow]"
+    signoff = (
+        "[green]yes[/green]" if closure.human_interpretation_signoff else "[yellow]pending[/yellow]"
+    )
     console.print(f"human interpretation sign-off: {signoff}")
 
     if closure.can_merge_to_main:
