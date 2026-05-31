@@ -31,6 +31,7 @@ class PrePretrainSource(StrEnum):
     PANINIAN = "paninian"
     DYCK = "dyck"
     PANINIAN_KARAKA_AUX = "paninian_karaka_aux"
+    PANINIAN_SCRAMBLED = "paninian_scrambled"  # arm H: B's tokens, order permuted
 
 
 class PretrainCorpus(StrEnum):

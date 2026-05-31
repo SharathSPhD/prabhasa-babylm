@@ -31,6 +31,7 @@ from psalm.domain.model.training import Precision, TrainConfig
 from psalm.infrastructure.eval.scan import load_scan
 from psalm.infrastructure.generators.dyck_source import DyckSentenceSource
 from psalm.infrastructure.generators.jsonl_source import JsonlSentenceSource
+from psalm.infrastructure.generators.scramble_source import ScramblingGenerator
 from psalm.infrastructure.ledger.sqlite_ledger import SqliteLedger
 from psalm.infrastructure.ml.h1_runner import EvalSets, H1Runner
 from psalm.infrastructure.tokenizer.sentencepiece_tokenizer import SentencePieceTrainer
@@ -100,7 +101,9 @@ def main() -> None:
         vocab = tok.vocab_size
         print(f"tokenizer vocab={vocab} device={device}")
 
-        assembler = PrePretrainAssembler(paninian=paninian, dyck=dyck)
+        assembler = PrePretrainAssembler(
+            paninian=paninian, dyck=dyck, paninian_scrambled=ScramblingGenerator(paninian)
+        )
         model_cfg = ModelConfig(
             vocab_size=vocab, d_model=128, n_layers=4, n_heads=4, max_seq_len=96
         )
@@ -129,6 +132,7 @@ def main() -> None:
             decode=lambda ids: tok.decode(ids),
             append_eos_to_prompt=False,
             pretrain_max_new=48,
+            pre_budget_tokens=4000,  # tiny structural budget for the CPU wiring check
         )
         matrix = default_h1_matrix(param_count_m=60.0, seeds=seeds)
         ledger = SqliteLedger(tmp_path / "ledger.db")

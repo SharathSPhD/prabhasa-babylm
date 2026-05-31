@@ -65,9 +65,11 @@ class PrePretrainAssembler:
         *,
         paninian: SentenceGenerator | None,
         dyck: SentenceGenerator | None,
+        paninian_scrambled: SentenceGenerator | None = None,
     ) -> None:
         self._paninian = paninian
         self._dyck = dyck
+        self._paninian_scrambled = paninian_scrambled
 
     def _generator(self, source: PrePretrainSource) -> SentenceGenerator | None:
         if source in _PANINIAN_SOURCES:
@@ -78,6 +80,10 @@ class PrePretrainAssembler:
             if self._dyck is None:
                 raise RuntimeError("no Dyck generator configured for this arm")
             return self._dyck
+        if source is PrePretrainSource.PANINIAN_SCRAMBLED:
+            if self._paninian_scrambled is None:
+                raise RuntimeError("no scrambled-Pāṇinian generator configured (arm H)")
+            return self._paninian_scrambled
         return None  # NONE: no pre-pretraining
 
     def items(self, source: PrePretrainSource, n: int, *, seed: int) -> Iterator[AnnotatedSentence]:

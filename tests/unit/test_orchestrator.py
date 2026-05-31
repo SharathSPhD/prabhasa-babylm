@@ -13,7 +13,10 @@ from psalm.infrastructure.ledger.sqlite_ledger import SqliteLedger
 
 def _runner_b_beats_c(arm, seed):
     """Fake runner: arm B reaches quality with fewer tokens and higher accuracy."""
-    base = {"A": 0.50, "B": 0.62, "C": 0.50, "D": 0.63, "E": 0.58, "F": 0.49, "G": 0.48}
+    base = {
+        "A": 0.50, "B": 0.62, "C": 0.50, "D": 0.63,
+        "E": 0.58, "F": 0.49, "G": 0.48, "H": 0.51,
+    }
     acc = base[arm.arm_id] + (seed * 0.001)
     tokens = 80.0 if arm.arm_id in {"B", "D", "E"} else 100.0
     return {"compositional_accuracy": acc, "tokens_to_quality": tokens}
@@ -47,9 +50,9 @@ def test_orchestrator_rejects_unfair_matrix(tmp_path: Path) -> None:
 def test_run_logs_every_arm_seed_to_ledger(tmp_path: Path) -> None:
     orch = _orch(tmp_path, _runner_b_beats_c)
     results = orch.run()
-    # 7 arms x 3 seeds = 21 runs.
+    # 8 arms (A-H) x 3 seeds = 24 runs.
     total = sum(len(v) for v in results.values())
-    assert total == 21
+    assert total == 24
     assert orch.ledger.get("h1-B-seed1") is not None
 
 
