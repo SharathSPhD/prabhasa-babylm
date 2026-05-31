@@ -25,6 +25,7 @@ htmlcov/
 # Experiment artifacts (large; tracked on HF, not git)
 data/synthetic/*
 data/corpora/*
+data/cache/
 data/training/*.bin
 data/training/*.idx
 # Generated data-engine artifacts (tokenizer models, local knowledge db)
