@@ -1,0 +1,23 @@
+phase_id: phase-1-data
+purpose: >
+  Build the data engine and tokenizer; assemble license-clean corpora; implement
+  the matched Dyck control; publish the corpus to HF. De-risk the GB10 stack.
+arms: []
+go_no_go:
+  metric: generator_diversity_sufficient
+  description: >
+    Saṃsādhanī generator diversity/coverage is high enough to support the
+    pre-pretraining token budget without degenerate repetition (measured: type-
+    token ratio, n-gram entropy, kāraka-pattern coverage vs a target).
+  threshold: 0.80   # fraction of target coverage; refine in-phase, record via ADR if changed
+  higher_is_better: true
+eval_suites:
+  - corpus_statistics: [type_token_ratio, ngram_entropy, karaka_coverage, sandhi_rate]
+artifacts:
+  - Saṃsādhanī wrapper streaming (sentence, kāraka parse, derivation)
+  - sandhi-aware SentencePiece tokenizer + config
+  - assembled DCS/GRETIL/BabyLM/HF corpora with license manifest
+  - k-Shuffle Dyck control generator matched to Pāṇinian stream statistics
+  - HF dataset published under qbz506/psalm-* with dataset card
+  - GB10 stack de-risk note (Unsloth/flash-attn build status)
+sign_off: corpus quality + license cleanliness approved by human

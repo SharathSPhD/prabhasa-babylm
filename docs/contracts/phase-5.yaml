@@ -1,0 +1,22 @@
+phase_id: phase-5-h3
+purpose: >
+  H3 epistemic constraint kernel: enforce validity by construction at inference
+  (GBNF schema + Z3 vyāpti verifier + hetvābhāsa filter) and measure the fluency
+  cost.
+arms: [constraint_off, constraint_on]
+go_no_go:
+  metric: invalid_inference_rate_reduction
+  description: >
+    Constraint ON reduces the invalid/fallacious-inference rate vs OFF, with the
+    fluency cost (perplexity / human-rated fluency) reported as a tradeoff.
+  threshold: 0.50   # >=50% relative reduction in invalid inferences (refine via ADR)
+  higher_is_better: true
+eval_suites:
+  validity: [vyapti_z3_pass_rate, hetvabhasa_rejection_rate]
+  fluency: [perplexity_delta, human_fluency_rating]
+scope_notes:
+  - Z3 vyāpti coverage limited to formally expressible rules (honest PoC scope)
+artifacts:
+  - GBNF schema; Z3 verifier; hetvābhāsa filter (tested)
+  - ON/OFF comparison logged; paper H3 section drafted FROM the finding
+sign_off: H3 interpretation + PoC-scope honesty approved by human

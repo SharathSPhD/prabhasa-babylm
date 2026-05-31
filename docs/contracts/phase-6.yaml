@@ -1,0 +1,20 @@
+phase_id: phase-6-disseminate
+purpose: >
+  Ship the public artifacts: paper, site, demos, and dataset/model cards.
+arms: []
+go_no_go:
+  metric: dissemination_complete
+  description: >
+    Paper builds and passes citation-integrity check; site deploys; Colab + HF
+    Space demos run end-to-end from a fresh link; cards published.
+  threshold: 1.0
+  higher_is_better: true
+eval_suites:
+  - bibliography_resolves: all citations verifiable; arXiv:2605.12548 absent
+  - demos_run_clean: [colab_from_github, hf_space]
+artifacts:
+  - arXiv/IEEE journal-style paper (no bullets; figures/flowcharts/tables; honest lit review)
+  - Astro GitHub Pages site (technical + lay framing, real results/figures)
+  - run-from-GitHub Colab notebooks; HF Space demos
+  - HF dataset + model cards finalized
+sign_off: final manuscript + public framing approved by human

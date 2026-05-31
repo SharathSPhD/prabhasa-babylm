@@ -1,0 +1,86 @@
+% PSALM manuscript: IEEE single-column journal style (arXiv preprint).
+% Body is written in continuous journal prose: no bulleted or numbered lists.
+% Sections are filled incrementally FROM findings (closure-contract ARTIFACTS
+% layer), never from the plan. Every citation must resolve to a real work
+% (see .cursor/rules/citation-integrity.mdc); arXiv:2605.12548 is fabricated and
+% must never appear here.
+\documentclass[journal,onecolumn,11pt]{IEEEtran}
+
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\begin{document}
+
+\title{PSALM: P\=a\d{n}inian Structured Pretraining for Small Language Models}
+
+\author{PSALM Project\thanks{Preprint. Code, data, and models:
+\url{https://github.com/SharathSPhD/PSALM}; Hugging Face: \texttt{qbz506/psalm-*}.}}
+
+\maketitle
+
+\begin{abstract}
+Small language models are conventionally made competent through internet-scale
+text. This work asks whether linguistic structure can substitute for data scale.
+We treat P\=a\d{n}ini's A\d{s}\d{t}\=adhy\=ay\={\i}, the most formally complete
+generative grammar written for any human language, as an unbounded data engine
+that emits well-formed Sanskrit annotated with gold k\=araka roles, and we use
+this stream as a pre-pretraining signal for a small multilingual decoder. We test
+three claims: that a P\=a\d{n}inian structural prior improves sample efficiency
+and compositional generalization relative to a matched artificial-grammar control
+(H1); that a Navya-Ny\=aya reasoning scaffold reduces fallacious inference and is
+more sample-efficient to install on a grammar-structured base (H2); and that an
+epistemic constraint kernel enforces validity by construction at inference (H3).
+All experiments run on a single accelerator at fixed token budgets. We report
+results with explicit uncertainty and matched ablations, and we are deliberate
+about what the approach does not claim. % Results sentence is filled at closure.
+\end{abstract}
+
+\section{Introduction}
+% Filled from findings. Motivate structure-vs-scale; state the thesis and the
+% three hypotheses in prose. No lists.
+The relationship between data scale and linguistic competence is one of the
+central empirical regularities of modern language modeling
+\cite{kaplan2020scaling,hoffmann2022chinchilla}. This manuscript investigates a
+complementary axis: structure.
+
+\section{Background}
+% P\=a\d{n}inian grammar as a generative system; Navya-Ny\=aya logic; structural
+% priors and transfer in language models \cite{papadimitriou2020music}.
+
+\section{Related Work}
+% Compositional generalization benchmarks \cite{lake2018scan,kim2020cogs,
+% keysers2020cfq}; minimal-pair syntactic evaluation \cite{warstadt2020blimp};
+% the sample-efficient pretraining setting \cite{warstadt2023babylm}. Honest,
+% verifiable citations only.
+
+\section{Hypotheses}
+% H1 grammar prior; H2 Ny\=aya scaffold + synergy; H3 epistemic constraint.
+
+\section{Data Engine}
+% Sa\d{m}s\=adhan\={\i} wrapper; diversity/coverage; sandhi-aware tokenizer;
+% k-Shuffle Dyck control; corpus assembly and licensing.
+
+\section{Experimental Design}
+% One model, three readings; arms A--G; size ladder; statistical protocol
+% (bootstrap CIs, permutation tests, Holm--Bonferroni; pre-registered thresholds).
+
+\section{Results}
+% Filled from the experiment ledger at each phase closure. Figures live in
+% paper/figures/. Tables report mean $\pm$ 95\% CI.
+
+\section{Discussion}
+
+\section{Limitations}
+% Grammar generates form, not facts; world-knowledge benchmarks reported only as
+% reference points; single-accelerator fixed-budget framing; Z3 vy\=apti coverage
+% limited to formally expressible rules.
+
+\section{Conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

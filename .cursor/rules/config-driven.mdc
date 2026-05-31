@@ -1,0 +1,17 @@
+---
+description: Configuration-driven development. No magic numbers in code.
+globs: ["src/**/*.py", "configs/**/*.yaml"]
+alwaysApply: false
+---
+
+# Config-driven
+
+- Anything that varies between runs lives in `configs/*.yaml`, validated by
+  `psalm.config.settings.ExperimentConfig` (pydantic-settings + YAML).
+- No magic numbers, paths, thresholds, or hyperparameters hard-coded in logic.
+- Pre-registered go/no-go thresholds live in the `go_no_go` config block; changing
+  one requires an ADR (`docs/decisions/`).
+- The resolved config hash (`psalm.config.loader.config_hash`) is recorded with
+  every run in the experiment ledger for reproducibility.
+- Arm configs override only what differs from `configs/base.yaml` so experimental
+  arms stay matched (the integrity gate verifies fairness).

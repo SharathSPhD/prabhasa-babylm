@@ -1,0 +1,19 @@
+phase_id: phase-0-foundation
+purpose: >
+  Stand up the contract-bound program: repo, scaffold, plugins, layered memory,
+  governance docs, and the executable closure contract.
+arms: []
+go_no_go:
+  metric: technical_gate_green
+  description: ruff + mypy clean, tests pass, coverage >= 0.80
+  threshold: 1.0
+  higher_is_better: true
+eval_suites: []
+artifacts:
+  - repo cloned + pushed; research docs migrated; MIT license
+  - hexagonal scaffold; uv env; NGC Blackwell/aarch64 Dockerfile; CI
+  - triz-engine + attractor-flow installed; MCP servers registered
+  - layered memory (CLAUDE.md, serena, ADRs, knowledge base, ledger, store)
+  - governance docs (spec, prd, requirements, plan, contracts, rules)
+  - paper skeleton (IEEE); Astro site skeleton
+sign_off: program design approved by human

@@ -1,0 +1,31 @@
+phase_id: phase-2-h1
+purpose: >
+  The H1 controlled experiment: does Pāṇinian pre-pretraining beat a matched Dyck
+  control on compositional generalization at a fixed token budget?
+arms: [A, B, C, D, E, F, G]   # decisive comparison: B vs C
+seeds_min: 3
+go_no_go:
+  metric: token_savings_vs_dyck
+  description: >
+    Token savings of arm B (Pāṇinian) vs arm C (Dyck) on compositional
+    benchmarks, OR a >=3-point compositional-accuracy gain (alternative).
+  threshold: 0.20
+  alternative_metric: compositional_gain_points
+  alternative_threshold: 3.0
+  higher_is_better: true
+  statistics: [bootstrap_ci, permutation_test, holm_bonferroni]
+eval_suites:
+  compositional: [scan, cogs, cfq]
+  syntactic: [blimp]
+  general: [glue, ewok]
+  sanskrit: [morphology, sandhi, karaka]
+  transfer: [cross_lingual_gap]
+  reference: [arc_easy, hellaswag]   # honest reference points only
+artifacts:
+  - 60M proxy sanity pass + 100-150M battery (arms x seeds) logged to ledger
+  - paper H1 section drafted FROM the finding
+  - Tarka memo verifying B/C are matched (budget, arch, tokenizer)
+fairness:
+  - arms matched on param_count, token_budget, tokenizer
+  - metrics computed identically across arms
+sign_off: H1 interpretation approved by human

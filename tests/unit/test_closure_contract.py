@@ -105,14 +105,20 @@ class TestEmpiricalGate:
 
     def test_pending_finding_blocks(self) -> None:
         gate = EmpiricalGate(
-            arms_completed=True, metric_name="m", metric_value=0.5, threshold=0.2,
+            arms_completed=True,
+            metric_name="m",
+            metric_value=0.5,
+            threshold=0.2,
             interpretation="x",
         )
         assert not gate.satisfied
 
     def test_missing_interpretation_blocks(self) -> None:
         gate = EmpiricalGate(
-            arms_completed=True, metric_name="m", metric_value=0.5, threshold=0.2,
+            arms_completed=True,
+            metric_name="m",
+            metric_value=0.5,
+            threshold=0.2,
             finding=Finding.POSITIVE,
         )
         assert any("interpretation" in f for f in gate.failures())
@@ -162,9 +168,7 @@ def _closed_report(signoff: bool = False) -> PhaseClosureReport:
             confound_resolved=True,
             comparison_fairness_verified=True,
         ),
-        artifacts=ArtifactsGate(
-            code_pushed=True, paper_section_updated=True, demos_run_clean=True
-        ),
+        artifacts=ArtifactsGate(code_pushed=True, paper_section_updated=True, demos_run_clean=True),
         memory=MemoryGate(ledger_updated=True, docs_updated=True),
         human_interpretation_signoff=signoff,
     )

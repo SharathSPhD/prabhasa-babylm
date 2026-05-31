@@ -1,0 +1,22 @@
+phase_id: phase-3-scale
+purpose: >
+  Confirm the H1 result holds at scale: promote the best Tier-2 arm to 350M via
+  μTransfer and produce the token-efficiency curve.
+arms: [best_tier2_arm, matched_control]
+go_no_go:
+  metric: h1_effect_persists_at_350m
+  description: >
+    The H1 effect (token savings or compositional gain) persists at 350M within
+    its 95% CI; token-efficiency curve is monotone in the expected direction.
+  threshold: 0.20
+  higher_is_better: true
+eval_suites:
+  compositional: [scan, cogs, cfq]
+  syntactic: [blimp]
+  reference: [mmlu, arc_easy, hellaswag]   # reported honestly as limitations
+optional:
+  - bounded 1B underfit check (fixed 1-2B-token budget) only if go/no-go strongly positive
+artifacts:
+  - 350M confirmation run logged; token-efficiency curve figure
+  - paper scale section updated FROM the finding; honest MMLU reference reported
+sign_off: scale interpretation approved by human

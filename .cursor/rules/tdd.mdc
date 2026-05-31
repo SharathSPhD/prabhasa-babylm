@@ -1,0 +1,17 @@
+---
+description: Test-driven development discipline for PSALM Python code.
+globs: ["src/**/*.py", "tests/**/*.py"]
+alwaysApply: false
+---
+
+# TDD
+
+- Write the failing test first, then the minimum code to pass, then refactor.
+- Domain (`src/psalm/domain/`) and application layers must be unit-tested.
+- Coverage gate is 80% (`pyproject.toml [tool.coverage.report] fail_under`).
+- ML infrastructure adapters (`infrastructure/ml/`) are coverage-omitted and
+  mypy-excluded because they run on GPU and wrap untyped libraries; test the
+  logic around them with fakes/mocks at the application boundary instead.
+- Prefer fast, deterministic unit tests. Mark slow/gpu/integration tests with
+  the registered pytest markers so CI can run `-m "not gpu and not slow"`.
+- A bug fix starts with a test that reproduces the bug.
