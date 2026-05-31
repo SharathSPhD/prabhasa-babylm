@@ -2820,6 +2820,11 @@ all = [
     { name = "wandb" },
     { name = "z3-solver" },
 ]
+data = [
+    { name = "datasets" },
+    { name = "huggingface-hub" },
+    { name = "sentencepiece" },
+]
 dev = [
     { name = "mypy" },
     { name = "pre-commit" },
@@ -2861,7 +2866,9 @@ requires-dist = [
     { name = "accelerate", marker = "extra == 'ml'", specifier = ">=0.33" },
     { name = "chromadb", marker = "extra == 'memory'", specifier = ">=0.5" },
     { name = "click", specifier = ">=8.0" },
+    { name = "datasets", marker = "extra == 'data'", specifier = ">=2.20" },
     { name = "datasets", marker = "extra == 'ml'", specifier = ">=2.20" },
+    { name = "huggingface-hub", marker = "extra == 'data'", specifier = ">=0.24" },
     { name = "huggingface-hub", marker = "extra == 'ml'", specifier = ">=0.24" },
     { name = "matplotlib", marker = "extra == 'stats'", specifier = ">=3.9" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11" },
@@ -2869,7 +2876,7 @@ requires-dist = [
     { name = "pandas", marker = "extra == 'stats'", specifier = ">=2.2" },
     { name = "peft", marker = "extra == 'ml'", specifier = ">=0.12" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.8" },
-    { name = "psalm", extras = ["ml", "verification", "stats", "memory", "dev"], marker = "extra == 'all'" },
+    { name = "psalm", extras = ["ml", "data", "verification", "stats", "memory", "dev"], marker = "extra == 'all'" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pydantic-settings", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
@@ -2880,6 +2887,7 @@ requires-dist = [
     { name = "rich", specifier = ">=13.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
     { name = "scipy", marker = "extra == 'stats'", specifier = ">=1.13" },
+    { name = "sentencepiece", marker = "extra == 'data'", specifier = ">=0.2" },
     { name = "sentencepiece", marker = "extra == 'ml'", specifier = ">=0.2" },
     { name = "statsmodels", marker = "extra == 'stats'", specifier = ">=0.14" },
     { name = "tensorboard", marker = "extra == 'ml'", specifier = ">=2.16" },
@@ -2892,7 +2900,7 @@ requires-dist = [
     { name = "wandb", marker = "extra == 'ml'", specifier = ">=0.17" },
     { name = "z3-solver", marker = "extra == 'verification'", specifier = ">=4.12" },
 ]
-provides-extras = ["ml", "verification", "stats", "memory", "dev", "all"]
+provides-extras = ["ml", "data", "verification", "stats", "memory", "dev", "all"]
 
 [[package]]
 name = "psutil"
