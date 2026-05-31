@@ -67,6 +67,15 @@ class H1Runner:
         # sequence as already finished.
         self.decode = decode if decode is not None else _decode_ids
         self.append_eos_to_prompt = append_eos_to_prompt
+        # Auto-size generation so the model can emit the *longest* gold target.
+        # Capping below the target length silently forces exact-match to 0 for
+        # every long example (a battery-invalidating trap), so we never generate
+        # fewer tokens than the longest gold sequence plus a small margin.
+        max_gold_len = max(
+            (len(self.encode(gold)) for _, gold in eval_sets.compositional),
+            default=0,
+        )
+        self.comp_max_new = max(pretrain_max_new, max_gold_len + 4)
 
     def _arm_lines(self, arm: ExperimentArm, seed: int) -> Callable[[], Iterable[str]]:
         pre_budget = max(arm.token_budget // 10, 1)
@@ -107,7 +116,7 @@ class H1Runner:
             out_ids = greedy_generate(
                 model,
                 prompt,
-                max_new_tokens=self.pretrain_max_new,
+                max_new_tokens=self.comp_max_new,
                 device=cfg.device if cfg.device == "cpu" else "cuda",
                 eos_id=self.eos_id,
             )
