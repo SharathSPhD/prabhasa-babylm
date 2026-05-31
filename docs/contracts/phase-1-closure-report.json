@@ -32,5 +32,5 @@
     "ledger_updated": true,
     "docs_updated": true
   },
-  "human_interpretation_signoff": false
+  "human_interpretation_signoff": true
 }
