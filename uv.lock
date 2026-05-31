@@ -2490,6 +2490,22 @@ wheels = [
 ]
 
 [[package]]
+name = "panini-data-toolkit"
+version = "0.1.0"
+source = { editable = "../panini-data-toolkit" }
+
+[package.metadata]
+requires-dist = [
+    { name = "indic-transliteration", marker = "extra == 'corpus'", specifier = ">=2.3.0" },
+    { name = "indic-transliteration", marker = "extra == 'dev'", specifier = ">=2.3.0" },
+    { name = "pyarrow", marker = "extra == 'corpus'", specifier = ">=14.0.0" },
+    { name = "pyarrow", marker = "extra == 'dev'", specifier = ">=14.0.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4.0" },
+]
+provides-extras = ["corpus", "dev"]
+
+[[package]]
 name = "pathspec"
 version = "1.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2785,6 +2801,7 @@ source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "numpy" },
+    { name = "panini-data-toolkit" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyyaml" },
@@ -2876,6 +2893,7 @@ requires-dist = [
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", marker = "extra == 'stats'", specifier = ">=2.2" },
+    { name = "panini-data-toolkit", editable = "../panini-data-toolkit" },
     { name = "peft", marker = "extra == 'ml'", specifier = ">=0.12" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.8" },
     { name = "psalm", extras = ["ml", "data", "verification", "stats", "memory", "dev"], marker = "extra == 'all'" },

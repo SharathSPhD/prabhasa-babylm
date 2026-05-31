@@ -7,7 +7,7 @@ import pytest
 from psalm.application.data.ports import AnnotatedSentence, SentenceGenerator
 from psalm.infrastructure.generators.dyck_source import DyckSentenceSource
 from psalm.infrastructure.generators.samsadhani import (
-    SamsadhaniGenerator,
+    SamsadhaniiGenerator,
     SamsadhaniNotConfiguredError,
 )
 
@@ -34,14 +34,24 @@ class TestDyckSentenceSource:
             list(DyckSentenceSource().stream(-1))
 
 
-class TestSamsadhaniGenerator:
-    def test_unconfigured_is_not_configured(self) -> None:
-        assert not SamsadhaniGenerator().is_configured
+class TestSamsadhaniiGenerator:
+    """Container-independent tests for the Saṃsādhanī adapter.
 
-    def test_unconfigured_stream_raises_actionable_error(self) -> None:
+    The adapter is "configured" only when the generator container is reachable.
+    These tests pin the *unreachable* path (a closed port) so they are
+    deterministic whether or not the live container happens to be running; the
+    reachable path is exercised in tests/integration/test_samsadhani_live.py.
+    """
+
+    _DEAD_URL = "http://127.0.0.1:1"  # closed port
+
+    def test_unreachable_container_is_not_configured(self) -> None:
+        assert not SamsadhaniiGenerator(base_url=self._DEAD_URL).is_configured
+
+    def test_unreachable_stream_raises_actionable_error(self) -> None:
         with pytest.raises(SamsadhaniNotConfiguredError):
-            list(SamsadhaniGenerator().stream(5))
+            list(SamsadhaniiGenerator(base_url=self._DEAD_URL).stream(5))
 
-    def test_missing_path_is_not_configured(self, tmp_path: object) -> None:
-        gen = SamsadhaniGenerator(install_root="/nonexistent/path/xyz")
-        assert not gen.is_configured
+    def test_negative_n_raises(self) -> None:
+        with pytest.raises(ValueError):
+            list(SamsadhaniiGenerator(base_url=self._DEAD_URL).stream(-1))

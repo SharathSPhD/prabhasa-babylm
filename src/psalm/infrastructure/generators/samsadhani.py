@@ -1,70 +1,139 @@
-"""Saṃsādhanī Pāṇinian generator adapter.
+"""Saṃsādhanī Pāṇinian sentence-generator adapter.
 
-The Pāṇinian synthetic-Sanskrit stream is produced by the Saṃsādhanī
-computational-Sanskrit toolset (Department of Sanskrit Studies, University of
-Hyderabad). Saṃsādhanī is an **external dependency**: it is not pip-installable
-and is provisioned separately on the DGX Spark (see ``configure``). This adapter
-implements the ``SentenceGenerator`` port and yields, for each generated
-sentence, the surface form plus the gold kāraka parse and derivation that the
-generator produces for free.
+The Pāṇinian synthetic-Sanskrit stream is produced by the Saṃsādhanī Sanskrit
+Sentence Generator (Kulkarni & Pai, 2019; Department of Sanskrit Studies,
+University of Hyderabad), driven through the open ``panini-data-toolkit``
+(MIT) which packages a stdlib-only HTTP client to the generator running in a
+local Docker container.
 
-Until the external tool is provisioned, ``stream`` raises a clear, actionable
-error rather than silently returning fake data — consistent with the program's
-integrity rules (no fabricated results).
+For each generated sentence this adapter yields the surface form plus the
+**gold kāraka parse** — (surface, role) pairs aligned from the meaning
+structure — which is the free, sentence-level structural supervision the H1
+hypothesis depends on (notably the kāraka auxiliary-loss head, arm D).
+
+This supersedes the earlier form-level Vidyut limitation (ADR-0011): the
+structural unit here is a full kāraka-composed sentence, not an isolated verb
+form. See ADR-0012.
+
+The container/toolkit is an external dependency. When either is unavailable the
+adapter raises :class:`SamsadhaniNotConfiguredError` rather than fabricating
+data, consistent with the program's integrity rules.
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterator
-from pathlib import Path
 
 from psalm.application.data.ports import AnnotatedSentence
+from psalm.domain.data.karaka_frames import KarakaFrame, enumerate_frames
 
 
 class SamsadhaniNotConfiguredError(RuntimeError):
-    """Raised when the external Saṃsādhanī toolset has not been provisioned."""
+    """Raised when the Saṃsādhanī toolkit/container has not been provisioned."""
 
 
-class SamsadhaniGenerator:
-    """Adapter over the external Saṃsādhanī generator.
+class SamsadhaniiGenerator:
+    """Adapter over the Saṃsādhanī generator via panini-data-toolkit.
 
     Parameters
     ----------
-    install_root:
-        Path to the provisioned Saṃsādhanī installation on the host. When unset
-        or missing, the adapter is "not configured" and refuses to fabricate data.
+    base_url:
+        URL of the Saṃsādhanī container (default ``http://localhost:8090``,
+        the toolkit's default).
+    skip_unaligned:
+        When the generator's surface tokens do not align 1:1 with the input
+        words (e.g. sandhi fuses tokens), the gold per-word ``surface`` is
+        ``None``. If ``True`` (default) such sentences still stream but their
+        ``karaka_parse`` uses the lemma as the token key; the role/lemma
+        supervision is always preserved.
     """
 
-    def __init__(self, install_root: str | Path | None = None) -> None:
-        self.install_root = Path(install_root) if install_root else None
+    def __init__(self, base_url: str | None = None, *, skip_unaligned: bool = True) -> None:
+        self.base_url = base_url
+        self.skip_unaligned = skip_unaligned
+        self._client = None  # lazily constructed
+
+    def _ensure_client(self):  # noqa: ANN202 - external partially-typed object
+        if self._client is not None:
+            return self._client
+        try:
+            from panini_data_toolkit import SamsaadhaniiClient
+        except ImportError as exc:  # pragma: no cover - import guard
+            raise SamsadhaniNotConfiguredError(
+                "panini-data-toolkit is not installed. Install it (it is MIT, on "
+                "this machine at ~/projects/panini-data-toolkit) so PSALM can drive "
+                "the Saṃsādhanī generator. See docs/data/samsadhani-setup.md."
+            ) from exc
+        client = SamsaadhaniiClient(self.base_url) if self.base_url else SamsaadhaniiClient()
+        try:
+            healthy = bool(client.health())
+        except Exception:  # noqa: BLE001 - any connection failure is "not configured"
+            healthy = False
+        if not healthy:
+            raise SamsadhaniNotConfiguredError(
+                "Saṃsādhanī container is unreachable at "
+                f"{self.base_url or 'http://localhost:8090'}. Start it via the "
+                "toolkit's docker-compose, then retry. See "
+                "docs/data/samsadhani-setup.md."
+            )
+        self._client = client
+        return client
 
     @property
     def is_configured(self) -> bool:
-        return self.install_root is not None and self.install_root.exists()
+        try:
+            self._ensure_client()
+        except SamsadhaniNotConfiguredError:
+            return False
+        return True
 
-    def _require_configured(self) -> Path:
-        if not self.is_configured:
-            raise SamsadhaniNotConfiguredError(
-                "Saṃsādhanī is not provisioned. It is an external tool from the "
-                "University of Hyderabad (https://sanskrit.uohyd.ac.in/scl/), not "
-                "a pip package. Provision it on the DGX Spark, then pass its path "
-                "via SamsadhaniGenerator(install_root=...). See "
-                "docs/data/samsadhani-setup.md."
-            )
-        assert self.install_root is not None
-        return self.install_root
+    def _annotate(self, frame: KarakaFrame) -> AnnotatedSentence | None:
+        from panini_data_toolkit import GenerationError, generate_annotated
+
+        client = self._ensure_client()
+        try:
+            ann = generate_annotated(client, frame.structure)
+        except GenerationError:
+            return None  # generator rejected this kāraka frame; caller skips
+
+        parse: tuple[tuple[str, str], ...] = tuple(
+            (w.surface if w.surface else w.lemma, w.role)
+            for w in ann.words
+            if w.role is not None
+        )
+        meta = {
+            "source": "samsadhani-generator",
+            "aligned": str(ann.aligned),
+            "wx_input": ann.wx_input,
+        }
+        return AnnotatedSentence(
+            text=ann.sentence,
+            language="sa",
+            karaka_parse=parse,
+            derivation=(),
+            meta=meta,
+        )
 
     def stream(self, n: int, *, seed: int = 0) -> Iterator[AnnotatedSentence]:
-        """Stream ``n`` annotated Pāṇinian sentences.
+        """Stream ``n`` annotated Pāṇinian sentences with gold kāraka parses.
 
-        The concrete subprocess/API binding to the provisioned toolset is wired
-        in once Saṃsādhanī is available on the host (Phase 1 de-risking task);
-        the parsing of its output into ``AnnotatedSentence`` (surface + kāraka +
-        derivation) is the adapter's responsibility and is unit-tested against
-        recorded fixtures.
+        Enumerates kāraka meaning structures (domain, deterministic by ``seed``)
+        and realises each via the generator. Frames the generator rejects are
+        skipped; enumeration draws a margin so the requested ``n`` is met when
+        the live generator's acceptance rate permits.
         """
-        self._require_configured()
-        raise NotImplementedError(
-            "Saṃsādhanī binding is provisioned in Phase 1 on the DGX Spark; "
-            "this method is wired to the host installation there."
-        )
+        if n < 0:
+            raise ValueError("n must be non-negative")
+        if n == 0:
+            return
+        self._ensure_client()
+        emitted = 0
+        # Draw a generous margin to absorb generator rejections.
+        for frame in enumerate_frames(n * 4 + 16, seed=seed):
+            if emitted >= n:
+                return
+            sentence = self._annotate(frame)
+            if sentence is None:
+                continue
+            yield sentence
+            emitted += 1
