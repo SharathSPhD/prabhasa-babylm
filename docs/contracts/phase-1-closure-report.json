@@ -1,0 +1,36 @@
+{
+  "phase_id": "phase-1",
+  "attempt": 1,
+  "technical": {
+    "tests_pass": true,
+    "lint_clean": true,
+    "types_clean": true,
+    "coverage": 0.9655,
+    "coverage_threshold": 0.80
+  },
+  "empirical": {
+    "arms_completed": true,
+    "metric_name": "generator_diversity_sufficient (form TTR)",
+    "metric_value": 0.9613,
+    "threshold": 0.80,
+    "higher_is_better": true,
+    "interventions": [],
+    "finding": "positive",
+    "interpretation": "The open Vidyut Paninian engine (ADR-0010), adopted after the proprietary Samsadhani proved non-redistributable, generates tinanta forms with a form type-token ratio of 0.9613 over 594 forms, exercising 132 distinct Astadhyayi sutras at a mean derivation length of 26.3 steps. This clears the pre-registered 0.80 non-degeneracy threshold from phase-1.yaml: the generator does not collapse into repeated forms and supplies genuine sutra-by-sutra structural annotations for H1. Scope is deliberately generator-level; sequence-level corpus diversity is deferred to the Phase 2 assembly gate, where the DCS corpus (Apache-2.0) provides a real-text entropy floor of 0.98/0.99 bigram/trigram."
+  },
+  "integrity": {
+    "tarka_memo": "See docs/contracts/phase-1-tarka-memo.md. Strongest objection: form-level TTR (0.96) measures the wrong granularity vs sequence-level entropy (0.0 on isolated forms); attractor-flow independently flagged an OSCILLATING 2-period regime between the two readings. Resolved via TRIZ P35 (Parameter Changes) + break-symmetry: each metric is bound to the gate it governs (form-level -> Phase 1 generator non-degeneracy; sequence-level -> Phase 2 corpus assembly with DCS floor). Secondary objections (sample size, threshold gaming, Samsadhani->Vidyut faithfulness) examined and found non-fatal. No corpus-level diversity claim is made in Phase 1.",
+    "confound_resolved": true,
+    "comparison_fairness_verified": true
+  },
+  "artifacts": {
+    "code_pushed": true,
+    "paper_section_updated": true,
+    "demos_run_clean": true
+  },
+  "memory": {
+    "ledger_updated": true,
+    "docs_updated": true
+  },
+  "human_interpretation_signoff": false
+}
