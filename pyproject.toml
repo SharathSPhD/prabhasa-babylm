@@ -52,6 +52,13 @@ ml = [
     "wandb>=0.17",
     "tensorboard>=2.16",
 ]
+# Light data-engine stack (tokenizer + HF corpus gather/publish). aarch64-friendly,
+# no torch, so it can run in the base env and CI for the Phase 1 data engine.
+data = [
+    "sentencepiece>=0.2",
+    "huggingface-hub>=0.24",
+    "datasets>=2.20",
+]
 # Verification / neurosymbolic kernel (H3).
 verification = [
     "z3-solver>=4.12",
@@ -77,7 +84,7 @@ dev = [
     "pre-commit>=3.8",
     "types-PyYAML>=6.0",
 ]
-all = ["psalm[ml,verification,stats,memory,dev]"]
+all = ["psalm[ml,data,verification,stats,memory,dev]"]
 
 [project.scripts]
 psalm = "psalm.cli.main:app"
