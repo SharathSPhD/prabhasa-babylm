@@ -29,10 +29,15 @@ def test_local_source_missing_file_raises(tmp_path: Path) -> None:
         list(src.stream())
 
 
-def test_hf_source_without_datasets_lib_raises() -> None:
-    # `datasets` is not installed in the base/data-light env, so streaming must
-    # raise rather than fabricate data.
-    src = HFDatasetCorpusSource("hf-sanskrit", license_for("unknown"), "some/repo")
+def test_hf_source_unprovisioned_raises() -> None:
+    # Whether `datasets` is absent or the repo is not downloadable, the adapter
+    # must surface SourceNotProvisionedError rather than fabricate data or leak
+    # the underlying library's exception.
+    src = HFDatasetCorpusSource(
+        "hf-sanskrit",
+        license_for("unknown"),
+        "psalm-nonexistent/definitely-not-a-real-repo-xyz",
+    )
     with pytest.raises(SourceNotProvisionedError):
         list(src.stream())
 
