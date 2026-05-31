@@ -7,8 +7,10 @@ __pycache__/
 build/
 dist/
 .venv/
+.venv-gpu/
 venv/
 .uv/
+.cache/
 
 # Tooling caches
 .pytest_cache/
@@ -31,6 +33,7 @@ data/training/*.idx
 # Generated data-engine artifacts (tokenizer models, local knowledge db)
 data/tokenizer/
 data/*.db
+docs/data/*.db
 *.model
 *.vocab
 !data/**/.gitkeep

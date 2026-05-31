@@ -9,6 +9,7 @@ arm D. Determinism: seeds torch/cuda from the config.
 
 from __future__ import annotations
 
+import logging
 import time
 from collections.abc import Callable, Iterable, Iterator
 
@@ -19,6 +20,8 @@ from psalm.domain.model.config import ModelConfig
 from psalm.domain.model.training import Precision, TrainConfig, TrainOutcome
 from psalm.infrastructure.ml.decoder import Decoder, cosine_lr
 from psalm.infrastructure.ml.packing import TokenPacker
+
+logger = logging.getLogger(__name__)
 
 _DTYPE = {
     Precision.FP32: torch.float32,
@@ -52,6 +55,15 @@ def train_decoder(
     if train_cfg.device.startswith("cuda") and torch.cuda.is_available():
         torch.cuda.manual_seed_all(train_cfg.seed)
 
+    if train_cfg.device.startswith("cuda") and not torch.cuda.is_available():
+        logger.warning(
+            "TrainConfig.device=%r but torch.cuda.is_available() is False "
+            "(torch=%s); silently falling back to CPU. This is correct only for "
+            "intentional proxy runs — a GPU battery must assert CUDA up front "
+            "(see scripts --require-cuda).",
+            train_cfg.device,
+            torch.__version__,
+        )
     device = (
         train_cfg.device if (train_cfg.device != "cuda" or torch.cuda.is_available()) else "cpu"
     )

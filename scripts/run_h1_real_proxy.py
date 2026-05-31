@@ -50,15 +50,36 @@ def main() -> None:
     ap.add_argument("--scan-test", type=int, default=200)
     ap.add_argument("--vocab", type=int, default=1000)
     ap.add_argument("--max-steps", type=int, default=120)
+    ap.add_argument("--seeds", type=int, default=2)
     ap.add_argument("--device", default=None)
+    ap.add_argument(
+        "--require-cuda",
+        action="store_true",
+        help="Assert a CUDA device is reachable and fail loud otherwise "
+        "(prevents a 'GPU' run from silently degrading to CPU).",
+    )
     args = ap.parse_args()
+    seeds = tuple(range(args.seeds))
 
     try:
         import torch
 
-        device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
+        cuda_ok = torch.cuda.is_available()
+        device = args.device or ("cuda" if cuda_ok else "cpu")
     except Exception:  # noqa: BLE001
+        cuda_ok = False
         device = args.device or "cpu"
+
+    if args.require_cuda:
+        if not cuda_ok or not device.startswith("cuda"):
+            raise SystemExit(
+                f"--require-cuda set but CUDA is not reachable "
+                f"(torch.cuda.is_available()={cuda_ok}, device={device!r}). "
+                f"Use the CUDA torch venv (.venv-gpu) on the GB10."
+            )
+        import torch
+
+        print(f"CUDA OK: {torch.cuda.get_device_name(0)} | torch {torch.__version__}")
 
     paninian = JsonlSentenceSource(args.cache)
     dyck = DyckSentenceSource()
@@ -109,7 +130,7 @@ def main() -> None:
             append_eos_to_prompt=False,
             pretrain_max_new=48,
         )
-        matrix = default_h1_matrix(param_count_m=60.0, seeds=(0, 1))
+        matrix = default_h1_matrix(param_count_m=60.0, seeds=seeds)
         ledger = SqliteLedger(tmp_path / "ledger.db")
         orch = H1Orchestrator(matrix=matrix, ledger=ledger, runner=runner)
         results = orch.run()
@@ -118,7 +139,7 @@ def main() -> None:
     def accs(arm: str) -> list[float]:
         return [round(r.metric("compositional_accuracy").value, 3) for r in results[arm]]
 
-    print(f"runs: {sum(len(v) for v in results.values())} (7 arms x 2 seeds)")
+    print(f"runs: {sum(len(v) for v in results.values())} (7 arms x {len(seeds)} seeds)")
     print(f"A (no prior)        : {accs('A')}")
     print(f"B (Pāṇinian)        : {accs('B')}")
     print(f"C (Dyck control)    : {accs('C')}")
