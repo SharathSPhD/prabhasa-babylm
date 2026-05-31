@@ -1,0 +1,26 @@
+{
+  "vidyut_prakriya_generator": {
+    "source": "preetammukherjee/sanskrit_morph_prakriya",
+    "license": "MIT",
+    "n_items": 29700,
+    "stats": {
+      "n_sequences": 29700.0,
+      "type_token_ratio": 0.5071043771043771,
+      "bigram_entropy": 0.0,
+      "trigram_entropy": 0.0,
+      "pattern_coverage": 0.0
+    }
+  },
+  "dcs_real_corpus": {
+    "source": "sampathlonka/DCS_Sanskrit_Morphology_v1",
+    "license": "Apache-2.0",
+    "n_items": 100000,
+    "stats": {
+      "n_sequences": 100000.0,
+      "type_token_ratio": 0.3289872594316827,
+      "bigram_entropy": 0.9793597384292668,
+      "trigram_entropy": 0.9894361388606298,
+      "pattern_coverage": 0.0
+    }
+  }
+}

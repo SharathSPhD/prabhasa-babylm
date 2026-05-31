@@ -2803,6 +2803,7 @@ all = [
     { name = "pandas" },
     { name = "peft" },
     { name = "pre-commit" },
+    { name = "pyarrow" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -2823,6 +2824,7 @@ all = [
 data = [
     { name = "datasets" },
     { name = "huggingface-hub" },
+    { name = "pyarrow" },
     { name = "sentencepiece" },
 ]
 dev = [
@@ -2877,6 +2879,7 @@ requires-dist = [
     { name = "peft", marker = "extra == 'ml'", specifier = ">=0.12" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.8" },
     { name = "psalm", extras = ["ml", "data", "verification", "stats", "memory", "dev"], marker = "extra == 'all'" },
+    { name = "pyarrow", marker = "extra == 'data'", specifier = ">=16.0" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pydantic-settings", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
