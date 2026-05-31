@@ -74,9 +74,10 @@ Live measurement over 150 generated sentences (seed 0,
 - distinct sentence fraction: **1.00** (150/150 — no degenerate repetition),
 - bigram entropy **0.99**, trigram entropy **1.00** (near-maximal spread over
   sentences),
+- distinct kāraka role sequences: **10** (after the oblique enrichment below),
 - gold kāraka parse present on **100%** of sentences,
-- word-level type–token ratio 0.18 (moderate, as expected for a bounded lexicon
-  of 14 nominals × 8 dhātus × 4 tenses × 3 numbers).
+- word-level type–token ratio 0.26 (moderate, as expected for a bounded lexicon
+  of nominals × dhātus × tenses × numbers, now widened by oblique frames).
 
 This dissolves the ADR-0011 limitation: clause-level structure is now present
 and measured, not deferred.
@@ -86,14 +87,17 @@ and measured, not deferred.
 - The H1 claim is upgraded from form-level to **clause-level** structural
   transfer, materially strengthening the contribution and removing a limitation
   reviewers would have flagged.
-- **New, smaller limitation (recorded honestly):** the current kāraka-frame
-  enumerator (`psalm.domain.data.karaka_frames`) emits only two frame templates
-  (intransitive kartā+kriyā and transitive kartā+karma+kriyā), so arm D's
-  auxiliary target spans only two role sequences. This is an *enumerator* limit,
-  not a generator limit — the generator licenses karaṇa/sampradāna/apādāna/
-  adhikaraṇa frames too. Extending the enumerator to oblique kārakas is a cheap
-  follow-up tracked for the battery; it does not affect the decisive B-vs-C
-  comparison (which uses no auxiliary target).
+- **Oblique kāraka enrichment (closed).** The kāraka-frame enumerator
+  (`psalm.domain.data.karaka_frames`) now emits — in addition to intransitive
+  (kartā+kriyā) and transitive (kartā+karma+kriyā) — oblique frames covering
+  **karaṇa (instrument), sampradāna (dative), apādāna (ablative), and
+  adhikaraṇa (locative)**. The licensed (verb, kāraka, ±karma) triples were
+  established empirically against the live generator (only aligned, accepted
+  combinations are enumerated; see `VERIFIED_OBLIQUE_FRAMES`). A 60-sentence live
+  draw now yields 7 distinct kāraka role sequences (was 2), so arm D's auxiliary
+  target is a genuine multi-class structural signal rather than a near-binary
+  one. The decisive B-vs-C comparison is unaffected (it uses no auxiliary
+  target).
 - Dependency added: `panini-data-toolkit` (editable path, MIT). The adapter
   guards on container reachability and refuses to fabricate data when the
   generator is down (`SamsadhaniNotConfiguredError`).

@@ -25,11 +25,12 @@ Phase-1 blocker — the proprietary, unprovisioned Saṃsādhanī generator — 
   Principle 35 (Parameter Changes): only the unit *granularity* changed; arm
   isolation, token budgeting, tokenizer, and seeds are unchanged.
 
-Known residual limitation (honest): the kāraka-frame enumerator currently emits
-two frame templates (intransitive / transitive), so arm D's auxiliary spans two
-role sequences. Extending to oblique kārakas (karaṇa/sampradāna/apādāna/
-adhikaraṇa) is a cheap tracked follow-up and does not touch the decisive B-vs-C
-comparison.
+Oblique kāraka enrichment (closed): the kāraka-frame enumerator now emits
+intransitive, transitive, and oblique frames — karaṇa (instrument), sampradāna
+(dative), apādāna (ablative), adhikaraṇa (locative) — from verb×kāraka triples
+verified against the live generator. Arm D's auxiliary target now spans 7
+distinct role sequences (was 2), making it a genuine multi-class structural
+signal. The decisive B-vs-C comparison is unaffected.
 
 ## What is built and green
 

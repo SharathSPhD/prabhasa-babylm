@@ -54,6 +54,29 @@ DHATUS: tuple[tuple[str, int], ...] = (
     ("vax1", 2),   # speak
 )
 
+# Verified oblique-kāraka frames: which verbs license which oblique kāraka,
+# and whether a karma may co-occur. Established empirically against the live
+# Saṃsādhanī generator (only aligned, accepted (verb, kāraka, ±karma) triples are
+# listed here — see ADR-0012 and the probe in the Phase-2 history). The oblique
+# *noun* itself is freely inflected by the generator, so any nominal stem fills
+# the slot; licensing is a property of the verb and the kāraka, not the noun.
+VERIFIED_OBLIQUE_FRAMES: dict[str, tuple[tuple[str, bool], ...]] = {
+    "karaNam": (("gam1", False), ("gam1", True), ("KAx1", False), ("KAx1", True), ("vax1", False)),
+    "sampraxAnam": (("xA1", False), ("xA1", True)),
+    "apAxAnam": (("gam1", False), ("gam1", True)),
+    "aXikaraNam": (
+        ("BU1", False), ("KAx1", False), ("KAx1", True), ("paW1", False), ("paW1", True),
+        ("vax1", False), ("xA1", False), ("xA1", True), ("vas1", False),
+    ),
+}
+
+# Small karma pool for oblique-with-karma frames (bounds the combinatorics).
+OBLIQUE_KARMA: tuple[tuple[str, str], ...] = (
+    ("Pala", "napuM"),
+    ("jala", "napuM"),
+    ("puswaka", "napuM"),
+)
+
 NUMBERS: tuple[str, ...] = ("eka", "xvi", "bahu")  # sg / du / pl
 
 # A representative tense/voice spread (WX lakāra names).
@@ -110,6 +133,8 @@ def enumerate_frames(n: int, *, seed: int = 0) -> Iterator[KarakaFrame]:
         return
 
     grid: list[KarakaFrame] = []
+
+    # Base frames: intransitive (kartā + verb) and transitive (kartā + karma + verb).
     for dhatu, arity in DHATUS:
         for lakara in LAKARAS:
             for subj_stem, subj_gender in NOMINAL_STEMS:
@@ -120,7 +145,7 @@ def enumerate_frames(n: int, *, seed: int = 0) -> Iterator[KarakaFrame]:
                             _noun(1, subj_stem, subj_gender, subj_num, "karwA", verb_id),
                             _verb(verb_id, dhatu, lakara),
                         ]
-                        sig = (dhatu, lakara, subj_stem, subj_num, "-", "-")
+                        sig: tuple[str, ...] = (dhatu, lakara, subj_stem, subj_num, "-", "-")
                         grid.append(KarakaFrame({"words": words}, sig))
                     else:
                         for obj_stem, obj_gender in NOMINAL_STEMS:
@@ -134,6 +159,43 @@ def enumerate_frames(n: int, *, seed: int = 0) -> Iterator[KarakaFrame]:
                             ]
                             sig = (dhatu, lakara, subj_stem, subj_num, obj_stem, "eka")
                             grid.append(KarakaFrame({"words": words}, sig))
+
+    # Oblique frames: kartā (+ karma) + one verified oblique kāraka + verb.
+    # These enrich arm D's auxiliary supervision beyond the binary
+    # intransitive/transitive role sequences (ADR-0012).
+    for karaka, verbs in VERIFIED_OBLIQUE_FRAMES.items():
+        for dhatu, with_karma in verbs:
+            for lakara in LAKARAS:
+                for subj_stem, subj_gender in NOMINAL_STEMS:
+                    for subj_num in NUMBERS:
+                        for obl_stem, obl_gender in NOMINAL_STEMS:
+                            if obl_stem == subj_stem:
+                                continue
+                            if with_karma:
+                                for karma_stem, karma_gender in OBLIQUE_KARMA:
+                                    if karma_stem in (subj_stem, obl_stem):
+                                        continue
+                                    verb_id = 4
+                                    words = [
+                                        _noun(1, subj_stem, subj_gender, subj_num, "karwA", verb_id),
+                                        _noun(2, karma_stem, karma_gender, "eka", "karma", verb_id),
+                                        _noun(3, obl_stem, obl_gender, "eka", karaka, verb_id),
+                                        _verb(verb_id, dhatu, lakara),
+                                    ]
+                                    sig = (
+                                        dhatu, lakara, subj_stem, subj_num,
+                                        karma_stem, karaka, obl_stem,
+                                    )
+                                    grid.append(KarakaFrame({"words": words}, sig))
+                            else:
+                                verb_id = 3
+                                words = [
+                                    _noun(1, subj_stem, subj_gender, subj_num, "karwA", verb_id),
+                                    _noun(2, obl_stem, obl_gender, "eka", karaka, verb_id),
+                                    _verb(verb_id, dhatu, lakara),
+                                ]
+                                sig = (dhatu, lakara, subj_stem, subj_num, "-", karaka, obl_stem)
+                                grid.append(KarakaFrame({"words": words}, sig))
 
     random.Random(seed).shuffle(grid)
     yield from grid[:n]
