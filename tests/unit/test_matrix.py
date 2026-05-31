@@ -12,9 +12,9 @@ from psalm.domain.experiments.matrix import (
 from psalm.domain.experiments.models import PrePretrainSource, PretrainCorpus
 
 
-def test_default_matrix_has_seven_arms_a_through_g() -> None:
+def test_default_matrix_has_eight_arms_a_through_h() -> None:
     m = default_h1_matrix(param_count_m=100.0)
-    assert [a.arm_id for a in m.arms] == ["A", "B", "C", "D", "E", "F", "G"]
+    assert [a.arm_id for a in m.arms] == ["A", "B", "C", "D", "E", "F", "G", "H"]
 
 
 def test_decisive_pair_is_b_vs_c() -> None:
@@ -92,5 +92,5 @@ def test_arm_lookup_unknown_raises() -> None:
 def test_run_plan_is_arms_times_seeds() -> None:
     m = default_h1_matrix(param_count_m=100.0, seeds=(0, 1, 2))
     plan = m.run_plan()
-    assert len(plan) == 7 * 3
+    assert len(plan) == 8 * 3  # arms A-H
     assert (m.arm("B"), 1) in plan

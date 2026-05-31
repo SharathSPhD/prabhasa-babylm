@@ -13,11 +13,16 @@ Design (from research-3, Stage 1):
       B  Pāṇinian  -> English   H1 test           ┐ decisive
       C  Dyck      -> English   primary control   ┘ comparison
       D  Pāṇinian + kāraka aux -> English          parse-supervision test
+      H  scrambled Sanskrit -> English             structure-vs-tokens control
 
     10M-token NL triplet (data-efficiency, matched among themselves):
       E  Pāṇinian  -> English   does the prior cut NL need?
       F  Dyck      -> English   low-budget control
       G  none      -> English   low-budget baseline
+
+    Arm H draws arm B's exact Pāṇinian tokens with sentence-internal order
+    permuted, so a B-vs-H gap isolates kāraka *structure* from Sanskrit
+    *vocabulary* (matched to the B/C budget).
 
 All arms share param_count and target corpus; only the structural prior and the
 NL token budget vary, and they vary in matched groups.
@@ -112,6 +117,14 @@ def default_h1_matrix(
             param_count_m=param_count_m,
             token_budget=nl_budget_low,
         ),
+        ExperimentArm(
+            arm_id="H",
+            label="structure-scrambled Sanskrit control",
+            pre_pretrain=PrePretrainSource.PANINIAN_SCRAMBLED,
+            pretrain_corpus=corpus,
+            param_count_m=param_count_m,
+            token_budget=nl_budget_high,
+        ),
     ]
     return ExperimentMatrix(arms=arms, seeds=seeds)
 
@@ -171,6 +184,14 @@ class ExperimentMatrix(BaseModel):
         for x, y in zip(low, low[1:], strict=False):
             if not self.matched(x, y):
                 problems.append(f"low-budget control {x.arm_id} vs {y.arm_id} not matched")
+        # Arm H (structure-scrambled) must match arm B so a B-vs-H gap isolates
+        # structure from vocabulary; skip silently if H is absent (proxy matrix).
+        try:
+            h = self.arm("H")
+        except KeyError:
+            h = None
+        if h is not None and not self.matched(b, h):
+            problems.append(f"structure control B vs {h.arm_id} not matched")
         return problems
 
     def run_plan(self) -> list[tuple[ExperimentArm, int]]:

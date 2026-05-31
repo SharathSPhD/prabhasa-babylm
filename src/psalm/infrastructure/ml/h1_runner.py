@@ -25,7 +25,16 @@ from psalm.domain.experiments.models import PrePretrainSource
 from psalm.domain.model.config import ModelConfig
 from psalm.domain.model.training import TrainConfig
 from psalm.infrastructure.ml.eval_lm import greedy_generate
-from psalm.infrastructure.ml.trainer import train_decoder
+from psalm.infrastructure.ml.trainer import train_two_phase
+
+#: Diversity-capped structural budget (whitespace tokens), matched across all
+#: pre-pretrain arms so B (Pāṇinian, no-repeat) and C (Dyck, fresh) differ only
+#: in content. Set from the source's no-repeat token count (ADR-0013 / the
+#: structural-diversity finding); 60k is below the current cache's ~71k ceiling.
+DEFAULT_PRE_BUDGET_TOKENS = 60_000
+
+#: Downstream checkpoint fractions -> within-run token-savings curve.
+DEFAULT_EVAL_FRACS: tuple[float, ...] = (0.1, 0.25, 0.5, 1.0)
 
 
 @dataclass
@@ -52,6 +61,9 @@ class H1Runner:
         pretrain_max_new: int = 32,
         decode: Callable[[list[int]], str] | None = None,
         append_eos_to_prompt: bool = True,
+        pre_budget_tokens: int = DEFAULT_PRE_BUDGET_TOKENS,
+        eval_fracs: tuple[float, ...] = DEFAULT_EVAL_FRACS,
+        nl_budget_tokens: int | None = None,
     ) -> None:
         self.assembler = assembler
         self.nl_lines = nl_lines
@@ -61,6 +73,11 @@ class H1Runner:
         self.train_cfg = train_cfg
         self.eval_sets = eval_sets
         self.pretrain_max_new = pretrain_max_new
+        self.pre_budget_tokens = pre_budget_tokens
+        self.eval_fracs = eval_fracs
+        # Downstream token budget. Defaults to the arm's NL budget, but can be
+        # overridden (proxy/pilot) so a run does not always cost the full 130M.
+        self.nl_budget_tokens = nl_budget_tokens
         # Real benchmarks (SCAN/COGS) need a true detokenize; the default
         # id-join is only meaningful for the char-proxy. For SCAN-as-task the
         # prompt ("IN: cmd OUT:") must NOT carry EOS or the model sees the
@@ -77,35 +94,20 @@ class H1Runner:
         )
         self.comp_max_new = max(pretrain_max_new, max_gold_len + 4)
 
-    def _arm_lines(self, arm: ExperimentArm, seed: int) -> Callable[[], Iterable[str]]:
-        pre_budget = max(arm.token_budget // 10, 1)
+    def _pre_lines(self, arm: ExperimentArm, seed: int) -> Callable[[], Iterable[str]] | None:
+        """Structural pre-pretraining stream (None for arms A/G), diversity-capped."""
+        if arm.pre_pretrain is PrePretrainSource.NONE:
+            return None
 
         def make() -> Iterable[str]:
-            # Pre-pretraining structural prior (empty for arm A/G).
             yield from self.assembler.take_until_tokens(
-                arm.pre_pretrain, budget_tokens=pre_budget, seed=seed
+                arm.pre_pretrain, budget_tokens=self.pre_budget_tokens, seed=seed
             )
-            # NL continuation.
-            yield from self.nl_lines()
 
         return make
 
-    def __call__(self, arm: ExperimentArm, seed: int) -> dict[str, float]:
+    def _eval_compositional(self, model: object, device: str) -> float:
         from psalm.domain.eval.metrics import exact_match_accuracy
-
-        cfg = self.train_cfg.model_copy(update={"seed": seed})
-        aux_vocab = self.model_cfg.vocab_size if arm.karaka_aux_loss else 0
-        if arm.karaka_aux_loss:
-            cfg = cfg.model_copy(update={"aux_loss_weight": max(cfg.aux_loss_weight, 0.5)})
-
-        model, outcome = train_decoder(
-            self.model_cfg,
-            cfg,
-            self._arm_lines(arm, seed),
-            encode=self.encode,
-            eos_id=self.eos_id,
-            aux_vocab=aux_vocab,
-        )
 
         preds: list[str] = []
         golds: list[str] = []
@@ -117,18 +119,46 @@ class H1Runner:
                 model,
                 prompt,
                 max_new_tokens=self.comp_max_new,
-                device=cfg.device if cfg.device == "cpu" else "cuda",
+                device=device if device == "cpu" else "cuda",
                 eos_id=self.eos_id,
             )
             preds.append(self.decode(out_ids).strip())
             golds.append(gold.strip())
-        accuracy = exact_match_accuracy(preds, golds) if preds else 0.0
+        return exact_match_accuracy(preds, golds) if preds else 0.0
 
-        return {
+    def __call__(self, arm: ExperimentArm, seed: int) -> dict[str, float]:
+        cfg = self.train_cfg.model_copy(update={"seed": seed})
+        aux_vocab = self.model_cfg.vocab_size if arm.karaka_aux_loss else 0
+        if arm.karaka_aux_loss:
+            cfg = cfg.model_copy(update={"aux_loss_weight": max(cfg.aux_loss_weight, 0.5)})
+
+        nl_budget = self.nl_budget_tokens if self.nl_budget_tokens is not None else arm.token_budget
+        pre_lines = self._pre_lines(arm, seed)
+        model, outcome = train_two_phase(
+            self.model_cfg,
+            cfg,
+            pre_make_lines=pre_lines,
+            nl_make_lines=self.nl_lines,
+            pre_max_tokens=self.pre_budget_tokens if pre_lines is not None else 0,
+            nl_max_tokens=nl_budget,
+            encode=self.encode,
+            eos_id=self.eos_id,
+            aux_vocab=aux_vocab,
+            eval_fracs=self.eval_fracs,
+            eval_fn=lambda m: self._eval_compositional(m, cfg.device),
+        )
+
+        accuracy = self._eval_compositional(model, cfg.device)
+        metrics = {
             "compositional_accuracy": accuracy,
-            "tokens_to_quality": float(outcome.tokens_seen),
-            "final_loss": outcome.final_loss,
+            "tokens_to_quality": float(outcome.nl.tokens),
+            "final_loss": outcome.nl.last_loss,
+            "structural_tokens": float(outcome.pre.tokens),
         }
+        # Within-run efficiency curve: accuracy at each downstream checkpoint.
+        for nl_tokens, metric in outcome.checkpoints:
+            metrics[f"acc_at_{nl_tokens}"] = metric
+        return metrics
 
 
 def _decode_ids(ids: list[int]) -> str:

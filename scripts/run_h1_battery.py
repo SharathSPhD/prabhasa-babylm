@@ -36,8 +36,9 @@ from psalm.domain.model.training import Precision, TrainConfig
 from psalm.infrastructure.eval.scan import load_scan
 from psalm.infrastructure.generators.dyck_source import DyckSentenceSource
 from psalm.infrastructure.generators.jsonl_source import JsonlSentenceSource
+from psalm.infrastructure.generators.scramble_source import ScramblingGenerator
 from psalm.infrastructure.ledger.sqlite_ledger import SqliteLedger
-from psalm.infrastructure.ml.h1_runner import EvalSets, H1Runner
+from psalm.infrastructure.ml.h1_runner import DEFAULT_EVAL_FRACS, EvalSets, H1Runner
 from psalm.infrastructure.tokenizer.sentencepiece_tokenizer import SentencePieceTrainer
 
 EOS_ID = 2  # SentencePiece default eos
@@ -63,9 +64,16 @@ def main() -> None:
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--require-cuda", action="store_true")
     ap.add_argument(
+        "--pre-budget",
+        type=int,
+        default=None,
+        help="Diversity-capped structural token budget for all pre-pretrain arms "
+        "(default: read from docs/data/phase2-structural-diversity.json, else 60000).",
+    )
+    ap.add_argument(
         "--confirm",
         action="store_true",
-        help="Fast signal check: arms A,B,C,D only, 1 seed (overrides --seeds).",
+        help="Fast signal check: 1 seed + small steps (overrides --seeds/--max-steps).",
     )
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
@@ -83,9 +91,21 @@ def main() -> None:
         print(f"CUDA OK: {torch.cuda.get_device_name(0)} | torch {torch.__version__}")
 
     seeds = tuple(range(1 if args.confirm else args.seeds))
+    max_steps = 200 if args.confirm else args.max_steps
 
     paninian = JsonlSentenceSource(args.cache)
     dyck = DyckSentenceSource()
+    scrambled = ScramblingGenerator(paninian)  # arm H: B's tokens, order permuted
+
+    pre_budget = args.pre_budget
+    if pre_budget is None:
+        div_path = Path("docs/data/phase2-structural-diversity.json")
+        if div_path.exists():
+            pre_budget = int(json.loads(div_path.read_text())["recommended_pre_budget_tokens"])
+            print(f"pre_budget from diversity report: {pre_budget} tokens")
+        else:
+            pre_budget = 60_000
+            print(f"pre_budget default (no diversity report): {pre_budget} tokens")
     scan_train = load_scan(args.scan_split, which="train", limit=args.scan_train)
     scan_test = load_scan(args.scan_split, which="test", limit=args.scan_test)
     scan_train_lines = [scan_line(c, a) for c, a in scan_train]
@@ -101,14 +121,16 @@ def main() -> None:
     vocab = tok.vocab_size
     print(f"tokenizer vocab={vocab} device={device} split={args.scan_split} size={args.size}M")
 
-    assembler = PrePretrainAssembler(paninian=paninian, dyck=dyck)
+    assembler = PrePretrainAssembler(
+        paninian=paninian, dyck=dyck, paninian_scrambled=scrambled
+    )
     model_cfg = preset_for(args.size, vocab_size=vocab, max_seq_len=args.seq_len)
     train_cfg = TrainConfig(
-        max_steps=args.max_steps,
+        max_steps=max_steps,
         batch_size=args.batch_size,
         seq_len=args.seq_len,
         lr=args.lr,
-        warmup_steps=max(args.max_steps // 20, 10),
+        warmup_steps=max(max_steps // 20, 10),
         precision=Precision.FP32 if device == "cpu" else Precision.BF16,
         device=device,
         log_every=200,
@@ -127,6 +149,8 @@ def main() -> None:
         eval_sets=eval_sets,
         decode=lambda ids: tok.decode(ids),
         append_eos_to_prompt=False,
+        pre_budget_tokens=pre_budget,
+        eval_fracs=DEFAULT_EVAL_FRACS,
     )
 
     # Keep the full A-G matrix so the fairness invariants hold (the orchestrator
@@ -157,7 +181,8 @@ def main() -> None:
         "size_m": args.size,
         "vocab": vocab,
         "seeds": list(seeds),
-        "max_steps": args.max_steps,
+        "max_steps": max_steps,
+        "pre_budget_tokens": pre_budget,
         "seq_len": args.seq_len,
         "batch_size": args.batch_size,
         "confirm": args.confirm,
