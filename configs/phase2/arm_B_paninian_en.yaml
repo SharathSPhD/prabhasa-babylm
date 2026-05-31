@@ -1,0 +1,3 @@
+phase: phase-2-h1
+arm_id: B
+data: { pre_pretrain_source: paninian, pretrain_corpus: english, word_budget: 100000000 }

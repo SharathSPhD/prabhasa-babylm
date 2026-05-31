@@ -1,0 +1,4 @@
+# Multilingual: enables readings B (Sanskrit competence) and C (transfer gap).
+phase: phase-2-h1
+arm_id: F
+data: { pre_pretrain_source: paninian, pretrain_corpus: sanskrit_english, word_budget: 100000000 }

@@ -1,0 +1,3 @@
+phase: phase-2-h1
+arm_id: D
+data: { pre_pretrain_source: paninian_karaka_aux, pretrain_corpus: english, word_budget: 100000000, karaka_aux_loss: true }
