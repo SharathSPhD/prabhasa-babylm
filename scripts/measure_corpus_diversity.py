@@ -25,7 +25,8 @@ from pathlib import Path
 import pyarrow.parquet as pq
 from huggingface_hub import hf_hub_download
 
-from psalm.domain.data.diversity import summarize
+from psalm.domain.data.diversity import summarize, type_token_ratio
+from psalm.infrastructure.generators.vidyut_source import VidyutGenerator
 
 PRAKRIYA = "preetammukherjee/sanskrit_morph_prakriya"
 DCS = "sampathlonka/DCS_Sanskrit_Morphology_v1"
@@ -51,12 +52,30 @@ def main() -> None:
     prakriya_forms = _load_column(PRAKRIYA, "surface_form_vidyut")
     dcs_sentences = _load_column(DCS, "sentence", limit=args.dcs_sample)
 
+    # Live generator: derive forms directly from the Vidyut Pāṇinian engine, with
+    # gold sūtra-by-sūtra derivations. This is the actual generator go/no-go input.
+    gen_items = list(VidyutGenerator().stream(648, seed=0))
+    gen_forms = [s.text for s in gen_items]
+    distinct_sutras = {code for s in gen_items for code in s.derivation}
+
     report = {
-        "vidyut_prakriya_generator": {
+        "vidyut_live_generator": {
+            "source": "vidyut.prakriya (Vyakarana.derive)",
+            "license": "MIT/Apache-2.0",
+            "n_items": len(gen_forms),
+            "form_type_token_ratio": round(type_token_ratio(gen_forms), 4),
+            "distinct_sutras_exercised": len(distinct_sutras),
+            "avg_derivation_steps": round(
+                sum(len(s.derivation) for s in gen_items) / max(len(gen_items), 1), 1
+            ),
+            "note": "Tiṅanta forms from 12 default dhātus; scales with the full Dhātupāṭha.",
+        },
+        "vidyut_prakriya_published_dataset": {
             "source": PRAKRIYA,
             "license": "MIT",
             "n_items": len(prakriya_forms),
             "stats": summarize(prakriya_forms),
+            "note": "Published verb-form dataset; n-gram entropy 0 because items are single tokens.",
         },
         "dcs_real_corpus": {
             "source": DCS,
