@@ -48,6 +48,27 @@ def test_structure_shape_is_generator_ready() -> None:
         assert len(karmas) <= 1
 
 
+def test_oblique_karakas_are_enumerated() -> None:
+    # ADR-0012 enrichment: arm D supervision must span more than the binary
+    # intransitive/transitive role set. Oblique kārakas should appear.
+    roles_seen: set[str] = set()
+    for frame in enumerate_frames(2000, seed=0):
+        for w in frame.structure["words"]:
+            if w["pos"] == "noun":
+                roles_seen.add(str(w["karaka"]))
+    assert {"karaNam", "sampraxAnam", "apAxAnam", "aXikaraNam"} <= roles_seen
+
+
+def test_distinct_role_sequences_exceed_two() -> None:
+    seqs: set[tuple[str, ...]] = set()
+    for frame in enumerate_frames(2000, seed=1):
+        seq = tuple(
+            str(w["karaka"]) for w in frame.structure["words"] if w["pos"] == "noun"
+        )
+        seqs.add(seq)
+    assert len(seqs) >= 6  # was 2 (kartā / kartā+karma) before the extension
+
+
 def test_subject_object_distinct_in_transitive_frames() -> None:
     for frame in enumerate_frames(60, seed=3):
         nouns = [w for w in frame.structure["words"] if w["pos"] == "noun"]
