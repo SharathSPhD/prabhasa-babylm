@@ -57,9 +57,7 @@ def decide_h1(
     savings = token_savings(
         treatment=treatment_tokens_to_quality, control=control_tokens_to_quality
     )
-    cmp = permutation_test(
-        list(treatment_scores), list(control_scores), higher_is_better=True
-    )
+    cmp = permutation_test(list(treatment_scores), list(control_scores), higher_is_better=True)
     gain_points = (cmp.treatment_mean - cmp.control_mean) * 100.0
 
     savings_pass = savings >= TOKEN_SAVINGS_THRESHOLD - _EPS
