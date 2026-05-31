@@ -55,6 +55,10 @@ KNOWN_LICENSES: dict[str, CorpusLicense] = {
         "CC0-1.0", Redistribution.ALLOWED, "https://creativecommons.org/publicdomain/zero/1.0/"
     ),
     "PD": CorpusLicense("PD", Redistribution.ALLOWED),
+    "MIT": CorpusLicense("MIT", Redistribution.ATTRIBUTION, "https://opensource.org/license/mit"),
+    "apache-2.0": CorpusLicense(
+        "apache-2.0", Redistribution.ATTRIBUTION, "https://www.apache.org/licenses/LICENSE-2.0"
+    ),
     "CC-BY-4.0": CorpusLicense(
         "CC-BY-4.0", Redistribution.ATTRIBUTION, "https://creativecommons.org/licenses/by/4.0/"
     ),

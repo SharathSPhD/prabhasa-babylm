@@ -89,19 +89,29 @@ class KnownSource:
         return license_for(self.spdx)
 
 
-#: The four named Phase-1 sources, with conservative license classification.
+#: Named Phase-1 sources. Licenses verified on the HF Hub where noted (ADR-0010);
+#: unverified sources default to non-redistributable until classified.
 KNOWN_SOURCES: dict[str, KnownSource] = {
-    "gretil": KnownSource(
-        "gretil",
-        "CC-BY-SA-4.0",
-        "http://gretil.sub.uni-goettingen.de/",
-        "Göttingen Register of Electronic Texts in Indian Languages; per-text licenses vary, verify each.",
+    "vidyut-prakriya": KnownSource(
+        "vidyut-prakriya",
+        "MIT",
+        "https://huggingface.co/datasets/preetammukherjee/sanskrit_morph_prakriya",
+        "Open Pāṇinian derivation engine output (verb forms); MIT, license-clean. "
+        "Primary generator per ADR-0010; sentence-level generation runs Vidyut's API.",
     ),
     "dcs": KnownSource(
         "dcs",
-        "CC-BY-SA-4.0",
-        "http://www.sanskrit-linguistics.org/dcs/",
-        "Digital Corpus of Sanskrit; morphologically analysed; verify redistribution terms.",
+        "apache-2.0",
+        "https://huggingface.co/datasets/sampathlonka/DCS_Sanskrit_Morphology_v1",
+        "Digital Corpus of Sanskrit; 721K morphologically-analysed sentences; "
+        "Apache-2.0, license-clean. Primary real corpus per ADR-0010.",
+    ),
+    "gretil": KnownSource(
+        "gretil",
+        "unknown",
+        "https://huggingface.co/datasets/paws/sanskrit-verses-gretil",
+        "449K GRETIL verses; no explicit license tag on the HF mirror — gated until "
+        "per-text terms are confirmed.",
     ),
     "babylm": KnownSource(
         "babylm",

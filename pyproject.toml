@@ -58,6 +58,7 @@ data = [
     "sentencepiece>=0.2",
     "huggingface-hub>=0.24",
     "datasets>=2.20",
+    "pyarrow>=16.0",
 ]
 # Verification / neurosymbolic kernel (H3).
 verification = [
