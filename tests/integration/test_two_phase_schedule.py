@@ -151,6 +151,39 @@ def test_checkpoint_curve_is_recorded() -> None:
 
 
 @pytest.mark.slow
+def test_matched_epoch_dose_scales_structural_steps() -> None:
+    """pre_epochs=N trains ~N× the single-pass structural steps (matched dose)."""
+    model_cfg, train_cfg = _cfg()
+    _, one = train_two_phase(
+        model_cfg,
+        train_cfg,
+        pre_make_lines=_pre_lines,
+        nl_make_lines=_nl_lines,
+        pre_max_tokens=2_000,
+        nl_max_tokens=0,
+        encode=_toy_encode,
+        eos_id=EOS,
+        pre_epochs=1,
+    )
+    _, three = train_two_phase(
+        model_cfg,
+        train_cfg,
+        pre_make_lines=_pre_lines,
+        nl_make_lines=_nl_lines,
+        pre_max_tokens=2_000,
+        nl_max_tokens=0,
+        encode=_toy_encode,
+        eos_id=EOS,
+        pre_epochs=3,
+    )
+    # Three matched epochs see strictly more structural steps/tokens than one,
+    # while the downstream budget is unchanged (still max_steps).
+    assert three.pre.steps > one.pre.steps
+    assert three.pre.tokens > one.pre.tokens
+    assert three.nl.steps == one.nl.steps == MAX_STEPS
+
+
+@pytest.mark.slow
 def test_nl_token_cap_binds_when_smaller_than_max_steps() -> None:
     """A small nl_max_tokens cap shortens downstream below max_steps (proxy guard)."""
     model_cfg, train_cfg = _cfg()

@@ -64,6 +64,7 @@ class H1Runner:
         pre_budget_tokens: int = DEFAULT_PRE_BUDGET_TOKENS,
         eval_fracs: tuple[float, ...] = DEFAULT_EVAL_FRACS,
         nl_budget_tokens: int | None = None,
+        pre_epochs: int = 1,
     ) -> None:
         self.assembler = assembler
         self.nl_lines = nl_lines
@@ -78,6 +79,9 @@ class H1Runner:
         # Downstream token budget. Defaults to the arm's NL budget, but can be
         # overridden (proxy/pilot) so a run does not always cost the full 130M.
         self.nl_budget_tokens = nl_budget_tokens
+        # Matched-epoch structural dose: repeat the capped unique set N times for
+        # every pre-pretrain arm (ADR-0014), raising dose while staying matched.
+        self.pre_epochs = pre_epochs
         # Real benchmarks (SCAN/COGS) need a true detokenize; the default
         # id-join is only meaningful for the char-proxy. For SCAN-as-task the
         # prompt ("IN: cmd OUT:") must NOT carry EOS or the model sees the
@@ -144,6 +148,7 @@ class H1Runner:
             encode=self.encode,
             eos_id=self.eos_id,
             aux_vocab=aux_vocab,
+            pre_epochs=self.pre_epochs,
             eval_fracs=self.eval_fracs,
             eval_fn=lambda m: self._eval_compositional(m, cfg.device),
         )

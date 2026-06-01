@@ -57,6 +57,23 @@ def _once(make_stream: Callable[[], Iterable[str]]) -> Iterator[str]:
     yield from make_stream()
 
 
+def _repeat(make_stream: Callable[[], Iterable[str]], n: int) -> Iterator[str]:
+    """Yield the stream exactly ``n`` times (matched-epoch structural dose).
+
+    For the diversity-capped structural phase, repeating the *same* capped unique
+    set N times for both B and C raises the dose by N× while keeping unique-token
+    budget and epoch count matched across arms (ADR-0014). ``make_stream`` must be
+    deterministic across calls so every arm sees the identical set each epoch.
+    """
+    for _ in range(max(n, 1)):
+        produced = False
+        for line in make_stream():
+            produced = True
+            yield line
+        if not produced:
+            return
+
+
 def _resolve_device(train_cfg: TrainConfig) -> str:
     if train_cfg.device.startswith("cuda") and not torch.cuda.is_available():
         logger.warning(
@@ -229,15 +246,20 @@ def train_two_phase(
     encode: Callable[[str], list[int]],
     eos_id: int,
     aux_vocab: int = 0,
+    pre_epochs: int = 1,
     eval_fracs: tuple[float, ...] = (),
     eval_fn: Callable[[Decoder], float] | None = None,
 ) -> tuple[Decoder, TwoPhaseOutcome]:
     """Train a bounded structural phase, then a downstream phase, on one model.
 
-    * Phase 1 (structural): trained to ``pre_max_tokens`` tokens over a
-      *single pass* of ``pre_make_lines`` (no re-yield). Skipped when
-      ``pre_make_lines`` is None or ``pre_max_tokens`` <= 0 (arms A/G). The
-      auxiliary kāraka head (arm D) is active here, where the parse lives.
+    * Phase 1 (structural): trained over ``pre_epochs`` passes of
+      ``pre_make_lines`` (each pass bounded to ``pre_max_tokens`` tokens). With
+      ``pre_epochs == 1`` this is a single pass; with N > 1 it is the
+      matched-epoch dose (ADR-0014) — the *same* capped unique set repeated N
+      times for every arm, raising the dose N× while keeping unique-token budget
+      and epoch count matched. Skipped when ``pre_make_lines`` is None or
+      ``pre_max_tokens`` <= 0 (arms A/G). The auxiliary kāraka head (arm D) is
+      active here, where the parse lives.
     * Phase 2 (downstream): trained for ``train_cfg.max_steps`` optimiser steps
       over a cycled ``nl_make_lines`` — the canonical fairness knob, identical
       for every arm so a matched group is compute-fair on downstream training.
@@ -257,17 +279,17 @@ def train_two_phase(
     packer = TokenPacker(encode, eos_id=eos_id, seq_len=train_cfg.seq_len)
     start = time.time()
 
-    # --- Phase 1: structural (bounded, single pass).
+    # --- Phase 1: structural (bounded, pre_epochs passes of the capped set).
     pre = _PhaseResult()
     if pre_make_lines is not None and pre_max_tokens > 0:
-        pre_steps = _steps_for_tokens(pre_max_tokens, train_cfg)
+        epochs = max(pre_epochs, 1)
+        pre_steps = epochs * _steps_for_tokens(pre_max_tokens, train_cfg)
         opt1 = torch.optim.AdamW(
             model.parameters(), lr=train_cfg.lr, weight_decay=train_cfg.weight_decay,
             betas=(0.9, 0.95),
         )
-        pre_iter = packer.batches(
-            _once(pre_make_lines), batch_size=train_cfg.batch_size, device=device
-        )
+        pre_stream = _once(pre_make_lines) if epochs == 1 else _repeat(pre_make_lines, epochs)
+        pre_iter = packer.batches(pre_stream, batch_size=train_cfg.batch_size, device=device)
         pre = _run_steps(
             model, opt1, pre_iter, train_cfg=train_cfg, device=device,
             n_steps=pre_steps, lr_total=pre_steps, aux_loss_weight=train_cfg.aux_loss_weight,
