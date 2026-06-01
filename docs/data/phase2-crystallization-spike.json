@@ -1,0 +1,143 @@
+{
+  "spike": "knowledge_crystallization",
+  "curated_properties": 39,
+  "karaka_action_rate": 0.564,
+  "any_generable_rate": 0.744,
+  "empirical_wikibase_item_share": 0.367,
+  "datatype_distribution": {
+    "external_id_or_url": 412,
+    "entity_item": 2023,
+    "literal": 2914,
+    "decimal": 145,
+    "dateTime": 12,
+    "wktLiteral": 7
+  },
+  "real_triples_pulled": 50,
+  "sample_triples": [
+    {
+      "s": "Q523",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q216452",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q1266031",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q4234986",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q5511874",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q6414792",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q97223481",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q100968257",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q112999614",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "Q125576918",
+      "p": "P276",
+      "o": "Q1",
+      "role": "aXikaraNam"
+    },
+    {
+      "s": "L1160034",
+      "p": "P170",
+      "o": "Q5",
+      "role": "karwA"
+    },
+    {
+      "s": "Q138652122",
+      "p": "P170",
+      "o": "Q5",
+      "role": "karwA"
+    },
+    {
+      "s": "Q19092402",
+      "p": "P170",
+      "o": "Q23",
+      "role": "karwA"
+    },
+    {
+      "s": "Q264685",
+      "p": "P170",
+      "o": "Q42",
+      "role": "karwA"
+    },
+    {
+      "s": "Q613901",
+      "p": "P170",
+      "o": "Q42",
+      "role": "karwA"
+    },
+    {
+      "s": "Q637202",
+      "p": "P170",
+      "o": "Q42",
+      "role": "karwA"
+    },
+    {
+      "s": "Q779920",
+      "p": "P170",
+      "o": "Q42",
+      "role": "karwA"
+    },
+    {
+      "s": "Q847094",
+      "p": "P170",
+      "o": "Q42",
+      "role": "karwA"
+    },
+    {
+      "s": "Q928321",
+      "p": "P170",
+      "o": "Q42",
+      "role": "karwA"
+    },
+    {
+      "s": "Q959519",
+      "p": "P170",
+      "o": "Q42",
+      "role": "karwA"
+    }
+  ],
+  "grid_ceiling": 74760,
+  "ceiling_conservative_V2000": 1056000000,
+  "ceiling_moderate_V10000": 26400000000,
+  "binding_constraint": "Sanskrit-expressible entity vocabulary (Attack 1), not relation mapping",
+  "wall_seconds": 12.9
+}
