@@ -152,7 +152,10 @@ def _run_steps(
             nn.utils.clip_grad_norm_(model.parameters(), train_cfg.grad_clip)
         for group in opt.param_groups:
             group["lr"] = cosine_lr(
-                res.steps, base_lr=train_cfg.lr, warmup=train_cfg.warmup_steps, total=max(lr_total, 1)
+                res.steps,
+                base_lr=train_cfg.lr,
+                warmup=train_cfg.warmup_steps,
+                total=max(lr_total, 1),
             )
         opt.step()
         res.last_loss = accum_loss
@@ -184,7 +187,9 @@ def train_decoder(
         model.parameters(), lr=train_cfg.lr, weight_decay=train_cfg.weight_decay, betas=(0.9, 0.95)
     )
     packer = TokenPacker(encode, eos_id=eos_id, seq_len=train_cfg.seq_len)
-    batch_iter = packer.batches(_infinite(make_lines), batch_size=train_cfg.batch_size, device=device)
+    batch_iter = packer.batches(
+        _infinite(make_lines), batch_size=train_cfg.batch_size, device=device
+    )
 
     start = time.time()
     res = _run_steps(
@@ -285,14 +290,22 @@ def train_two_phase(
         epochs = max(pre_epochs, 1)
         pre_steps = epochs * _steps_for_tokens(pre_max_tokens, train_cfg)
         opt1 = torch.optim.AdamW(
-            model.parameters(), lr=train_cfg.lr, weight_decay=train_cfg.weight_decay,
+            model.parameters(),
+            lr=train_cfg.lr,
+            weight_decay=train_cfg.weight_decay,
             betas=(0.9, 0.95),
         )
         pre_stream = _once(pre_make_lines) if epochs == 1 else _repeat(pre_make_lines, epochs)
         pre_iter = packer.batches(pre_stream, batch_size=train_cfg.batch_size, device=device)
         pre = _run_steps(
-            model, opt1, pre_iter, train_cfg=train_cfg, device=device,
-            n_steps=pre_steps, lr_total=pre_steps, aux_loss_weight=train_cfg.aux_loss_weight,
+            model,
+            opt1,
+            pre_iter,
+            train_cfg=train_cfg,
+            device=device,
+            n_steps=pre_steps,
+            lr_total=pre_steps,
+            aux_loss_weight=train_cfg.aux_loss_weight,
         )
 
     # --- Phase 2: downstream (max_steps-governed, cycled), with checkpoint evals.
@@ -320,8 +333,15 @@ def train_two_phase(
             checkpoints.append((step * tps, metric))
 
     nl = _run_steps(
-        model, opt2, nl_iter, train_cfg=train_cfg, device=device,
-        n_steps=nl_steps, lr_total=nl_steps, aux_loss_weight=0.0, on_step=on_step,
+        model,
+        opt2,
+        nl_iter,
+        train_cfg=train_cfg,
+        device=device,
+        n_steps=nl_steps,
+        lr_total=nl_steps,
+        aux_loss_weight=0.0,
+        on_step=on_step,
     )
 
     outcome = TwoPhaseOutcome(

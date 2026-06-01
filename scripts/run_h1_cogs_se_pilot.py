@@ -51,9 +51,7 @@ CORRUPTION = "distractor"  # most role-faithful, lowest final ceiling (0.914)
 def curve_points(metrics: dict[str, float]) -> list[tuple[int, float]]:
     """Extract sorted (nl_tokens, disc_accuracy) checkpoints from a run's metrics."""
     pts = [
-        (int(k.removeprefix("acc_at_")), v)
-        for k, v in metrics.items()
-        if k.startswith("acc_at_")
+        (int(k.removeprefix("acc_at_")), v) for k, v in metrics.items() if k.startswith("acc_at_")
     ]
     return sorted(pts)
 
@@ -197,7 +195,9 @@ def main() -> None:
             )
     wall = time.time() - start
 
-    summary = {a: {"auc_mean": mean_ci(auc[a])[0], "early_mean": mean_ci(early[a])[0]} for a in arm_ids}
+    summary = {
+        a: {"auc_mean": mean_ci(auc[a])[0], "early_mean": mean_ci(early[a])[0]} for a in arm_ids
+    }
 
     verdict = "INCOMPLETE: need arms A, B, C."
     d_auc = d_auc_lo = d_auc_hi = float("nan")
@@ -211,9 +211,7 @@ def main() -> None:
         )
         t_b = [t for t in t_theta["B"] if t is not None]
         t_c = [t for t in t_theta["C"] if t is not None]
-        d_eff = (
-            (sum(t_c) / len(t_c) - sum(t_b) / len(t_b)) if (t_b and t_c) else float("nan")
-        )
+        d_eff = (sum(t_c) / len(t_c) - sum(t_b) / len(t_b)) if (t_b and t_c) else float("nan")
         early_gap = mean_ci([early["B"][i] - early["C"][i] for i in range(args.seeds)])[0]
         concordant = (d_eff == d_eff and d_eff > 0) and early_gap > 0
         if earliest_all_ceiling:
@@ -254,7 +252,9 @@ def main() -> None:
         "vocab": tok.vocab_size,
         "wall_seconds": round(wall, 1),
         "auc": auc,
-        "tokens_to_theta": {a: [None if t is None else round(t, 1) for t in t_theta[a]] for a in arm_ids},
+        "tokens_to_theta": {
+            a: [None if t is None else round(t, 1) for t in t_theta[a]] for a in arm_ids
+        },
         "early_accuracy": early,
         "curves": {a: [[[t, round(v, 4)] for t, v in s] for s in curves[a]] for a in arm_ids},
         "summary": summary,
@@ -267,7 +267,9 @@ def main() -> None:
 
     print("\n=== COGS SAMPLE-EFFICIENCY PILOT (vs pre-registered ADR-0016 bar) ===")
     for a in arm_ids:
-        print(f"{a}: AUC={summary[a]['auc_mean']:.3f}  early@{EARLY_FRAC}={summary[a]['early_mean']:.3f}")
+        print(
+            f"{a}: AUC={summary[a]['auc_mean']:.3f}  early@{EARLY_FRAC}={summary[a]['early_mean']:.3f}"
+        )
     print(f"ΔAUC (B-C): {d_auc:+.3f} (CI {d_auc_lo:+.3f}..{d_auc_hi:+.3f})")
     print(f"wall: {wall:.0f}s\nVERDICT: {verdict}\nwrote {out_path}")
 

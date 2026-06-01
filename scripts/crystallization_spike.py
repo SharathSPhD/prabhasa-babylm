@@ -91,21 +91,21 @@ def _sparql(query: str, *, timeout: int = 40) -> dict | None:
 #: Diverse seed entities (person, city, country, chemical, book, film, species,
 #: event, concept, ...) so the statement sample is not dominated by one domain.
 SEED_ENTITIES: tuple[str, ...] = (
-    "Q937",     # Einstein (person)
-    "Q1297",    # Chicago (city)
-    "Q668",     # India (country)
-    "Q283",     # water (chemical)
-    "Q42",      # Douglas Adams (author)
-    "Q11424",   # film (concept)
-    "Q140",     # lion (species)
-    "Q7378",    # elephant
-    "Q1339",    # Bach (composer)
-    "Q11660",   # AI (field)
-    "Q8054",    # protein
-    "Q1062",    # Plato
-    "Q43229",   # organization
-    "Q4022",    # river
-    "Q12280",   # bridge
+    "Q937",  # Einstein (person)
+    "Q1297",  # Chicago (city)
+    "Q668",  # India (country)
+    "Q283",  # water (chemical)
+    "Q42",  # Douglas Adams (author)
+    "Q11424",  # film (concept)
+    "Q140",  # lion (species)
+    "Q7378",  # elephant
+    "Q1339",  # Bach (composer)
+    "Q11660",  # AI (field)
+    "Q8054",  # protein
+    "Q1062",  # Plato
+    "Q43229",  # organization
+    "Q4022",  # river
+    "Q12280",  # bridge
 )
 
 
@@ -150,7 +150,9 @@ def sample_real_triples(props: list[str], per_prop: int = 20) -> list[tuple[str,
         if not data:
             continue
         for row in data.get("results", {}).get("bindings", []):
-            out.append((row["s"]["value"].rsplit("/", 1)[-1], p, row["o"]["value"].rsplit("/", 1)[-1]))
+            out.append(
+                (row["s"]["value"].rsplit("/", 1)[-1], p, row["o"]["value"].rsplit("/", 1)[-1])
+            )
         time.sleep(0.3)
     return out
 
@@ -168,11 +170,15 @@ def main() -> None:
     copular = by_cls.get("copular", 0)
     frameable = karaka + copular  # generable by Saṃsādhanī (action OR predicative)
     print(f"\n[1a] Curated property map ({total} high-usage properties):")
-    print(f"     kāraka-action frames : {karaka} ({karaka/total:.0%})")
-    print(f"     copular/predicative  : {copular} ({copular/total:.0%})")
-    print(f"     unmappable           : {by_cls.get('unmappable', 0)} ({by_cls.get('unmappable', 0)/total:.0%})")
-    print(f"     => clean kāraka-action rate = {karaka/total:.0%}; "
-          f"any-generable rate = {frameable/total:.0%}")
+    print(f"     kāraka-action frames : {karaka} ({karaka / total:.0%})")
+    print(f"     copular/predicative  : {copular} ({copular / total:.0%})")
+    print(
+        f"     unmappable           : {by_cls.get('unmappable', 0)} ({by_cls.get('unmappable', 0) / total:.0%})"
+    )
+    print(
+        f"     => clean kāraka-action rate = {karaka / total:.0%}; "
+        f"any-generable rate = {frameable / total:.0%}"
+    )
 
     # --- (1b) Empirical: entity-entity (wikibase-item) share over real properties.
     print("\n[1b] Empirical object-type distribution over real statements of diverse entities:")
@@ -183,7 +189,7 @@ def main() -> None:
         item = dtypes.get("entity_item", 0)
         item_share = item / n if n else 0.0
         for t, c in sorted(dtypes.items(), key=lambda kv: -kv[1])[:8]:
-            print(f"     {c/n:5.1%}  {t}")
+            print(f"     {c / n:5.1%}  {t}")
         print(f"     => entity-entity (kāraka-candidate) statement share = {item_share:.0%}")
     else:
         print("     SKIPPED (SPARQL unreachable)")
@@ -191,10 +197,14 @@ def main() -> None:
     # --- (1c) Sanity-check real triples exist for a few kāraka-action properties.
     probe_props = ["P276", "P170", "P176", "P828", "P186"]
     triples = sample_real_triples(probe_props, per_prop=10)
-    print(f"\n[1c] Pulled {len(triples)} real entity-entity triples across {probe_props} "
-          f"(confirms frames are real, not hypothetical).")
+    print(
+        f"\n[1c] Pulled {len(triples)} real entity-entity triples across {probe_props} "
+        f"(confirms frames are real, not hypothetical)."
+    )
     for s, p, o in triples[:5]:
-        print(f"     ({s}) --{p}:{PROPERTY_MAP[p]['label']}--> ({o})  role={PROPERTY_MAP[p]['role']}")
+        print(
+            f"     ({s}) --{p}:{PROPERTY_MAP[p]['label']}--> ({o})  role={PROPERTY_MAP[p]['role']}"
+        )
 
     # --- (2) Frame-ceiling estimate vs the 74,760 grid cap.
     GRID_CEILING = 74_760
@@ -207,8 +217,10 @@ def main() -> None:
         # ceiling ~ (#karaka-action property-frames) × V × V (subject × object),
         # × lakāra/number multipliers (~12) — bounded, illustrative.
         ceiling = arity_props * vocab * vocab * 12
-        print(f"\n[2] Ceiling {label}: ~{ceiling:.2e} frames "
-              f"(grid={GRID_CEILING:.2e}, ×{ceiling/GRID_CEILING:.0e} larger)")
+        print(
+            f"\n[2] Ceiling {label}: ~{ceiling:.2e} frames "
+            f"(grid={GRID_CEILING:.2e}, ×{ceiling / GRID_CEILING:.0e} larger)"
+        )
 
     payload = {
         "spike": "knowledge_crystallization",
@@ -218,7 +230,9 @@ def main() -> None:
         "empirical_wikibase_item_share": round(item_share, 3) if item_share == item_share else None,
         "datatype_distribution": dtypes,
         "real_triples_pulled": len(triples),
-        "sample_triples": [{"s": s, "p": p, "o": o, "role": PROPERTY_MAP[p]["role"]} for s, p, o in triples[:20]],
+        "sample_triples": [
+            {"s": s, "p": p, "o": o, "role": PROPERTY_MAP[p]["role"]} for s, p, o in triples[:20]
+        ],
         "grid_ceiling": GRID_CEILING,
         "ceiling_conservative_V2000": karaka * 2_000 * 2_000 * 12,
         "ceiling_moderate_V10000": karaka * 10_000 * 10_000 * 12,

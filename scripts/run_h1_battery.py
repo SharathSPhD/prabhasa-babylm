@@ -121,9 +121,7 @@ def main() -> None:
     vocab = tok.vocab_size
     print(f"tokenizer vocab={vocab} device={device} split={args.scan_split} size={args.size}M")
 
-    assembler = PrePretrainAssembler(
-        paninian=paninian, dyck=dyck, paninian_scrambled=scrambled
-    )
+    assembler = PrePretrainAssembler(paninian=paninian, dyck=dyck, paninian_scrambled=scrambled)
     model_cfg = preset_for(args.size, vocab_size=vocab, max_seq_len=args.seq_len)
     train_cfg = TrainConfig(
         max_steps=max_steps,

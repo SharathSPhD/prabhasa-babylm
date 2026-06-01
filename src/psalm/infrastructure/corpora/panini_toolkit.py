@@ -74,8 +74,7 @@ class PaniniToolkitCorpusSource:
             from panini_data_toolkit import corpus
         except ImportError as exc:  # pragma: no cover - import guard
             raise CorpusNotProvisionedError(
-                "panini-data-toolkit is not installed; cannot stream corpus "
-                f"{self.key!r}."
+                f"panini-data-toolkit is not installed; cannot stream corpus {self.key!r}."
             ) from exc
         if not corpus.is_available(self.key):
             raise CorpusNotProvisionedError(

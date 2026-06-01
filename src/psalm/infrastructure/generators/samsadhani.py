@@ -97,9 +97,7 @@ class SamsadhaniiGenerator:
             return None  # generator rejected this kāraka frame; caller skips
 
         parse: tuple[tuple[str, str], ...] = tuple(
-            (w.surface if w.surface else w.lemma, w.role)
-            for w in ann.words
-            if w.role is not None
+            (w.surface if w.surface else w.lemma, w.role) for w in ann.words if w.role is not None
         )
         meta = {
             "source": "samsadhani-generator",

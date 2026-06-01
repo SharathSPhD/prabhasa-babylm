@@ -44,14 +44,14 @@ NOMINAL_STEMS: tuple[tuple[str, str], ...] = (
 # Dhātus (root + class digit, WX) with a plausible transitivity arity:
 # arity 2 = takes a karma (object); arity 1 = intransitive.
 DHATUS: tuple[tuple[str, int], ...] = (
-    ("gam1", 1),   # go
-    ("paW1", 2),   # read
-    ("KAx1", 2),   # eat
-    ("xfS1", 2),   # see
-    ("kf8", 2),    # do/make
-    ("BU1", 1),    # be/become
-    ("sWA1", 1),   # stand
-    ("vax1", 2),   # speak
+    ("gam1", 1),  # go
+    ("paW1", 2),  # read
+    ("KAx1", 2),  # eat
+    ("xfS1", 2),  # see
+    ("kf8", 2),  # do/make
+    ("BU1", 1),  # be/become
+    ("sWA1", 1),  # stand
+    ("vax1", 2),  # speak
 )
 
 # Verified oblique-kāraka frames: which verbs license which oblique kāraka,
@@ -65,8 +65,15 @@ VERIFIED_OBLIQUE_FRAMES: dict[str, tuple[tuple[str, bool], ...]] = {
     "sampraxAnam": (("xA1", False), ("xA1", True)),
     "apAxAnam": (("gam1", False), ("gam1", True)),
     "aXikaraNam": (
-        ("BU1", False), ("KAx1", False), ("KAx1", True), ("paW1", False), ("paW1", True),
-        ("vax1", False), ("xA1", False), ("xA1", True), ("vas1", False),
+        ("BU1", False),
+        ("KAx1", False),
+        ("KAx1", True),
+        ("paW1", False),
+        ("paW1", True),
+        ("vax1", False),
+        ("xA1", False),
+        ("xA1", True),
+        ("vas1", False),
     ),
 }
 
@@ -81,10 +88,10 @@ NUMBERS: tuple[str, ...] = ("eka", "xvi", "bahu")  # sg / du / pl
 
 # A representative tense/voice spread (WX lakāra names).
 LAKARAS: tuple[str, ...] = (
-    "varwamAnaH",          # present
-    "anaxyawanaBUwaH",     # imperfect
+    "varwamAnaH",  # present
+    "anaxyawanaBUwaH",  # imperfect
     "sAmAnyaBaviRyakAlaH",  # future
-    "viXiH",               # optative
+    "viXiH",  # optative
 )
 
 
@@ -96,7 +103,9 @@ class KarakaFrame:
     signature: tuple[str, ...]
 
 
-def _noun(idx: int, stem: str, gender: str, number: str, karaka: str, head: int) -> dict[str, object]:
+def _noun(
+    idx: int, stem: str, gender: str, number: str, karaka: str, head: int
+) -> dict[str, object]:
     return {
         "id": idx,
         "pos": "noun",
@@ -177,14 +186,21 @@ def enumerate_frames(n: int, *, seed: int = 0) -> Iterator[KarakaFrame]:
                                         continue
                                     verb_id = 4
                                     words = [
-                                        _noun(1, subj_stem, subj_gender, subj_num, "karwA", verb_id),
+                                        _noun(
+                                            1, subj_stem, subj_gender, subj_num, "karwA", verb_id
+                                        ),
                                         _noun(2, karma_stem, karma_gender, "eka", "karma", verb_id),
                                         _noun(3, obl_stem, obl_gender, "eka", karaka, verb_id),
                                         _verb(verb_id, dhatu, lakara),
                                     ]
                                     sig = (
-                                        dhatu, lakara, subj_stem, subj_num,
-                                        karma_stem, karaka, obl_stem,
+                                        dhatu,
+                                        lakara,
+                                        subj_stem,
+                                        subj_num,
+                                        karma_stem,
+                                        karaka,
+                                        obl_stem,
                                     )
                                     grid.append(KarakaFrame({"words": words}, sig))
                             else:

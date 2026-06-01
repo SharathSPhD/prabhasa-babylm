@@ -140,7 +140,12 @@ def main() -> None:
     for name in disc_sets:
         mean, lo, hi = mean_ci(per_tier[name])
         band = "FLOOR" if mean < 0.55 else "CEILING" if mean > 0.90 else "INFORMATIVE"
-        summary[name] = {"mean": mean, "ci": [lo, hi], "n_pairs": len(disc_sets[name]), "band": band}
+        summary[name] = {
+            "mean": mean,
+            "ci": [lo, hi],
+            "n_pairs": len(disc_sets[name]),
+            "band": band,
+        }
         print(f"  {name:22s} A={mean:.3f} (CI {lo:.3f}-{hi:.3f})  [{band}]")
 
     payload = {

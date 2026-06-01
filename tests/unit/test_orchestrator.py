@@ -14,8 +14,14 @@ from psalm.infrastructure.ledger.sqlite_ledger import SqliteLedger
 def _runner_b_beats_c(arm, seed):
     """Fake runner: arm B reaches quality with fewer tokens and higher accuracy."""
     base = {
-        "A": 0.50, "B": 0.62, "C": 0.50, "D": 0.63,
-        "E": 0.58, "F": 0.49, "G": 0.48, "H": 0.51,
+        "A": 0.50,
+        "B": 0.62,
+        "C": 0.50,
+        "D": 0.63,
+        "E": 0.58,
+        "F": 0.49,
+        "G": 0.48,
+        "H": 0.51,
     }
     acc = base[arm.arm_id] + (seed * 0.001)
     tokens = 80.0 if arm.arm_id in {"B", "D", "E"} else 100.0

@@ -48,11 +48,20 @@ STRUCTURAL_CATEGORIES: frozenset[str] = frozenset(
 #: tier that gives the baseline room to score above 0.
 _ALL_GEN_CATEGORIES: frozenset[str] = frozenset(
     {
-        "obj_to_subj_common", "obj_to_subj_proper", "subj_to_obj_common",
-        "subj_to_obj_proper", "prim_to_subj_common", "prim_to_subj_proper",
-        "prim_to_obj_common", "prim_to_obj_proper", "prim_to_inf_arg",
-        "active_to_passive", "passive_to_active", "do_dative_to_pp_dative",
-        "pp_dative_to_do_dative", "unacc_to_transitive",
+        "obj_to_subj_common",
+        "obj_to_subj_proper",
+        "subj_to_obj_common",
+        "subj_to_obj_proper",
+        "prim_to_subj_common",
+        "prim_to_subj_proper",
+        "prim_to_obj_common",
+        "prim_to_obj_proper",
+        "prim_to_inf_arg",
+        "active_to_passive",
+        "passive_to_active",
+        "do_dative_to_pp_dative",
+        "pp_dative_to_do_dative",
+        "unacc_to_transitive",
         "obj_omitted_transitive_to_transitive",
         "only_seen_as_transitive_subj_as_unacc_subj",
         "only_seen_as_unacc_subj_as_unerg_subj",
@@ -75,7 +84,9 @@ def _ensure_file(fname: str, cache_dir: Path, *, allow_download: bool) -> Path:
     if dest.exists():
         return dest
     if not allow_download:
-        raise CogsUnavailableError(f"COGS file {fname!r} not cached at {dest!r} and download disabled.")
+        raise CogsUnavailableError(
+            f"COGS file {fname!r} not cached at {dest!r} and download disabled."
+        )
     dest.parent.mkdir(parents=True, exist_ok=True)
     url = f"{_BASE}/{fname}"
     try:
@@ -133,7 +144,5 @@ def load_cogs(
         else:
             raise ValueError(f"unknown tier {tier!r}; expected 'lexical' or 'structural'")
 
-    pairs = [
-        (sentence, lf) for sentence, lf, category in rows if keep is None or category in keep
-    ]
+    pairs = [(sentence, lf) for sentence, lf, category in rows if keep is None or category in keep]
     return pairs[:limit] if limit is not None else pairs

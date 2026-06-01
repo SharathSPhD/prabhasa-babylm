@@ -46,9 +46,7 @@ def _gen_record(structure: dict) -> dict | None:
         return None
     except Exception:  # noqa: BLE001 - skip transient failures
         return None
-    parse = [
-        [w.surface if w.surface else w.lemma, w.role] for w in ann.words if w.role is not None
-    ]
+    parse = [[w.surface if w.surface else w.lemma, w.role] for w in ann.words if w.role is not None]
     return {
         "text": ann.sentence,
         "language": "sa",

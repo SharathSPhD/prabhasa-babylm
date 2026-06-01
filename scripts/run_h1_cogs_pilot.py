@@ -115,7 +115,9 @@ def main() -> None:
     train_lines = [cogs_line(s, lf) for s, lf in train_pairs]
     pan_sample = [s.text for s in paninian.stream(4000, seed=0)]
     dyck_sample = [s.text for s in dyck.stream(1500, seed=0)]
-    print(f"COGS train={len(train_lines)} lexical_test={len(lex_test)} struct_test={len(struct_test)}")
+    print(
+        f"COGS train={len(train_lines)} lexical_test={len(lex_test)} struct_test={len(struct_test)}"
+    )
 
     tok_dir = Path(".cache/cogs_pilot_tok")
     tok_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -223,7 +225,11 @@ def main() -> None:
         "dose_fraction": round(dose_frac, 4),
         "vocab": vocab,
         "wall_seconds": round(wall, 1),
-        "prereg": {"floor_min": FLOOR_MIN, "delta_min": DELTA_MIN, "ci_hw_gate": CI_HALF_WIDTH_GATE},
+        "prereg": {
+            "floor_min": FLOOR_MIN,
+            "delta_min": DELTA_MIN,
+            "ci_hw_gate": CI_HALF_WIDTH_GATE,
+        },
         "lexical_em": lex_em,
         "structural_em": struct_em,
         "structural_f1": struct_f1,
@@ -238,7 +244,9 @@ def main() -> None:
     print("\n=== COGS PILOT SUMMARY (vs pre-registered ADR-0014 bar) ===")
     for a in arm_ids:
         s = summary[a]
-        print(f"{a} lexical EM: {s['mean']:.3f} (CI {s['ci'][0]:.3f}-{s['ci'][1]:.3f}, ±{s['half_width']:.3f})")
+        print(
+            f"{a} lexical EM: {s['mean']:.3f} (CI {s['ci'][0]:.3f}-{s['ci'][1]:.3f}, ±{s['half_width']:.3f})"
+        )
     print(f"B-C (lexical EM): {delta:+.3f} (CI {delta_lo:+.3f}..{delta_hi:+.3f})")
     print(f"wall: {wall:.0f}s")
     print(f"VERDICT: {verdict}")
