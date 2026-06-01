@@ -42,27 +42,40 @@ early-training headroom). Eval is generation-free (likelihood scoring).
 
 ### D2 — Pre-registered primary metric and thresholds (BLIND)
 
-- **Threshold θ = 0.80** (clearly above 0.50 chance, below the ~0.91 ceiling, in
-  the steep region of the curve).
-- **Primary metric Mse (per arm, per seed):** *tokens-to-threshold* T_θ = the
-  downstream token count at the first checkpoint whose discrimination ≥ θ
-  (linear-interpolated between bracketing checkpoints). Lower = more efficient.
-  If an arm never reaches θ, T_θ is right-censored at the budget and flagged.
-- **Primary contrast:** Δ_eff = (T_θ(C) − T_θ(B)) / T_θ(C) — fractional token
-  saving of the Pāṇinian prior over the Dyck control. Positive = B more efficient.
-- **Secondary (robust to threshold noise):** early-checkpoint accuracy gap
-  acc_B − acc_C at the **0.1-budget** checkpoint (and 0.2-budget), bootstrapped.
-- **Learnedness precondition:** baseline A must reach θ within budget (else the
-  curve never enters the measurable region → escalate scale).
-- **Effect criterion (pilot → battery), ALL of:**
+**Amended 2026-06-01 (still blind, pre-data) per the sample-efficiency decision
+brief** (`docs/contracts/phase-2-sample-efficiency-readout-2026-06-01.md`, Q1-B):
+tokens-to-threshold is high-variance/right-censored at 3 seeds, so a **robust
+curve integral is promoted to PRIMARY** and T_θ is demoted to a concordant
+secondary; **finer early checkpoints** are added to keep the metric measurable.
+
+- **Checkpoints (eval_fracs):** 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.35, 0.55,
+  0.8, 1.0 of the downstream step budget. The two very-early points resolve the
+  steep region (a 0.91-final baseline likely clears θ before 0.02).
+- **Threshold θ = 0.80** (above 0.50 chance, below the ~0.91 ceiling).
+- **PRIMARY metric Mse (per arm, per seed):** *normalized AUC* of the
+  discrimination-vs-downstream-tokens curve, trapezoidal-integrated to the fixed
+  budget and divided by the budget (∈ [0,1]). Higher = faster role acquisition.
+  Uses every checkpoint → robust, uncensored.
+- **PRIMARY contrast:** Δ_auc = AUC(B) − AUC(C) (Pāṇinian − Dyck). Bootstrap CI
+  over per-seed differences.
+- **Concordant SECONDARIES (must agree in direction with the primary):**
+  (i) *tokens-to-threshold* T_θ = interpolated tokens to first reach θ (lower
+  better), contrast Δ_eff = (T_θ(C) − T_θ(B))/T_θ(C); (ii) early-checkpoint
+  accuracy gap acc_B − acc_C at the **0.1-budget** checkpoint.
+- **Learnedness precondition:** baseline A must reach θ within budget.
+- **Effect criterion (pilot → battery) — CONJUNCTIVE, ALL of:**
   1. A reaches θ within budget;
-  2. Δ_eff ≥ **0.20** (B reaches competence with ≥20% fewer tokens than C);
-  3. 95% bootstrap CI lower bound of Δ_eff **> 0**;
-  4. secondary early-checkpoint gap acc_B − acc_C ≥ **+0.05** with CI LB > 0
-     (concordant direction).
-- **Verdict mapping:** all ⇒ `LAUNCH_RECOMMENDED` (human sign-off); A reaches θ
-  but criteria unmet ⇒ `NO_OR_WEAK_EFFICIENCY_GAIN`; A never reaches θ ⇒
-  `NOT_LEARNED_AT_SCALE` (escalate to Phase-3 scale).
+  2. Δ_auc ≥ **0.02** with 95% bootstrap CI lower bound **> 0** (primary);
+  3. both secondaries agree in direction (Δ_eff > 0 **and** early gap > 0).
+- **Verdict mapping:**
+  - all ⇒ `LAUNCH_RECOMMENDED` (human sign-off);
+  - A reaches θ, primary/secondaries not all positive-concordant ⇒
+    `NO_OR_WEAK_EFFICIENCY_GAIN` (report as a real null; do NOT build a sixth
+    instrument — stopping rule);
+  - **curves-too-steep-to-resolve** — all arms already ≥ θ at the earliest
+    checkpoint (0.005) so AUC/T_θ cannot separate them ⇒ `UNRESOLVED_AT_PROXY`
+    (escalate to Phase-3 scale, Option C);
+  - A never reaches θ ⇒ `NOT_LEARNED_AT_SCALE` (escalate to Phase-3 scale).
 
 ### D3 — Dose & autonomy unchanged
 
