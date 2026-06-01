@@ -24,7 +24,7 @@ from pathlib import Path
 from psalm.analysis.comparison_tests import mean_ci
 from psalm.application.data.assembly import PrePretrainAssembler
 from psalm.application.data.tokenizer import TokenizerSpec
-from psalm.domain.eval.discrimination import corrupt_role_swap
+from psalm.domain.eval.discrimination import CORRUPTIONS
 from psalm.domain.experiments.matrix import default_h1_matrix
 from psalm.domain.model.config import preset_for
 from psalm.domain.model.training import Precision, TrainConfig
@@ -52,14 +52,25 @@ def _ci(samples: list[float]) -> tuple[float, float, float, float]:
     return mean, lo, hi, (hi - lo) / 2.0
 
 
-def build_disc_pairs(pairs: list[tuple[str, str]]) -> list[tuple[str, str]]:
-    """(sentence, gold_lf) -> (correct_full, role_corrupted_full) minimal pairs."""
+def build_disc_pairs(
+    pairs: list[tuple[str, str]], corruption: str = "swap"
+) -> list[tuple[str, str]]:
+    """(sentence, gold_lf) -> (correct_full, corrupted_full) minimal pairs."""
+    fn = CORRUPTIONS[corruption]
     out: list[tuple[str, str]] = []
     for sent, lf in pairs:
-        corrupt = corrupt_role_swap(lf)
+        corrupt = fn(lf)
         if corrupt is not None:
             out.append((cogs_line(sent, lf), cogs_line(sent, corrupt)))
     return out
+
+
+#: Non-canonical-order lexical categories: passives + dative alternations, where
+#: surface word order does NOT trivially cue agent/theme, so an agent↔theme swap
+#: cannot be detected from position alone (harder than canonical SVO items).
+NONCANONICAL_CATEGORIES = frozenset(
+    {"active_to_passive", "passive_to_active", "do_dative_to_pp_dative", "pp_dative_to_do_dative"}
+)
 
 
 def main() -> None:
@@ -69,6 +80,11 @@ def main() -> None:
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--cogs-train", type=int, default=12000)
     ap.add_argument("--lexical-test", type=int, default=400)
+    ap.add_argument("--corruption", default="swap", choices=sorted(CORRUPTIONS))
+    ap.add_argument(
+        "--noncanonical", action="store_true",
+        help="restrict the discrimination set to passive/dative items (surface order misleads)",
+    )
     ap.add_argument("--vocab", type=int, default=2000)
     ap.add_argument("--max-steps", type=int, default=3000)
     ap.add_argument("--pre-epochs", type=int, default=4)  # ADR-0014 matched-epoch dose
@@ -112,9 +128,13 @@ def main() -> None:
     scrambled = ScramblingGenerator(paninian)
 
     train_pairs = load_cogs("train", limit=args.cogs_train)
-    lex_test = load_cogs("gen", tier="lexical", limit=args.lexical_test)
-    disc_pairs = build_disc_pairs(lex_test)
+    if args.noncanonical:
+        lex_test = load_cogs("gen", categories=NONCANONICAL_CATEGORIES, limit=args.lexical_test)
+    else:
+        lex_test = load_cogs("gen", tier="lexical", limit=args.lexical_test)
+    disc_pairs = build_disc_pairs(lex_test, args.corruption)
     coverage = len(disc_pairs) / len(lex_test) if lex_test else 0.0
+    print(f"corruption={args.corruption} noncanonical={args.noncanonical}")
     train_lines = [cogs_line(s, lf) for s, lf in train_pairs]
     pan_sample = [s.text for s in paninian.stream(4000, seed=0)]
     dyck_sample = [s.text for s in dyck.stream(1500, seed=0)]
@@ -210,6 +230,8 @@ def main() -> None:
     payload = {
         "task": "cogs_discrimination",
         "adr": "0015",
+        "corruption": args.corruption,
+        "noncanonical": args.noncanonical,
         "size_m": args.size,
         "seeds": args.seeds,
         "max_steps": args.max_steps,

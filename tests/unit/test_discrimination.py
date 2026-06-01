@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from psalm.domain.eval.discrimination import corrupt_role_swap
+from psalm.domain.eval.discrimination import (
+    CORRUPTIONS,
+    corrupt_distractor_theme,
+    corrupt_role_swap,
+)
 
 
 def test_swaps_main_verb_agent_and_theme_fillers() -> None:
@@ -43,3 +47,26 @@ def test_uses_first_event_with_both_roles() -> None:
 def test_identical_fillers_skipped() -> None:
     lf = "love . agent ( x _ 1 , x _ 1 ) AND love . theme ( x _ 1 , x _ 1 )"
     assert corrupt_role_swap(lf) is None
+
+
+def test_distractor_rebinds_theme_to_other_entity() -> None:
+    lf = "paint . agent ( x _ 1 , Paula ) AND paint . theme ( x _ 1 , x _ 3 ) AND cake ( x _ 3 )"
+    out = corrupt_distractor_theme(lf)
+    assert out is not None
+    # The theme filler (x _ 3) is rebound to a distractor (Paula, the first other entity).
+    assert out == (
+        "paint . agent ( x _ 1 , Paula ) AND paint . theme ( x _ 1 , Paula ) AND cake ( x _ 3 )"
+    )
+    assert out != lf
+
+
+def test_distractor_none_when_no_other_entity() -> None:
+    lf = "sleep . theme ( x _ 1 , x _ 1 )"
+    assert corrupt_distractor_theme(lf) is None
+
+
+def test_corruptions_registry_exposes_both_operators() -> None:
+    assert set(CORRUPTIONS) == {"swap", "distractor"}
+    lf = "give . agent ( x _ 2 , x _ 1 ) AND give . theme ( x _ 2 , x _ 4 )"
+    assert CORRUPTIONS["swap"](lf) is not None
+    assert CORRUPTIONS["distractor"](lf) is not None
