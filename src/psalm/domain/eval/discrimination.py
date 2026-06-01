@@ -22,6 +22,7 @@ where ``e`` is the shared event variable and ``A`` / ``B`` are arguments
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 
 #: Matches one role term: ``verb . role ( arg1 , arg2 )`` with single-spaced
 #: COGS tokenization. arg1 is the event variable; arg2 is the filler we swap.
@@ -64,3 +65,49 @@ def corrupt_role_swap(lf: str) -> str | None:
             new2 = (agents[event] if agents[event][0] < themes[event][0] else themes[event])[2]
             return lf[:s1] + new1 + lf[e1:s2] + new2 + lf[e2:]
     return None
+
+
+#: Any role term filler (agent/theme/recipient/...) — used to harvest distractor
+#: entities and to retarget a single binding.
+_ANY_ROLE = re.compile(
+    r"(?P<verb>\w+) \. (?P<role>\w+) \( (?P<event>x _ \d+) , (?P<filler>x _ \d+|[A-Z]\w*) \)"
+)
+
+
+def corrupt_distractor_theme(lf: str) -> str | None:
+    """Rebind the main predicate's **theme** to a distractor entity from the LF.
+
+    Harder than ``corrupt_role_swap``: rather than swapping two adjacent surface
+    arguments (which COGS word-order trivially cues), this replaces the theme
+    filler with a *different* entity that genuinely appears elsewhere in the LF.
+    The corrupted LF is well-formed and locally plausible; only a model that
+    tracks **which** entity fills the role (not just surface order) can reject it.
+    Returns ``None`` if there is no main theme or no distinct distractor entity.
+    """
+    themes: dict[str, tuple[int, int, str]] = {}
+    fillers: list[str] = []
+    order: list[str] = []
+    for m in _ANY_ROLE.finditer(lf):
+        event, filler = m.group("event"), m.group("filler")
+        fillers.append(filler)
+        if m.group("role") == "theme":
+            themes.setdefault(event, (m.start("filler"), m.end("filler"), filler))
+        if event not in order:
+            order.append(event)
+
+    for event in order:
+        if event in themes:
+            start, end, cur = themes[event]
+            # First distinct entity elsewhere in the LF (deterministic).
+            distractor = next((f for f in fillers if f != cur), None)
+            if distractor is None:
+                return None
+            return lf[:start] + distractor + lf[end:]
+    return None
+
+
+#: Named corruption operators for the graded ladder (ADR-0015 amendment / sweep).
+CORRUPTIONS: dict[str, Callable[[str], str | None]] = {
+    "swap": corrupt_role_swap,
+    "distractor": corrupt_distractor_theme,
+}
