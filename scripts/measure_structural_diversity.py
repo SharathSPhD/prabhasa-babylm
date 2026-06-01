@@ -33,7 +33,9 @@ def wtokens(text: str) -> int:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cache", default="data/cache/samsadhani.jsonl")
-    ap.add_argument("--safety", type=float, default=0.9, help="fraction of no-repeat budget to cap at")
+    ap.add_argument(
+        "--safety", type=float, default=0.9, help="fraction of no-repeat budget to cap at"
+    )
     ap.add_argument("--out", default="docs/data/phase2-structural-diversity.json")
     args = ap.parse_args()
 

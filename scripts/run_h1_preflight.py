@@ -186,7 +186,9 @@ def main() -> None:
 
     # --- Decision-tree verdict (advisory; the human owns the launch call).
     if a_mean < FLOOR_EPS:
-        verdict = "HARNESS_BROKEN: arm A floored on the signal split — fix wiring before any battery."
+        verdict = (
+            "HARNESS_BROKEN: arm A floored on the signal split — fix wiring before any battery."
+        )
     elif struct_vs_a < max_hw:
         verdict = (
             "DOSE_TOO_SMALL: no structural arm separates from A beyond noise. "

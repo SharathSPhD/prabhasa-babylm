@@ -20,10 +20,7 @@ def _seed_cache(cache_dir: Path, split: str, which: str, body: str) -> None:
 
 def test_parses_cached_pairs(tmp_path: Path) -> None:
     body = (
-        "IN: jump OUT: I_JUMP\n"
-        "IN: jump twice OUT: I_JUMP I_JUMP\n"
-        "\n"
-        "garbage line without markers\n"
+        "IN: jump OUT: I_JUMP\nIN: jump twice OUT: I_JUMP I_JUMP\n\ngarbage line without markers\n"
     )
     _seed_cache(tmp_path, "length", "test", body)
     pairs = load_scan("length", which="test", cache_dir=tmp_path, allow_download=False)

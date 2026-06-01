@@ -82,7 +82,8 @@ def main() -> None:
     ap.add_argument("--lexical-test", type=int, default=400)
     ap.add_argument("--corruption", default="swap", choices=sorted(CORRUPTIONS))
     ap.add_argument(
-        "--noncanonical", action="store_true",
+        "--noncanonical",
+        action="store_true",
         help="restrict the discrimination set to passive/dative items (surface order misleads)",
     )
     ap.add_argument("--vocab", type=int, default=2000)
@@ -191,7 +192,9 @@ def main() -> None:
         for seed in range(args.seeds):
             m = runner(arm, seed)
             disc[arm_id].append(round(m.get("lexical_disc", 0.0), 4))
-            print(f"arm {arm_id} seed {seed}: disc={disc[arm_id][-1]} (n={int(m.get('lexical_disc_n', 0))})")
+            print(
+                f"arm {arm_id} seed {seed}: disc={disc[arm_id][-1]} (n={int(m.get('lexical_disc_n', 0))})"
+            )
     wall = time.time() - start
 
     summary: dict[str, dict[str, float | list[float]]] = {}
@@ -259,7 +262,9 @@ def main() -> None:
     print("\n=== COGS DISCRIMINATION PILOT (vs pre-registered ADR-0015 bar) ===")
     for a in arm_ids:
         s = summary[a]
-        print(f"{a} disc: {s['mean']:.3f} (CI {s['ci'][0]:.3f}-{s['ci'][1]:.3f}, ±{s['half_width']:.3f})")
+        print(
+            f"{a} disc: {s['mean']:.3f} (CI {s['ci'][0]:.3f}-{s['ci'][1]:.3f}, ±{s['half_width']:.3f})"
+        )
     print(f"B-C (disc): {delta:+.3f} (CI {delta_lo:+.3f}..{delta_hi:+.3f})")
     print(f"wall: {wall:.0f}s")
     print(f"VERDICT: {verdict}")

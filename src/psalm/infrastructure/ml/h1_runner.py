@@ -182,6 +182,7 @@ class H1Runner:
                 )
                 return minimal_pair_accuracy(scores)
         else:
+
             def _checkpoint_eval(m: object) -> float:
                 return self._eval_compositional(m, cfg.device)
 

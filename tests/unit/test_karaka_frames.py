@@ -62,9 +62,7 @@ def test_oblique_karakas_are_enumerated() -> None:
 def test_distinct_role_sequences_exceed_two() -> None:
     seqs: set[tuple[str, ...]] = set()
     for frame in enumerate_frames(2000, seed=1):
-        seq = tuple(
-            str(w["karaka"]) for w in frame.structure["words"] if w["pos"] == "noun"
-        )
+        seq = tuple(str(w["karaka"]) for w in frame.structure["words"] if w["pos"] == "noun")
         seqs.add(seq)
     assert len(seqs) >= 6  # was 2 (kartā / kartā+karma) before the extension
 
