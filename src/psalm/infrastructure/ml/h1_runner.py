@@ -68,6 +68,7 @@ class H1Runner:
         extra_eval_sets: dict[str, list[tuple[str, str]]] | None = None,
         comp_max_new_cap: int | None = None,
         disc_eval_sets: dict[str, list[tuple[str, str]]] | None = None,
+        disc_curve_pairs: list[tuple[str, str]] | None = None,
     ) -> None:
         self.assembler = assembler
         self.nl_lines = nl_lines
@@ -99,6 +100,10 @@ class H1Runner:
         # (correct_full_text, role_corrupted_full_text). Scored by teacher-forced
         # sequence logprob (no generation) — off-floor by construction (chance=50%).
         self.disc_eval_sets = disc_eval_sets or {}
+        # Sample-efficiency learning curve (ADR-0016): when set, within-run
+        # checkpoints score role-discrimination accuracy on these pairs (instead
+        # of compositional EM), yielding a discrimination-vs-tokens curve.
+        self.disc_curve_pairs = disc_curve_pairs
         # Auto-size generation so the model can emit the *longest* gold target in
         # the PRIMARY eval set. Capping below the target length silently forces
         # exact-match to 0 for every long example (a battery-invalidating trap),
@@ -161,6 +166,25 @@ class H1Runner:
 
         nl_budget = self.nl_budget_tokens if self.nl_budget_tokens is not None else arm.token_budget
         pre_lines = self._pre_lines(arm, seed)
+
+        # Checkpoint eval: discrimination learning curve (ADR-0016) when curve
+        # pairs are provided, else compositional EM (ADR-0014).
+        if self.disc_curve_pairs:
+            from psalm.domain.eval.metrics import minimal_pair_accuracy
+            from psalm.infrastructure.ml.eval_lm import minimal_pair_scores
+
+            _dev = cfg.device if cfg.device == "cpu" else "cuda"
+            curve_pairs = self.disc_curve_pairs
+
+            def _checkpoint_eval(m: object) -> float:
+                scores = minimal_pair_scores(
+                    m, curve_pairs, encode=self.encode, device=_dev, eos_id=self.eos_id
+                )
+                return minimal_pair_accuracy(scores)
+        else:
+            def _checkpoint_eval(m: object) -> float:
+                return self._eval_compositional(m, cfg.device)
+
         model, outcome = train_two_phase(
             self.model_cfg,
             cfg,
@@ -173,7 +197,7 @@ class H1Runner:
             aux_vocab=aux_vocab,
             pre_epochs=self.pre_epochs,
             eval_fracs=self.eval_fracs,
-            eval_fn=lambda m: self._eval_compositional(m, cfg.device),
+            eval_fn=_checkpoint_eval,
         )
 
         accuracy = self._eval_compositional(model, cfg.device)
