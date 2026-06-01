@@ -21,9 +21,17 @@ from psalm.infrastructure.ml.decoder import Decoder
 
 @torch.no_grad()
 def sequence_logprob(model: Decoder, ids: list[int], *, device: str, eos_id: int) -> float:
-    """Sum of log p(token_t | token_<t) over a sequence (teacher-forced)."""
+    """Sum of log p(token_t | token_<t) over a sequence (teacher-forced).
+
+    Truncates to the model's context window (last ``max_seq_len`` tokens, as in
+    ``greedy_generate``) so sequences longer than the positional-embedding table
+    are scored over the trailing window rather than raising IndexError. For
+    minimal pairs that share a long boilerplate prefix and differ near the end
+    (e.g. COGS role swaps) the discriminating tokens fall inside this window.
+    """
     if len(ids) < 2:
         return 0.0
+    ids = list(ids)[-model.cfg.max_seq_len :]
     x = torch.tensor([ids[:-1]], dtype=torch.long, device=device)
     y = torch.tensor([ids[1:]], dtype=torch.long, device=device)
     logits, _ = model(x)
