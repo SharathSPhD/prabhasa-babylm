@@ -1,0 +1,68 @@
+{
+  "task": "cogs_discrimination_calibration",
+  "purpose": "arm-A-only sweep to locate informative corruption tier (no B/C revealed)",
+  "size_m": 100.0,
+  "seeds": 3,
+  "max_steps": 3000,
+  "arm_A_by_tier": {
+    "swap_all": [
+      0.9869,
+      0.9803,
+      0.9967
+    ],
+    "distractor_all": [
+      0.9015,
+      0.9046,
+      0.9354
+    ],
+    "swap_noncanon": [
+      0.9545,
+      0.9599,
+      0.9893
+    ],
+    "distractor_noncanon": [
+      0.9188,
+      0.9162,
+      0.9529
+    ]
+  },
+  "summary": {
+    "swap_all": {
+      "mean": 0.9879666666666668,
+      "ci": [
+        0.9803000000000001,
+        0.9967
+      ],
+      "n_pairs": 305,
+      "band": "CEILING"
+    },
+    "distractor_all": {
+      "mean": 0.9138333333333333,
+      "ci": [
+        0.9015,
+        0.9354
+      ],
+      "n_pairs": 325,
+      "band": "CEILING"
+    },
+    "swap_noncanon": {
+      "mean": 0.9679000000000001,
+      "ci": [
+        0.9545,
+        0.9893
+      ],
+      "n_pairs": 374,
+      "band": "CEILING"
+    },
+    "distractor_noncanon": {
+      "mean": 0.9293,
+      "ci": [
+        0.9162,
+        0.9529
+      ],
+      "n_pairs": 382,
+      "band": "CEILING"
+    }
+  },
+  "wall_seconds": 2250.4
+}
