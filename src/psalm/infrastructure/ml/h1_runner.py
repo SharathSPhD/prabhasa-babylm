@@ -65,6 +65,8 @@ class H1Runner:
         eval_fracs: tuple[float, ...] = DEFAULT_EVAL_FRACS,
         nl_budget_tokens: int | None = None,
         pre_epochs: int = 1,
+        extra_eval_sets: dict[str, list[tuple[str, str]]] | None = None,
+        comp_max_new_cap: int | None = None,
     ) -> None:
         self.assembler = assembler
         self.nl_lines = nl_lines
@@ -88,15 +90,25 @@ class H1Runner:
         # sequence as already finished.
         self.decode = decode if decode is not None else _decode_ids
         self.append_eos_to_prompt = append_eos_to_prompt
-        # Auto-size generation so the model can emit the *longest* gold target.
-        # Capping below the target length silently forces exact-match to 0 for
-        # every long example (a battery-invalidating trap), so we never generate
-        # fewer tokens than the longest gold sequence plus a small margin.
+        # Secondary named eval sets (e.g. COGS structural-generalization tier),
+        # scored on the *same* trained model so multi-tier reporting costs no
+        # extra training (ADR-0014).
+        self.extra_eval_sets = extra_eval_sets or {}
+        # Auto-size generation so the model can emit the *longest* gold target in
+        # the PRIMARY eval set. Capping below the target length silently forces
+        # exact-match to 0 for every long example (a battery-invalidating trap),
+        # so we never generate fewer tokens than the longest primary gold + margin.
+        # Secondary tiers (e.g. COGS recursion) are graded (token-F1) and may have
+        # far longer targets; sizing to them would make generation O(len) for
+        # *every* example, so they are deliberately not used here and an explicit
+        # ``comp_max_new_cap`` bounds cost (a truncated long target floors EM,
+        # which the secondary tier is expected to do anyway — ADR-0014).
         max_gold_len = max(
-            (len(self.encode(gold)) for _, gold in eval_sets.compositional),
-            default=0,
+            (len(self.encode(gold)) for _, gold in eval_sets.compositional), default=0
         )
         self.comp_max_new = max(pretrain_max_new, max_gold_len + 4)
+        if comp_max_new_cap is not None:
+            self.comp_max_new = min(self.comp_max_new, comp_max_new_cap)
 
     def _pre_lines(self, arm: ExperimentArm, seed: int) -> Callable[[], Iterable[str]] | None:
         """Structural pre-pretraining stream (None for arms A/G), diversity-capped."""
@@ -110,12 +122,12 @@ class H1Runner:
 
         return make
 
-    def _eval_compositional(self, model: object, device: str) -> float:
-        from psalm.domain.eval.metrics import exact_match_accuracy
-
+    def _predict(
+        self, model: object, device: str, pairs: list[tuple[str, str]]
+    ) -> tuple[list[str], list[str]]:
         preds: list[str] = []
         golds: list[str] = []
-        for source, gold in self.eval_sets.compositional:
+        for source, gold in pairs:
             prompt = list(self.encode(source))
             if self.append_eos_to_prompt:
                 prompt.append(self.eos_id)
@@ -128,6 +140,12 @@ class H1Runner:
             )
             preds.append(self.decode(out_ids).strip())
             golds.append(gold.strip())
+        return preds, golds
+
+    def _eval_compositional(self, model: object, device: str) -> float:
+        from psalm.domain.eval.metrics import exact_match_accuracy
+
+        preds, golds = self._predict(model, device, self.eval_sets.compositional)
         return exact_match_accuracy(preds, golds) if preds else 0.0
 
     def __call__(self, arm: ExperimentArm, seed: int) -> dict[str, float]:
@@ -163,6 +181,22 @@ class H1Runner:
         # Within-run efficiency curve: accuracy at each downstream checkpoint.
         for nl_tokens, metric in outcome.checkpoints:
             metrics[f"acc_at_{nl_tokens}"] = metric
+        # Secondary tiers: graded readouts on the same trained model (ADR-0014).
+        if self.extra_eval_sets:
+            from psalm.domain.eval.metrics import (
+                exact_match_accuracy,
+                length_binned_accuracy,
+                token_f1_score,
+            )
+
+            for name, pairs in self.extra_eval_sets.items():
+                if not pairs:
+                    continue
+                preds, golds = self._predict(model, cfg.device, pairs)
+                metrics[f"{name}_em"] = exact_match_accuracy(preds, golds)
+                metrics[f"{name}_f1"] = token_f1_score(preds, golds)
+                for bucket, val in length_binned_accuracy(preds, golds).items():
+                    metrics[f"{name}_len_{bucket}"] = val
         return metrics
 
 
