@@ -1,22 +1,22 @@
 {
   "unit": "whitespace tokens (matches take_until_tokens)",
   "paninian": {
-    "cache_sentences": 20000,
-    "unique_sentences": 20000,
-    "no_repeat_tokens": 71361,
-    "ttr": 0.0028,
-    "bigram_entropy": 0.898,
-    "trigram_entropy": 0.9755
+    "cache_sentences": 56000,
+    "unique_sentences": 56000,
+    "no_repeat_tokens": 199863,
+    "ttr": 0.001,
+    "bigram_entropy": 0.8934,
+    "trigram_entropy": 0.9476
   },
   "dyck_matched": {
-    "sentences": 937,
-    "tokens": 64227,
-    "ttr": 0.0001,
-    "bigram_entropy": 0.9758,
-    "trigram_entropy": 0.9624
+    "sentences": 2627,
+    "tokens": 179876,
+    "ttr": 0.0,
+    "bigram_entropy": 0.9762,
+    "trigram_entropy": 0.9631
   },
-  "recommended_pre_budget_tokens": 64224,
+  "recommended_pre_budget_tokens": 179876,
   "old_pre_budget_tokens_high": 13000000,
-  "loop_factor_at_old_budget": 182.2,
-  "verdict": "CAP pre_budget to recommended value so B (Pāṇinian, no-repeat) and C (Dyck, fresh) are matched on fresh structural tokens. At the old 13M budget B would loop the cache ~182x, confounding B-vs-C with effective epochs."
+  "loop_factor_at_old_budget": 65.0,
+  "verdict": "CAP pre_budget to recommended value so B (Pāṇinian, no-repeat) and C (Dyck, fresh) are matched on fresh structural tokens. At the old 13M budget B would loop the cache ~65x, confounding B-vs-C with effective epochs."
 }

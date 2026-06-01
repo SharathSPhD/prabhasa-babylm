@@ -71,6 +71,12 @@ def main() -> None:
     ap.add_argument("--pre-budget", type=int, default=None)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--require-cuda", action="store_true")
+    ap.add_argument(
+        "--checkpoints",
+        action="store_true",
+        help="Record the within-run efficiency curve (4 extra evals/run). Off by "
+        "default for the pilot, which only needs each arm's final accuracy.",
+    )
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
@@ -142,7 +148,7 @@ def main() -> None:
             decode=lambda ids: tok.decode(ids),
             append_eos_to_prompt=False,
             pre_budget_tokens=pre_budget,
-            eval_fracs=DEFAULT_EVAL_FRACS,
+            eval_fracs=DEFAULT_EVAL_FRACS if args.checkpoints else (),
         )
 
     matrix = default_h1_matrix(param_count_m=args.size)
