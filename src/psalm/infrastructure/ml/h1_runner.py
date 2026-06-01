@@ -67,6 +67,7 @@ class H1Runner:
         pre_epochs: int = 1,
         extra_eval_sets: dict[str, list[tuple[str, str]]] | None = None,
         comp_max_new_cap: int | None = None,
+        disc_eval_sets: dict[str, list[tuple[str, str]]] | None = None,
     ) -> None:
         self.assembler = assembler
         self.nl_lines = nl_lines
@@ -94,6 +95,10 @@ class H1Runner:
         # scored on the *same* trained model so multi-tier reporting costs no
         # extra training (ADR-0014).
         self.extra_eval_sets = extra_eval_sets or {}
+        # Role-discrimination minimal pairs (ADR-0015): each entry is a list of
+        # (correct_full_text, role_corrupted_full_text). Scored by teacher-forced
+        # sequence logprob (no generation) — off-floor by construction (chance=50%).
+        self.disc_eval_sets = disc_eval_sets or {}
         # Auto-size generation so the model can emit the *longest* gold target in
         # the PRIMARY eval set. Capping below the target length silently forces
         # exact-match to 0 for every long example (a battery-invalidating trap),
@@ -197,6 +202,20 @@ class H1Runner:
                 metrics[f"{name}_f1"] = token_f1_score(preds, golds)
                 for bucket, val in length_binned_accuracy(preds, golds).items():
                     metrics[f"{name}_len_{bucket}"] = val
+        # Role-discrimination readout (ADR-0015): minimal-pair likelihood accuracy.
+        if self.disc_eval_sets:
+            from psalm.domain.eval.metrics import minimal_pair_accuracy
+            from psalm.infrastructure.ml.eval_lm import minimal_pair_scores
+
+            device = cfg.device if cfg.device == "cpu" else "cuda"
+            for name, pairs in self.disc_eval_sets.items():
+                if not pairs:
+                    continue
+                scores = minimal_pair_scores(
+                    model, pairs, encode=self.encode, device=device, eos_id=self.eos_id
+                )
+                metrics[f"{name}_disc"] = minimal_pair_accuracy(scores)
+                metrics[f"{name}_disc_n"] = float(len(pairs))
         return metrics
 
 
