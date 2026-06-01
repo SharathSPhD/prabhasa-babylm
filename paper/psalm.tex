@@ -85,11 +85,109 @@ to incidental distributional differences.
 % One model, three readings; arms A--G; size ladder; statistical protocol
 % (bootstrap CIs, permutation tests, Holm--Bonferroni; pre-registered thresholds).
 
+\subsection{H1 at proxy scale: arms, dose, and the readout}
+The H1 test holds one decoder architecture fixed (a $\mu$P-parameterised
+$100\,\mathrm{M}$-parameter model) and varies only the content of a bounded
+structural pre-pretraining stream that precedes a common downstream phase on the
+COGS compositional-generalisation benchmark~\cite{kim2020cogs}. Three arms isolate
+the variable of interest: arm~A receives no structural pre-pretraining; arm~B
+receives the P\=a\d{n}inian k\=araka-framed stream; and arm~C receives a
+$k$-Shuffle Dyck stream whose surface statistics are matched to arm~B's, so that
+any B-over-C difference is attributable to \emph{grammatical content} rather than
+to generic hierarchical structure or incidental distributional differences. The
+structural dose is equalised across B and C by a matched-epoch schedule over a
+diversity-capped corpus. All three arms are run with three seeds.
+
+A central methodological finding of this work is that the \emph{readout}, not the
+prior, was the initial obstacle. Full logical-form exact-match generation floored
+near $0.02$ for every arm, including arm~A, even at $150\,\mathrm{M}$ parameters
+and a quadrupled step budget---an artefact of generation difficulty at proxy
+scale, not an absence of compositional learning. We therefore moved to a
+generation-free, teacher-forced \emph{role-discrimination} readout: the model is
+scored as correct on an item when it assigns higher likelihood to the gold
+logical form than to a minimally role-corrupted variant. To prevent
+researcher degrees of freedom, the primary metric and the B-versus-C decision
+thresholds were pre-registered blind for each readout in turn (ADR-0014 through
+ADR-0016) and committed to version control before the corresponding comparison was
+computed.
+
+Final-state discrimination, however, \emph{saturated}: an arm-A-only calibration
+sweep across four corruption tiers---an agent--theme filler swap and a
+distractor-rebinding corruption, each on the full lexical-generalisation set and
+on a non-canonical (passive and dative) subset where surface word order
+misleads---placed the no-prior baseline between $0.91$ and $0.99$ on every tier.
+With both endpoints saturated, the discriminating axis is \emph{sample
+efficiency}: how quickly each arm climbs the role-competence curve. The
+pre-registered primary metric (ADR-0016) is the normalised area under the
+discrimination-versus-downstream-tokens curve (AUC), with tokens-to-threshold
+($\theta = 0.80$) and an early-checkpoint accuracy gap as concordant secondaries
+required to agree in direction; the effect bar is $\Delta_{\mathrm{AUC}} \ge 0.02$
+with a bootstrap confidence interval excluding zero.
+
 \section{Results}
 % Filled from the experiment ledger at each phase closure. Figures live in
 % paper/figures/. Tables report mean $\pm$ 95\% CI.
 
+\subsection{H1: no advantage of the P\=a\d{n}inian prior over a matched control}
+Table~\ref{tab:h1-se} reports the H1 sample-efficiency result. Both structural
+pre-pretrainings (arms~B and~C) lift the discrimination-curve AUC by approximately
+$0.015$ over the no-pretraining baseline (arm~A), but they are
+statistically indistinguishable from each other: the primary contrast is
+$\Delta_{\mathrm{AUC}}(\mathrm{B}-\mathrm{C}) = +0.003$ with a $95\%$ bootstrap
+confidence interval of $[-0.006, +0.014]$, the early-checkpoint gap is $-0.011$
+(non-concordant), and tokens-to-threshold shows no separation. The pre-registered
+effect bar is not met, yielding a \textsc{no-or-weak-efficiency-gain} verdict. The
+readout was demonstrably in a measurable regime: the baseline crossed
+$\theta = 0.80$ within the $0.05$--$0.1$ budget region, so neither the
+``curves-too-steep-to-resolve'' nor the ``not-learned-at-scale'' pre-registered
+branch was triggered.
+
+\begin{table}[t]
+\centering
+\caption{H1 sample-efficiency readout at $100\,\mathrm{M}$ parameters (COGS,
+three seeds). AUC is the normalised area under the role-discrimination learning
+curve; early accuracy is taken at $0.1$ of the token budget.}
+\label{tab:h1-se}
+\begin{tabular}{lcc}
+\hline
+Arm & Discrimination AUC & Early acc.\ ($0.1$ budget) \\
+\hline
+A (no pre-pretraining) & $0.888$ & $0.842$ \\
+B (P\=a\d{n}inian) & $0.905$ & $0.835$ \\
+C (Dyck control) & $0.902$ & $0.846$ \\
+\hline
+$\Delta$ (B$-$C) & $+0.003\ [-0.006, +0.014]$ & $-0.011$ \\
+\hline
+\end{tabular}
+\end{table}
+
+The outcome has the most informative possible shape, $\mathrm{A} <
+(\mathrm{B} \approx \mathrm{C})$: the small benefit localises to \emph{generic
+hierarchical structure}, which the matched Dyck control supplies equally, rather
+than to P\=a\d{n}inian-specific annotation. Read together with the saturated
+final-state readout, this closes the proxy-scale H1 question on both axes. We
+report it as a clean controlled negative: at $100\,\mathrm{M}$ parameters, a
+P\=a\d{n}inian structural prior confers no measurable advantage over a
+surface-matched Dyck control for compositional argument-role acquisition, on
+either final accuracy or sample efficiency. The most plausible explanation,
+supported by the calibration sweep, is that the downstream data alone is
+sufficient for argument-role composition at this scale---the baseline already
+composes---so the prior has little room to add value on this particular
+capability.
+
 \section{Discussion}
+The H1 negative is scoped, not universal: it concerns argument-role composition at
+proxy scale, a capability the unprimed baseline already acquires from the
+downstream data. Rather than weakening the broader thesis, the result sharpens it.
+Local syntactic--semantic structure is precisely the segment of capability that
+small models obtain cheaply; the place where explicit grammatical and relational
+annotation could plausibly substitute for raw data volume is the segment the
+scaling laws actually govern---factual and traced-reasoning capability. The live
+claim therefore relocates from ``a grammatical prior aids composition'' to a
+data-format hypothesis: that annotation synthesised by running the generator in
+reverse over a structured knowledge base reaches matched factual coverage at fewer
+training tokens. We treat that as a separate, falsifiable line of work rather than
+as a rescue of the present null.
 
 \section{Limitations}
 % Grammar generates form, not facts; world-knowledge benchmarks reported only as
