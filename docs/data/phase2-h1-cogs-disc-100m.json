@@ -1,0 +1,70 @@
+{
+  "task": "cogs_discrimination",
+  "adr": "0015",
+  "size_m": 100.0,
+  "seeds": 3,
+  "max_steps": 3000,
+  "pre_epochs": 4,
+  "pre_budget_tokens": 179876,
+  "dose_fraction": 0.039,
+  "disc_coverage": 0.762,
+  "disc_pairs": 305,
+  "vocab": 1327,
+  "wall_seconds": 9028.1,
+  "prereg": {
+    "learned_min": 0.6,
+    "delta_min": 0.03,
+    "ci_hw_gate": 0.05
+  },
+  "discrimination": {
+    "A": [
+      0.9705,
+      0.9475,
+      1.0
+    ],
+    "B": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "C": [
+      0.9967,
+      1.0,
+      0.9869
+    ]
+  },
+  "summary": {
+    "A": {
+      "mean": 0.9726666666666667,
+      "ci": [
+        0.9475000000000001,
+        1.0
+      ],
+      "half_width": 0.02624999999999994
+    },
+    "B": {
+      "mean": 1.0,
+      "ci": [
+        1.0,
+        1.0
+      ],
+      "half_width": 0.0
+    },
+    "C": {
+      "mean": 0.9945333333333334,
+      "ci": [
+        0.9869,
+        1.0
+      ],
+      "half_width": 0.00655
+    }
+  },
+  "delta_B_minus_C": {
+    "mean": 0.005466666666666657,
+    "ci": [
+      0.0,
+      0.0131
+    ]
+  },
+  "verdict": "NO_OR_WEAK_SUPPORT: A learned (0.973) but B-C=+0.005 (CI +0.000..+0.013), max half-width 0.026. P\u0101\u1e47inian prior gives no role-discrimination lift over Dyck at this dose; consider crystallization dose before deciding."
+}

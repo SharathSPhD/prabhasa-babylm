@@ -1,0 +1,53 @@
+{
+  "task": "cogs",
+  "adr": "0014",
+  "size_m": 150.0,
+  "seeds": 2,
+  "max_steps": 12000,
+  "pre_epochs": 1,
+  "pre_budget_tokens": 179876,
+  "dose_fraction": 0.0024,
+  "vocab": 1418,
+  "wall_seconds": 12471.2,
+  "prereg": {
+    "floor_min": 0.1,
+    "delta_min": 0.03,
+    "ci_hw_gate": 0.05
+  },
+  "lexical_em": {
+    "A": [
+      0.02,
+      0.03
+    ]
+  },
+  "structural_em": {
+    "A": [
+      0.0,
+      0.0
+    ]
+  },
+  "structural_f1": {
+    "A": [
+      0.5317,
+      0.5337
+    ]
+  },
+  "summary_lexical": {
+    "A": {
+      "mean": 0.025,
+      "ci": [
+        0.02,
+        0.03
+      ],
+      "half_width": 0.004999999999999999
+    }
+  },
+  "delta_B_minus_C": {
+    "mean": NaN,
+    "ci": [
+      NaN,
+      NaN
+    ]
+  },
+  "verdict": "INCOMPLETE: need arms A, B, C to evaluate the pre-registered criterion."
+}
