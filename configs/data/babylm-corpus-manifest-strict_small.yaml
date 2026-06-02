@@ -1,0 +1,30 @@
+schema_version: babylm_manifest_v1
+track: strict_small
+notes: >
+  Illustrative Strict-Small mix per spec §6 (~6.5M EN, ~2M Paribhāṣā, ~1M Pāṇinian,
+  ~0.5M Dyck). Replace dedup_hash values with SHA-256 of frozen corpus shards before submission.
+sources:
+  - name: babylm-en
+    word_count: 6500000
+    dedup_hash: "0000000000000000000000000000000000000000000000000000000000000001"
+    epochs: 3.0
+    license_spdx: research-only
+    stage: pretrain
+  - name: paribhasha-synthetic
+    word_count: 2000000
+    dedup_hash: "0000000000000000000000000000000000000000000000000000000000000002"
+    epochs: 2.0
+    license_spdx: CC0-1.0
+    stage: pre_pretrain
+  - name: paninian-synthetic
+    word_count: 1000000
+    dedup_hash: "0000000000000000000000000000000000000000000000000000000000000003"
+    epochs: 1.0
+    license_spdx: CC0-1.0
+    stage: pre_pretrain
+  - name: dyck-control
+    word_count: 500000
+    dedup_hash: "0000000000000000000000000000000000000000000000000000000000000004"
+    epochs: 1.0
+    license_spdx: CC0-1.0
+    stage: pre_pretrain
