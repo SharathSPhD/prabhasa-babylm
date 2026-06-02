@@ -7,8 +7,8 @@ readout. **Does not auto-launch** the battery.
 Primary venue at scale: official BabyLM EWoK + BLiMP argument-structure minimal pairs
 (requires eval-train zero-shot — see ``docs/experiments/h1prime-plan.md``).
 
-``--smoke``: tiny CPU run using COGS noncanonical discrimination as a stand-in venue
-so the pipeline is proven end-to-end before eval shards exist.
+``--smoke``: tiny CPU run; primary venue is BabyLM-style minimal-pair discrimination
+(``babylm_eval.smoke_tasks``) with COGS noncanonical as fallback when pairs are absent.
 
     uv sync --extra dev --extra ml
     uv run python scripts/run_h1prime_pilot.py --smoke
@@ -29,15 +29,13 @@ from psalm.analysis.comparison_tests import mean_ci
 from psalm.application.data.assembly import PrePretrainAssembler
 from psalm.application.data.ports import AnnotatedSentence
 from psalm.application.data.tokenizer import TokenizerSpec
+from psalm.benchmarks.babylm_eval import smoke_tasks
 from psalm.domain.data.diversity import summarize
 from psalm.domain.data.dyck import DyckConfig
 from psalm.domain.data.matching import match_dyck
 from psalm.domain.eval.discrimination import CORRUPTIONS
-from psalm.domain.experiments.models import (
-    ExperimentArm,
-    PrePretrainSource,
-    PretrainCorpus,
-)
+from psalm.domain.experiments.matrix import default_h1p_matrix
+from psalm.domain.experiments.models import ExperimentArm
 from psalm.domain.model.config import ModelConfig, preset_for
 from psalm.domain.model.training import Precision, TrainConfig
 from psalm.infrastructure.eval.cogs import load_cogs
@@ -109,59 +107,44 @@ class ParibhashaStringSource:
             )
 
 
-def h1p_arm(
-    suffix: str,
-    *,
-    source: PrePretrainSource,
-    label: str,
-    param_count_m: float,
-    token_budget: int,
-) -> ExperimentArm:
-    return ExperimentArm(
-        arm_id=f"h1p:{suffix}",
-        label=label,
-        pre_pretrain=source,
-        pretrain_corpus=PretrainCorpus.ENGLISH,
-        param_count_m=param_count_m,
-        token_budget=token_budget,
-    )
-
-
-def default_h1p_arms(
+def h1p_arm_map(
     param_count_m: float, *, nl_budget: int, include_l1: bool
 ) -> dict[str, ExperimentArm]:
-    arms = {
-        "A": h1p_arm(
-            "A",
-            source=PrePretrainSource.NONE,
-            label="baseline",
-            param_count_m=param_count_m,
-            token_budget=nl_budget,
-        ),
-        "B": h1p_arm(
-            "B",
-            source=PrePretrainSource.SHABDABODHA_ALIGNED,
-            label="sabdabodha_aligned_l2",
-            param_count_m=param_count_m,
-            token_budget=nl_budget,
-        ),
-        "C": h1p_arm(
-            "C",
-            source=PrePretrainSource.DYCK,
-            label="matched_dyck_control",
-            param_count_m=param_count_m,
-            token_budget=nl_budget,
-        ),
-    }
-    if include_l1:
-        arms["L"] = h1p_arm(
-            "L",
-            source=PrePretrainSource.PANINIAN,
-            label="l1_paninian_contrast",
-            param_count_m=param_count_m,
-            token_budget=nl_budget,
-        )
-    return arms
+    """Suffix-keyed arms from :func:`default_h1p_matrix` (``A`` -> arm ``h1p:A``)."""
+    matrix = default_h1p_matrix(
+        param_count_m=param_count_m,
+        nl_budget=nl_budget,
+        include_l1=include_l1,
+    )
+    return {a.arm_id.removeprefix("h1p:"): a for a in matrix.arms}
+
+
+def babylm_minimal_pair_curve() -> list[tuple[str, str]]:
+    """EWoK/BLiMP-style (good, bad) pairs from eval-train smoke_tasks."""
+    return [(t.good, t.bad) for t in smoke_tasks()]
+
+
+def resolve_primary_venue(
+    *,
+    smoke: bool,
+    cogs_train_limit: int,
+    cogs_lex_limit: int,
+) -> tuple[list[tuple[str, str]], list[str], str]:
+    """Return (curve_pairs, nl_train_lines, venue_id). COGS only when BabylM pairs absent."""
+    pll_pairs = babylm_minimal_pair_curve()
+    if pll_pairs:
+        venue = "babylm_pll_minimal_pairs_smoke" if smoke else "babylm_pll_minimal_pairs_local"
+        train_lines = [good for good, _ in pll_pairs]
+        while len(train_lines) < max(cogs_train_limit, 32):
+            train_lines = train_lines + train_lines
+        return pll_pairs, train_lines[:cogs_train_limit], venue
+
+    train_pairs = load_cogs("train", limit=cogs_train_limit)
+    lex_test = load_cogs("gen", categories=NONCANONICAL_CATEGORIES, limit=cogs_lex_limit)
+    curve_pairs = build_disc_pairs(lex_test, CORRUPTION_SMOKE)
+    train_lines = [cogs_line(s, lf) for s, lf in train_pairs]
+    venue = "cogs_noncanonical_discrimination_fallback"
+    return curve_pairs, train_lines, venue
 
 
 def match_dyck_to_paribhasha(
@@ -354,7 +337,7 @@ def main() -> None:
         size_m = float(cfg_doc.get("param_count_m", 10.0))
         cogs_train = 200
         lexical_test = 80
-        venue = str(cfg_doc.get("venue_smoke", "cogs_noncanonical_discrimination"))
+        venue = str(cfg_doc.get("venue_smoke", "babylm_pll_minimal_pairs_smoke"))
         aligned = Path(cfg_doc.get("aligned_fixture", args.aligned))
         cache = str(cfg_doc.get("paninian_cache", args.cache))
         nl_budget = max_steps * batch_size * seq_len
@@ -373,12 +356,12 @@ def main() -> None:
         size_m = args.size
         cogs_train = 12_000
         lexical_test = 400
-        venue = "babylm_ewok_blimp_arg_BLOCKED"
+        venue = "babylm_pll_minimal_pairs_local"
         aligned = args.aligned
         cache = args.cache
         nl_budget = int(dose.get("nl_budget_proxy_tokens", 13_000_000))
 
-    arm_map = default_h1p_arms(size_m, nl_budget=nl_budget, include_l1=args.include_l1)
+    arm_map = h1p_arm_map(size_m, nl_budget=nl_budget, include_l1=args.include_l1)
     suffixes = [a.strip().upper() for a in args.arms.split(",") if a.strip()]
     if args.smoke:
         suffixes = [s.removeprefix("h1p:") for s in suffixes]
@@ -398,11 +381,11 @@ def main() -> None:
         shabdabodha_aligned=paribhasha_src,
     )
 
-    # Downstream NL + eval pairs (smoke: COGS; battery: blocked on eval-train).
-    train_pairs = load_cogs("train", limit=cogs_train)
-    lex_test = load_cogs("gen", categories=NONCANONICAL_CATEGORIES, limit=lexical_test)
-    curve_pairs = build_disc_pairs(lex_test, CORRUPTION_SMOKE)
-    train_lines = [cogs_line(s, lf) for s, lf in train_pairs]
+    curve_pairs, train_lines, venue = resolve_primary_venue(
+        smoke=args.smoke,
+        cogs_train_limit=cogs_train,
+        cogs_lex_limit=lexical_test,
+    )
     graph_pairs = build_graph_pairs(Path(aligned), limit=60)
 
     tok_dir = Path(".cache/h1prime_tok")
@@ -486,12 +469,6 @@ def main() -> None:
         seeds=seeds,
         theta=theta,
     )
-    if venue.startswith("babylm") and not args.smoke:
-        verdict = (
-            "BLOCKED_ON_EVAL_TRAIN: primary EWoK/BLiMP shards require official zero-shot "
-            f"PLL; smoke venue only. Pilot metrics above use COGS stand-in. {verdict}"
-        )
-
     payload = {
         "task": "h1prime_sample_efficiency",
         "adr": "0030",
@@ -499,8 +476,9 @@ def main() -> None:
         "smoke": args.smoke,
         "venue": venue,
         "venue_note": (
-            "COGS noncanonical discrimination is a wiring stand-in until eval-train "
-            "enables EWoK + BLiMP-arg (go_no_go.yaml primary_venue)."
+            "Primary: babylm_eval smoke_tasks minimal-pair discrimination (real PLL "
+            "scoring via H1Runner logprob). Fallback: COGS noncanonical if pairs absent. "
+            "Official full BLiMP/EWoK shards: invoke_official_zero_shot after HF export."
         ),
         "theta": theta,
         "eval_fracs": list(eval_fracs),

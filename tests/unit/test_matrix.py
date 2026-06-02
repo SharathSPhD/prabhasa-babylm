@@ -6,8 +6,10 @@ import pytest
 
 from psalm.domain.experiments.matrix import (
     DECISIVE_PAIR,
+    H1P_DECISIVE_PAIR,
     ExperimentMatrix,
     default_h1_matrix,
+    default_h1p_matrix,
 )
 from psalm.domain.experiments.models import PrePretrainSource, PretrainCorpus
 
@@ -94,3 +96,18 @@ def test_run_plan_is_arms_times_seeds() -> None:
     plan = m.run_plan()
     assert len(plan) == 8 * 3  # arms A-H
     assert (m.arm("B"), 1) in plan
+
+
+def test_default_h1p_matrix_arms_and_decisive_pair() -> None:
+    assert H1P_DECISIVE_PAIR == ("h1p:B", "h1p:C")
+    m = default_h1p_matrix(param_count_m=100.0, include_l1=True)
+    assert [a.arm_id for a in m.arms] == ["h1p:A", "h1p:B", "h1p:C", "h1p:L"]
+    b, c = m.arm("h1p:B"), m.arm("h1p:C")
+    assert b.pre_pretrain is PrePretrainSource.SHABDABODHA_ALIGNED
+    assert c.pre_pretrain is PrePretrainSource.DYCK
+    assert m.matched(b, c)
+
+
+def test_default_h1p_matrix_without_l1() -> None:
+    m = default_h1p_matrix(param_count_m=60.0, include_l1=False)
+    assert [a.arm_id for a in m.arms] == ["h1p:A", "h1p:B", "h1p:C"]
