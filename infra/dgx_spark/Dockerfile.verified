@@ -1,0 +1,59 @@
+# PSALM verified GB10 stack (ADR-0022 / ADR-0007).
+# Pinned NGC PyTorch base for Grace-Blackwell aarch64, CUDA 13, sm_121.
+# Build: infra/dgx_spark/build-validation.sh
+# Smoke: uv run python infra/dgx_spark/smoke.py
+
+ARG NGC_PYTORCH_TAG=25.04-py3
+FROM nvcr.io/nvidia/pytorch:${NGC_PYTORCH_TAG}
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    UV_SYSTEM_PYTHON=0 \
+    MAX_JOBS=4
+
+# Headers + ninja required for flash-attn source builds on aarch64.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git curl build-essential ninja-build \
+    python3-dev python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
+WORKDIR /workspace/psalm
+
+# Pin training-stack versions validated on GB10 host (2026-06-02).
+# Torch comes from NGC base; uv extras must not downgrade it.
+ENV FLASH_ATTN_VERSION=2.8.3 \
+    VIDYUT_VERSION=0.4.0 \
+    UNSLOTH_VERSION=2026.5.10 \
+    UNSLOTH_ZOO_VERSION=2026.5.5 \
+    BITSANDBYTES_VERSION=0.49.2
+
+COPY pyproject.toml README.md ./
+RUN mkdir -p src/psalm && \
+    printf '"""PSALM package."""\n__version__ = "0.1.0"\n' > src/psalm/__init__.py && \
+    uv sync --extra dev --extra ml --extra stats --extra verification
+
+COPY . .
+RUN uv sync --extra dev --extra ml --extra stats --extra verification
+
+# Vidyut aarch64 wheel (generator gate).
+RUN uv pip install "vidyut==${VIDYUT_VERSION}"
+
+# Unsloth without replacing NGC torch (full install downgrades torch on host).
+RUN uv pip install \
+    "unsloth==${UNSLOTH_VERSION}" \
+    "unsloth-zoo==${UNSLOTH_ZOO_VERSION}" \
+    "bitsandbytes==${BITSANDBYTES_VERSION}" \
+    "cut-cross-entropy" "tyro" "docstring-parser" "msgspec" "hf-transfer" \
+    --no-deps
+
+# flash-attn: precompiled aarch64 wheel may exist for cu12+torch2.12; else source build.
+# Failure is non-fatal for image build; smoke.py records FALLBACK.
+RUN uv pip install "flash-attn==${FLASH_ATTN_VERSION}" --no-build-isolation \
+    || echo "WARN: flash-attn build failed; use torch SDPA (see docs/data/gb10-stack-status.md)"
+
+CMD ["uv", "run", "python", "infra/dgx_spark/smoke.py"]
