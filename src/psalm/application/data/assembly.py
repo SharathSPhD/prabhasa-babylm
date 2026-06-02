@@ -67,11 +67,13 @@ class PrePretrainAssembler:
         dyck: SentenceGenerator | None,
         paninian_scrambled: SentenceGenerator | None = None,
         paribhasha: SentenceGenerator | None = None,
+        shabdabodha_aligned: SentenceGenerator | None = None,
     ) -> None:
         self._paninian = paninian
         self._dyck = dyck
         self._paninian_scrambled = paninian_scrambled
         self._paribhasha = paribhasha
+        self._shabdabodha_aligned = shabdabodha_aligned
 
     def _generator(self, source: PrePretrainSource) -> SentenceGenerator | None:
         if source in _PANINIAN_SOURCES:
@@ -90,6 +92,10 @@ class PrePretrainAssembler:
             if self._paribhasha is None:
                 raise RuntimeError("no Paribhāṣā generator configured for this arm")
             return self._paribhasha
+        if source is PrePretrainSource.SHABDABODHA_ALIGNED:
+            if self._shabdabodha_aligned is None:
+                raise RuntimeError("no Śabdabodha aligned JSONL source configured for this arm")
+            return self._shabdabodha_aligned
         return None  # NONE: no pre-pretraining
 
     def items(self, source: PrePretrainSource, n: int, *, seed: int) -> Iterator[AnnotatedSentence]:

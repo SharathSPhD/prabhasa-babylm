@@ -18,6 +18,12 @@ from psalm.infrastructure.generators.paribhasha.renderer import (
     parse_paribhasha_ascii,
     render_graph,
 )
+from psalm.infrastructure.generators.paribhasha.shabdabodha import (
+    compile_shabdabodha,
+    measure_coverage,
+    to_aligned_record,
+    validate_aligned_record,
+)
 from psalm.infrastructure.generators.paribhasha.types import (
     GraphEdge,
     GraphNode,
@@ -28,6 +34,10 @@ from psalm.infrastructure.generators.paribhasha.types import (
 )
 
 __all__ = [
+    "compile_shabdabodha",
+    "measure_coverage",
+    "to_aligned_record",
+    "validate_aligned_record",
     "GraphEdge",
     "GraphNode",
     "PadarthaCategory",
