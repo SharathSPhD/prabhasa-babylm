@@ -22,14 +22,41 @@ data, consistent with the program's integrity rules.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 
 from psalm.application.data.ports import AnnotatedSentence
+from psalm.domain.data.diversity import ngram_entropy, pattern_coverage, type_token_ratio
 from psalm.domain.data.karaka_frames import KarakaFrame, enumerate_frames
 
 
 class SamsadhaniNotConfiguredError(RuntimeError):
     """Raised when the Saṃsādhanī toolkit/container has not been provisioned."""
+
+
+class SamsadhaniCapacityError(RuntimeError):
+    """Raised when the stream cannot deliver ``n`` unique accepted sentences."""
+
+
+def samsadhani_diversity_metrics(sentences: Sequence[AnnotatedSentence]) -> dict[str, float]:
+    """Sentence-level diversity snapshot for a Saṃsādhanī batch (ADR-0012)."""
+    texts = [s.text for s in sentences]
+    role_seqs = [" ".join(role for _tok, role in s.karaka_parse) for s in sentences]
+    distinct = len(set(texts))
+    n = len(texts)
+    return {
+        "n_sentences": float(n),
+        "distinct_sentences": float(distinct),
+        "distinct_sentence_fraction": distinct / max(n, 1),
+        "word_type_token_ratio": type_token_ratio(texts),
+        "bigram_entropy": ngram_entropy(texts, 2),
+        "trigram_entropy": ngram_entropy(texts, 3),
+        "distinct_karaka_role_sequences": float(len(set(role_seqs))),
+        "pct_with_gold_parse": 100.0 * sum(1 for s in sentences if s.has_gold_parse) / max(n, 1),
+        "karaka_pattern_coverage": pattern_coverage(
+            role_seqs,
+            ("karwA", "karwA karma", "karwA karaNam", "karwA sampraxAnam"),
+        ),
+    }
 
 
 class SamsadhaniiGenerator:
@@ -46,11 +73,26 @@ class SamsadhaniiGenerator:
         ``None``. If ``True`` (default) such sentences still stream but their
         ``karaka_parse`` uses the lemma as the token key; the role/lemma
         supervision is always preserved.
+    fail_closed:
+        When ``True`` (default), raise :class:`SamsadhaniCapacityError` if the
+        frame enumerator is exhausted before ``n`` unique accepted sentences are
+        emitted. When ``False``, yield as many as possible (legacy lenient mode).
+    dedup:
+        When ``True`` (default), skip duplicate surface strings within one stream.
     """
 
-    def __init__(self, base_url: str | None = None, *, skip_unaligned: bool = True) -> None:
+    def __init__(
+        self,
+        base_url: str | None = None,
+        *,
+        skip_unaligned: bool = True,
+        fail_closed: bool = True,
+        dedup: bool = True,
+    ) -> None:
         self.base_url = base_url
         self.skip_unaligned = skip_unaligned
+        self.fail_closed = fail_closed
+        self.dedup = dedup
         self._client = None  # lazily constructed
 
     def _ensure_client(self):  # noqa: ANN202 - external partially-typed object
@@ -99,10 +141,13 @@ class SamsadhaniiGenerator:
         parse: tuple[tuple[str, str], ...] = tuple(
             (w.surface if w.surface else w.lemma, w.role) for w in ann.words if w.role is not None
         )
+        if not parse or not ann.sentence.strip():
+            return None  # fail-closed: no gold parse or empty surface
         meta = {
             "source": "samsadhani-generator",
             "aligned": str(ann.aligned),
             "wx_input": ann.wx_input,
+            "frame_signature": "|".join(frame.signature),
         }
         return AnnotatedSentence(
             text=ann.sentence,
@@ -126,12 +171,22 @@ class SamsadhaniiGenerator:
             return
         self._ensure_client()
         emitted = 0
-        # Draw a generous margin to absorb generator rejections.
-        for frame in enumerate_frames(n * 4 + 16, seed=seed):
+        seen_texts: set[str] = set()
+        frame_budget = n * 8 + 64
+        for frame in enumerate_frames(frame_budget, seed=seed):
             if emitted >= n:
                 return
             sentence = self._annotate(frame)
-            if sentence is None:
+            if sentence is None or not sentence.has_gold_parse:
                 continue
+            if self.dedup and sentence.text in seen_texts:
+                continue
+            seen_texts.add(sentence.text)
             yield sentence
             emitted += 1
+        if self.fail_closed and emitted < n:
+            raise SamsadhaniCapacityError(
+                f"Saṃsādhanī stream delivered {emitted}/{n} unique accepted sentences "
+                f"after {frame_budget} frames (seed={seed}). Increase the lexicon or "
+                "frame budget, or relax fail_closed."
+            )
