@@ -1,0 +1,310 @@
+"""ELC-PSALM: every-layer-counts encoder with GPT-BERT hybrid MLM+CLM training.
+
+Uses torch scaled dot-product attention (ADR-0023) — no flash-attn dependency.
+Implements ``PseudoLogLikelihoodModel`` via ``ElcPsalmEvaluator`` for BabyLM eval.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from enum import StrEnum
+
+import torch
+import torch.nn.functional as F
+from torch import nn
+
+from psalm.domain.model.elc_config import ElcPsalmConfig, HybridObjective
+
+
+class _AttnMode(StrEnum):
+    BIDIRECTIONAL = "bidirectional"
+    CAUSAL = "causal"
+
+
+def _build_attn_mask(t: int, mode: _AttnMode, device: torch.device) -> torch.Tensor | None:
+    if mode is _AttnMode.BIDIRECTIONAL:
+        return None
+    return torch.full((t, t), float("-inf"), device=device).triu(1)
+
+
+class LayerRouteCombiner(nn.Module):
+    """ELC-BERT every-layer-counts: softmax weights over all prior hidden states."""
+
+    def __init__(self, n_layers: int) -> None:
+        super().__init__()
+        self.n_layers = n_layers
+        logits = torch.zeros(n_layers, n_layers)
+        mask = torch.tril(torch.ones(n_layers, n_layers, dtype=torch.bool))
+        self.register_buffer("_mask", mask, persistent=False)
+        self.route_logits = nn.Parameter(logits)
+
+    def combine(self, states: list[torch.Tensor], layer_idx: int) -> torch.Tensor:
+        """Weighted sum of ``states[0..layer_idx]`` (inclusive)."""
+        row = self.route_logits[layer_idx]
+        masked = row.masked_fill(~self._mask[layer_idx], float("-inf"))
+        weights = F.softmax(masked[: layer_idx + 1], dim=-1)
+        stacked = torch.stack(states[: layer_idx + 1], dim=0)
+        return (weights.view(-1, 1, 1, 1) * stacked).sum(dim=0)
+
+
+class _SDPABlock(nn.Module):
+    """Pre-norm transformer block with multi-head SDPA."""
+
+    def __init__(self, cfg: ElcPsalmConfig) -> None:
+        super().__init__()
+        self.cfg = cfg
+        self.ln1 = nn.LayerNorm(cfg.d_model)
+        self.qkv = nn.Linear(cfg.d_model, 3 * cfg.d_model, bias=False)
+        self.out_proj = nn.Linear(cfg.d_model, cfg.d_model, bias=False)
+        self.ln2 = nn.LayerNorm(cfg.d_model)
+        self.mlp = nn.Sequential(
+            nn.Linear(cfg.d_model, cfg.d_ff),
+            nn.GELU(),
+            nn.Linear(cfg.d_ff, cfg.d_model),
+            nn.Dropout(cfg.dropout),
+        )
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        *,
+        attn_mode: _AttnMode,
+    ) -> torch.Tensor:
+        b, t, d = x.shape
+        h = self.ln1(x)
+        qkv = self.qkv(h).reshape(b, t, 3, self.cfg.n_heads, self.cfg.head_dim)
+        q, k, v = qkv.unbind(dim=2)
+        q = q.transpose(1, 2)
+        k = k.transpose(1, 2)
+        v = v.transpose(1, 2)
+        attn_mask = _build_attn_mask(t, attn_mode, x.device)
+        dropout_p = self.cfg.dropout if self.training else 0.0
+        a = F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            attn_mask=attn_mask,
+            dropout_p=dropout_p,
+            is_causal=attn_mode is _AttnMode.CAUSAL,
+        )
+        a = a.transpose(1, 2).reshape(b, t, d)
+        x = x + self.out_proj(a)
+        x = x + self.mlp(self.ln2(x))
+        return x
+
+
+class ElcPsalmEncoder(nn.Module):
+    """ELC-BERT backbone with optional MLM/CLM logits from a tied LM head."""
+
+    def __init__(self, cfg: ElcPsalmConfig) -> None:
+        super().__init__()
+        self.cfg = cfg
+        self.tok = nn.Embedding(cfg.vocab_size, cfg.d_model)
+        self.pos = nn.Embedding(cfg.max_seq_len, cfg.d_model)
+        self.drop = nn.Dropout(cfg.dropout)
+        self.router = LayerRouteCombiner(cfg.n_layers)
+        self.blocks = nn.ModuleList(_SDPABlock(cfg) for _ in range(cfg.n_layers))
+        self.ln_f = nn.LayerNorm(cfg.d_model)
+        self.lm_head = nn.Linear(cfg.d_model, cfg.vocab_size, bias=False)
+        if cfg.tie_embeddings:
+            self.lm_head.weight = self.tok.weight
+        self.apply(self._init_weights)
+
+    def _init_weights(self, m: nn.Module) -> None:
+        if isinstance(m, nn.Linear):
+            nn.init.normal_(m.weight, mean=0.0, std=0.02)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.Embedding):
+            nn.init.normal_(m.weight, mean=0.0, std=0.02)
+
+    def embed(self, idx: torch.Tensor) -> torch.Tensor:
+        _, t = idx.shape
+        pos = torch.arange(t, device=idx.device).unsqueeze(0)
+        return self.drop(self.tok(idx) + self.pos(pos))
+
+    def encode(
+        self,
+        idx: torch.Tensor,
+        *,
+        attn_mode: _AttnMode = _AttnMode.BIDIRECTIONAL,
+    ) -> torch.Tensor:
+        states: list[torch.Tensor] = [self.embed(idx)]
+        for layer_idx, block in enumerate(self.blocks):
+            x = self.router.combine(states, layer_idx)
+            h = block(x, attn_mode=attn_mode)
+            states.append(h)
+        return self.ln_f(states[-1])
+
+    def forward(
+        self,
+        idx: torch.Tensor,
+        *,
+        objective: HybridObjective | None = None,
+        labels: torch.Tensor | None = None,
+        mlm_mask: torch.Tensor | None = None,
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Return ``(logits, aux)`` with optional ``loss`` / per-objective losses in aux."""
+        obj = objective or self.cfg.default_objective
+        aux: dict[str, torch.Tensor] = {}
+
+        if obj is HybridObjective.MLM or obj is HybridObjective.HYBRID:
+            hidden = self.encode(idx, attn_mode=_AttnMode.BIDIRECTIONAL)
+            logits = self.lm_head(hidden)
+            if labels is not None and mlm_mask is not None:
+                aux["mlm_loss"] = _masked_ce(logits, labels, mlm_mask)
+            aux["logits_mlm"] = logits
+
+        if obj is HybridObjective.CLM or obj is HybridObjective.HYBRID:
+            hidden_c = self.encode(idx, attn_mode=_AttnMode.CAUSAL)
+            logits_c = self.lm_head(hidden_c)
+            if labels is not None:
+                aux["clm_loss"] = _causal_ce(logits_c, labels)
+            aux["logits_clm"] = logits_c
+
+        if obj is HybridObjective.HYBRID:
+            logits = aux["logits_mlm"]
+            if "mlm_loss" in aux and "clm_loss" in aux:
+                w_m = self.cfg.hybrid_mlm_weight
+                w_c = self.cfg.hybrid_clm_weight
+                norm = w_m + w_c
+                aux["loss"] = (w_m * aux["mlm_loss"] + w_c * aux["clm_loss"]) / norm
+        elif obj is HybridObjective.MLM:
+            logits = aux.get("logits_mlm", self.lm_head(self.encode(idx)))
+            if "mlm_loss" in aux:
+                aux["loss"] = aux["mlm_loss"]
+        else:
+            logits = aux.get(
+                "logits_clm", self.lm_head(self.encode(idx, attn_mode=_AttnMode.CAUSAL))
+            )
+            if "clm_loss" in aux:
+                aux["loss"] = aux["clm_loss"]
+
+        return logits, aux
+
+    def num_parameters(self) -> int:
+        return sum(p.numel() for p in self.parameters())
+
+
+def _masked_ce(
+    logits: torch.Tensor,
+    labels: torch.Tensor,
+    mask: torch.Tensor,
+) -> torch.Tensor:
+    flat_logits = logits.reshape(-1, logits.size(-1))
+    flat_labels = labels.reshape(-1)
+    flat_mask = mask.reshape(-1)
+    if flat_mask.sum() == 0:
+        return logits.new_zeros(())
+    return F.cross_entropy(flat_logits[flat_mask], flat_labels[flat_mask])
+
+
+def _causal_ce(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+    if logits.size(1) < 2:
+        return logits.new_zeros(())
+    return F.cross_entropy(
+        logits[:, :-1].reshape(-1, logits.size(-1)),
+        labels[:, 1:].reshape(-1),
+    )
+
+
+def make_mlm_mask(
+    idx: torch.Tensor,
+    *,
+    mask_id: int,
+    probability: float,
+    exclude: set[int] | None = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Bernoulli MLM mask; returns ``(masked_idx, loss_mask)``."""
+    masked = idx.clone()
+    exclude_ids = exclude or set()
+    eligible = torch.ones_like(idx, dtype=torch.bool)
+    for tid in exclude_ids:
+        eligible &= idx != tid
+    bern = torch.rand_like(idx, dtype=torch.float32) < probability
+    loss_mask = eligible & bern
+    masked[loss_mask] = mask_id
+    return masked, loss_mask
+
+
+def hybrid_training_step(
+    model: ElcPsalmEncoder,
+    batch: torch.Tensor,
+    *,
+    mask_id: int,
+    step: int,
+    pad_id: int = 0,
+) -> torch.Tensor:
+    """One optimizer step loss: alternate MLM/CLM when objective is HYBRID."""
+    labels = batch
+    obj = model.cfg.default_objective
+    if obj is HybridObjective.HYBRID and step % 2 == 1:
+        obj = HybridObjective.CLM
+    elif obj is HybridObjective.HYBRID:
+        obj = HybridObjective.MLM
+
+    if obj is HybridObjective.MLM:
+        masked, loss_mask = make_mlm_mask(
+            batch,
+            mask_id=mask_id,
+            probability=model.cfg.mlm_probability,
+            exclude={pad_id, mask_id},
+        )
+        _, aux = model(masked, objective=HybridObjective.MLM, labels=labels, mlm_mask=loss_mask)
+        return aux["loss"]
+    _, aux = model(batch, objective=HybridObjective.CLM, labels=labels)
+    return aux["loss"]
+
+
+@torch.no_grad()
+def pseudo_log_likelihood_tokens(
+    model: ElcPsalmEncoder,
+    token_ids: list[int],
+    *,
+    mask_id: int,
+    device: str,
+) -> float:
+    """Salazar-style PLL: mask each token in turn, sum log p(true token | rest)."""
+    if len(token_ids) < 1:
+        return 0.0
+    window = token_ids[-model.cfg.max_seq_len :]
+    total = 0.0
+    model.eval()
+    for pos in range(len(window)):
+        tid = window[pos]
+        if tid == mask_id:
+            continue
+        batch = torch.tensor([window], dtype=torch.long, device=device)
+        masked = batch.clone()
+        masked[0, pos] = mask_id
+        hidden = model.encode(masked, attn_mode=_AttnMode.BIDIRECTIONAL)
+        logits = model.lm_head(hidden)
+        logp = F.log_softmax(logits[0, pos], dim=-1)
+        total += float(logp[tid])
+    return total
+
+
+class ElcPsalmEvaluator:
+    """BabyLM ``PseudoLogLikelihoodModel`` adapter for an ELC-PSALM checkpoint."""
+
+    def __init__(
+        self,
+        model: ElcPsalmEncoder,
+        encode: Callable[[str], list[int]],
+        *,
+        mask_id: int,
+        device: str = "cpu",
+    ) -> None:
+        self._model = model
+        self._encode = encode
+        self._mask_id = mask_id
+        self._device = device
+
+    def pseudo_log_likelihood(self, text: str) -> float:
+        ids = self._encode(text)
+        return pseudo_log_likelihood_tokens(
+            self._model,
+            ids,
+            mask_id=self._mask_id,
+            device=self._device,
+        )
