@@ -2,7 +2,7 @@
 
 **Branch:** `integration/data-engine-v2`  
 **Base:** `main` @ `d9bb9a9` (Wave-1 interface freeze)  
-**Integration HEAD:** (see `git log -1` after merge to `main`)
+**Integration HEAD:** `5278a06` (merged to `main` via FF)
 
 ## Merged workstreams (order)
 
@@ -91,4 +91,5 @@ uv run pytest -q --cov=src --cov-report=term-missing
 
 ## Merge to `main`
 
-Recorded after gate: see integration commit / `main` HEAD in closing report.
+**Done** — `git -C /home/sharaths/projects/PSALM merge --ff-only integration/data-engine-v2`  
+**`main` HEAD:** `5278a06` (`Document Wave-1 data-engine integration and gate evidence.`)
