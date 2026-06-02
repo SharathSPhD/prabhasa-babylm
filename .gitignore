@@ -27,6 +27,9 @@ htmlcov/
 # BabyLM official eval pipeline clone (scripts/setup_babylm_eval_pipeline.sh)
 vendor/babylm-evaluation-pipeline-2025/
 
+# Unsloth compile cache (GB10 / NGC runs)
+unsloth_compiled_cache/
+
 # Experiment artifacts (large; tracked on HF, not git)
 data/synthetic/*
 data/corpora/*
