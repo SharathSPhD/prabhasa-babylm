@@ -78,4 +78,5 @@ uv run pytest -q --cov=src --cov-report=term-missing
 
 ## Merge to `main`
 
-Pending after integration commits: `git -C /home/sharaths/projects/PSALM merge --ff-only integration/data-engine-v2` (no push).
+**Done** — `git -C /home/sharaths/projects/PSALM merge --ff-only integration/data-engine-v2`  
+**`main` HEAD:** `0c4b2de` (no push to remote).
