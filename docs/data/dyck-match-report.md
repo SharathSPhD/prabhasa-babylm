@@ -1,8 +1,8 @@
 # Dyck surface-stat match report
 
-**PENDING:** Final recompute against U2 `vidyut-fixture-stats.json` is not yet integrated; this report uses the sentence-level Saṃsādhanī diversity baseline.
+**PENDING U2:** `vidyut-fixture-stats.json` is published but Dyck targets still use live Saṃsādhanī sentence stats until fixture-vs-live diversity parity is reconciled (fixture corpus TTR ≪ live).
 
-Generated: `2026-06-02T21:31:24.216385+00:00`
+Generated: `2026-06-02T21:39:40.342524+00:00`
 
 ## Targets (DEFAULT_KEYS)
 
@@ -12,7 +12,7 @@ Generated: `2026-06-02T21:31:24.216385+00:00`
 | bigram_entropy | 0.9856 |
 | trigram_entropy | 0.9986 |
 
-Source: `docs/data/phase2-samsadhani-diversity.json`
+Source: `docs/data/phase2-samsadhani-diversity.json#samsadhani_sentences (U2 vidyut-fixture-stats.json present; fixture-vs-live TTR reconciliation pending)`
 
 ## Best grid match (H1 fairness)
 

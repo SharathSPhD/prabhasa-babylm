@@ -43,8 +43,18 @@ def _load_targets() -> tuple[dict[str, float], str, bool]:
     pending_u2 = False
     if VIDYUT_FIXTURE.is_file():
         raw = json.loads(VIDYUT_FIXTURE.read_text(encoding="utf-8"))
-        source = str(VIDYUT_FIXTURE.relative_to(ROOT))
-        block = raw.get("samsadhani_sentences", raw)
+        if "samsadhani_sentences" in raw:
+            block = raw["samsadhani_sentences"]
+            source = f"{VIDYUT_FIXTURE.relative_to(ROOT)}#samsadhani_sentences"
+        else:
+            # U2 fixture stats published; Dyck DEFAULT_KEYS still track live Saṃsādhanī
+            # until sentence-level parity with the fixture export is demonstrated.
+            pending_u2 = True
+            block = json.loads(SAMSADHANI.read_text(encoding="utf-8"))["samsadhani_sentences"]
+            source = (
+                f"{SAMSADHANI.relative_to(ROOT)}#samsadhani_sentences "
+                f"(U2 {VIDYUT_FIXTURE.name} present; fixture-vs-live TTR reconciliation pending)"
+            )
     else:
         pending_u2 = True
         raw = json.loads(SAMSADHANI.read_text(encoding="utf-8"))
@@ -103,10 +113,11 @@ def main() -> None:
     RESULT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
     pending_note = (
-        "**PENDING:** Final recompute against U2 `vidyut-fixture-stats.json` is not yet "
-        "integrated; this report uses the sentence-level Saṃsādhanī diversity baseline.\n\n"
+        "**PENDING U2:** `vidyut-fixture-stats.json` is published but Dyck targets still "
+        "use live Saṃsādhanī sentence stats until fixture-vs-live diversity parity is "
+        "reconciled (fixture corpus TTR ≪ live).\n\n"
         if pending_u2
-        else "**Baseline:** U2 `vidyut-fixture-stats.json` (sentence-level fixture stats).\n\n"
+        else "**Baseline:** U2 `vidyut-fixture-stats.json#samsadhani_sentences`.\n\n"
     )
     report = f"""# Dyck surface-stat match report
 
@@ -155,7 +166,10 @@ Hu replication stats: `{json.dumps(hu_stats)}`
     print(f"Wrote {REPORT}")
     print(f"Wrote {RESULT_JSON}")
     if pending_u2:
-        print("NOTE: pending_u2_fixture=true — rerun when vidyut-fixture-stats.json lands.")
+        print(
+            "NOTE: pending_u2_fixture=true — fixture stats published; "
+            "Dyck targets still use live Saṃsādhanī until TTR parity."
+        )
 
 
 if __name__ == "__main__":
