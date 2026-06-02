@@ -104,9 +104,7 @@ def check_torch_gpu(report: Report) -> None:
     q = torch.randn(2, 4, 64, 32, device="cuda", dtype=torch.bfloat16, requires_grad=True)
     k = torch.randn(2, 4, 64, 32, device="cuda", dtype=torch.bfloat16, requires_grad=True)
     v = torch.randn(2, 4, 64, 32, device="cuda", dtype=torch.bfloat16, requires_grad=True)
-    out = torch.nn.functional.scaled_dot_product_attention(
-        q, k, v, dropout_p=0.0, is_causal=True
-    )
+    out = torch.nn.functional.scaled_dot_product_attention(q, k, v, dropout_p=0.0, is_causal=True)
     out.sum().backward()
     torch.cuda.synchronize()
     report.add("torch_sdpa", "PASS", "fwd+bwd causal bf16")
@@ -115,8 +113,8 @@ def check_torch_gpu(report: Report) -> None:
 def check_flash_attn(report: Report, *, strict: bool) -> None:
     try:
         import flash_attn  # noqa: F401
-        from flash_attn import flash_attn_func
         import torch
+        from flash_attn import flash_attn_func
 
         B, H, S, D = 2, 4, 128, 64
         q = torch.randn(B, H, S, D, device="cuda", dtype=torch.bfloat16, requires_grad=True)
