@@ -16,5 +16,13 @@ from __future__ import annotations
 
 # (enum_value, owning_adr, status)
 PLANNED_SOURCES: tuple[tuple[str, str, str], ...] = (
-    ("paribhasha", "docs/decisions/0018-paribhasha-layer-2-typed-generator.md", "planned"),
+    (
+        "paribhasha",
+        "docs/decisions/0018-paribhasha-layer-2-typed-generator.md",
+        "landed",
+    ),
+)
+
+LANDED_SOURCES: tuple[str, ...] = tuple(
+    name for name, _adr, status in PLANNED_SOURCES if status == "landed"
 )

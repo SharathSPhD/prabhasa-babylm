@@ -32,6 +32,7 @@ class PrePretrainSource(StrEnum):
     DYCK = "dyck"
     PANINIAN_KARAKA_AUX = "paninian_karaka_aux"
     PANINIAN_SCRAMBLED = "paninian_scrambled"  # arm H: B's tokens, order permuted
+    PARIBHASHA = "paribhasha"  # L2 typed graph prior (competition / H1′; not bare H1)
 
 
 class PretrainCorpus(StrEnum):
