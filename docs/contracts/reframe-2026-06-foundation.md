@@ -15,6 +15,8 @@ No worktrees, training, or `matrix.py` edits on this branch.
 | ADR-0020 BabyLM dual track | [docs/decisions/0020-babylm-dual-track.md](../decisions/0020-babylm-dual-track.md) |
 | ADR-0021 Arm namespaces | [docs/decisions/0021-arm-namespace-competition-vs-h1-matrix.md](../decisions/0021-arm-namespace-competition-vs-h1-matrix.md) |
 | ADR-0022 GB10 gate | [docs/decisions/0022-gb10-full-stack-validation-gate.md](../decisions/0022-gb10-full-stack-validation-gate.md) |
+| ADR-0023 GB10 SDPA fallback | [docs/decisions/0023-flash-attn-gb10-sdpa-fallback.md](../decisions/0023-flash-attn-gb10-sdpa-fallback.md) |
+| Wave-1 integration report | [integration-data-engine-v2-2026-06.md](./integration-data-engine-v2-2026-06.md) |
 | Interface freeze | [docs/contracts/interface-freeze-2026-06.md](./interface-freeze-2026-06.md) |
 | Aligned-pair JSON Schema | [docs/contracts/aligned-pair-schema.json](./aligned-pair-schema.json) |
 
@@ -49,6 +51,11 @@ All must be true before forking unit worktrees:
 3. **Per-unit charters** written at worktree creation (not on planning branch).
 4. **H1′ pre-registration** — thresholds in YAML + ADR (human decision; see below).
 5. **U1 gate** — `GB10_STACK_VERIFIED` before any GPU training charter (ADR-0022).
+   **Conditional verified (2026-06):** host torch/SDPA + `Dockerfile.verified` path per
+   ADR-0023; flash-attn optional, not blocking Wave-1 data engine.
+6. **Interface freeze honored on integration** — `AnnotatedSentence`, `DEFAULT_KEYS`,
+   H1 matrix A–H unchanged; `PARIBHASHA` wired via extension process only
+   ([integration-data-engine-v2-2026-06.md](./integration-data-engine-v2-2026-06.md)).
 
 ## Wave-2 launch preconditions
 
