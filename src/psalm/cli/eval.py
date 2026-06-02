@@ -35,33 +35,42 @@ def babylm_smoke(
     mock: bool = typer.Option(
         False,
         "--mock",
-        help="Force MOCK harness even if pipeline is installed",
+        help="Force random PLL baseline (not ELC-PSALM)",
     ),
-    elc: bool = typer.Option(
+    no_elc: bool = typer.Option(
         False,
-        "--elc",
-        help="Score with untrained ELC-PSALM PLL adapter (requires psalm[ml])",
+        "--no-elc",
+        help="Disable ELC-PSALM; use random baseline unless checkpoint is set",
     ),
     checkpoint: Path | None = typer.Option(
         None,
         "--checkpoint",
-        help="ELC-PSALM checkpoint (.pt); falls back to mock if missing or unloadable",
+        help="ELC-PSALM checkpoint (.pt)",
     ),
     seed: int = typer.Option(0, help="RNG seed for MockUniformBaseline"),
+    device: str = typer.Option("cpu", "--device", help="cpu for CI; cuda for GPU SDPA"),
 ) -> None:
-    """Smoke-test eval wiring with a random PLL baseline (produces numeric scores)."""
+    """Smoke zero-shot eval: real PLL minimal-pair accuracy (default: untrained ELC-PSALM)."""
     mode = RunMode.MOCK if mock else None
     model = build_babylm_smoke_model(
         mock=mock,
-        use_elc=elc,
+        use_elc=not no_elc,
         checkpoint=checkpoint,
         seed=seed,
+        device=device,
     )
-    result = run_smoke_eval(model, mode=mode, output_path=output)
+    result = run_smoke_eval(
+        model,
+        mode=mode,
+        output_path=output,
+        force_mock_baseline=mock,
+    )
     console.print(f"[bold]mode:[/bold] {result.mode.value}")
     console.print(f"[bold]aggregate:[/bold] {result.aggregate_score:.4f}")
     for name, score in result.task_scores.items():
         console.print(f"  {name}: {score:.4f}")
+    if result.pipeline_installed:
+        console.print("[dim]official pipeline detected[/dim]")
     console.print(f"[dim]{result.notes}[/dim]")
     if result.report_path:
         console.print(f"report: {result.report_path}")
@@ -73,7 +82,9 @@ def babylm_status() -> None:
     root = eval_root()
     installed = detect_pipeline_install(root)
     status = (
-        "[green]installed[/green]" if installed else "[yellow]not installed (MOCK only)[/yellow]"
+        "[green]installed[/green]"
+        if installed
+        else "[yellow]not installed (local PLL only)[/yellow]"
     )
     console.print(f"pipeline root: {root}")
     console.print(f"status: {status}")

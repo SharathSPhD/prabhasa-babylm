@@ -1,13 +1,18 @@
 """Resolve YAML ``architecture`` names to domain model configs.
 
 Decoder presets use ``preset_for``; competition ELC-PSALM backbones use
-``elc_preset_for``. Training-loop construction from these configs is a follow-up.
+``elc_preset_for``. Use :func:`joint_tokenizer_vocab` with manifests for live vocab sizes.
 """
 
 from __future__ import annotations
 
 from psalm.domain.model.config import ModelConfig
-from psalm.domain.model.elc_config import ElcPsalmConfig, elc_preset_for
+from psalm.domain.model.elc_config import (
+    STRICT_SMALL_VOCAB,
+    STRICT_VOCAB,
+    ElcPsalmConfig,
+    elc_preset_for,
+)
 
 ELC_ARCHITECTURE_NAMES: frozenset[str] = frozenset({"elc_psalm_s", "elc_psalm_m"})
 
@@ -28,3 +33,19 @@ def resolve_architecture(
 
 def is_elc_architecture(name: str) -> bool:
     return name in ELC_ARCHITECTURE_NAMES
+
+
+def joint_tokenizer_vocab(track: str = "strict_small") -> int:
+    """Default joint tokenizer size for a BabyLM track (U6 manifests)."""
+    if track in ("strict", "strict_m", "100m"):
+        return STRICT_VOCAB
+    return STRICT_SMALL_VOCAB
+
+
+def default_vocab_for_architecture(name: str) -> int:
+    """Vocab size implied by an ELC architecture name."""
+    if name == "elc_psalm_m":
+        return STRICT_VOCAB
+    if name == "elc_psalm_s":
+        return STRICT_SMALL_VOCAB
+    raise ValueError(f"not an ELC architecture: {name!r}")

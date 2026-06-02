@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from psalm.config.architecture import is_elc_architecture, resolve_architecture
+from psalm.config.architecture import (
+    default_vocab_for_architecture,
+    is_elc_architecture,
+    joint_tokenizer_vocab,
+    resolve_architecture,
+)
 from psalm.domain.model.elc_config import STRICT_SMALL_VOCAB, STRICT_VOCAB, ElcPsalmConfig
 
 
@@ -33,3 +38,10 @@ def test_unknown_architecture_raises() -> None:
 def test_is_elc_architecture() -> None:
     assert is_elc_architecture("elc_psalm_s")
     assert not is_elc_architecture("decoder-60m")
+
+
+def test_joint_vocab_helpers() -> None:
+    assert joint_tokenizer_vocab("strict_small") == STRICT_SMALL_VOCAB
+    assert joint_tokenizer_vocab("strict") == STRICT_VOCAB
+    assert default_vocab_for_architecture("elc_psalm_s") == STRICT_SMALL_VOCAB
+    assert default_vocab_for_architecture("elc_psalm_m") == STRICT_VOCAB
