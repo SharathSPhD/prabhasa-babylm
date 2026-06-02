@@ -1,0 +1,78 @@
+{
+  "task": "h1prime_sample_efficiency",
+  "adr": "0030",
+  "namespace": "h1p",
+  "smoke": true,
+  "venue": "cogs_noncanonical_discrimination",
+  "venue_note": "COGS noncanonical discrimination is a wiring stand-in until eval-train enables EWoK + BLiMP-arg (go_no_go.yaml primary_venue).",
+  "theta": 0.7,
+  "eval_fracs": [
+    0.25,
+    0.5,
+    1.0
+  ],
+  "dyck_config": {
+    "bracket_types": 2,
+    "max_depth": 4,
+    "n_shuffles": 1,
+    "min_len": 8,
+    "max_len": 64
+  },
+  "size_m": 10.0,
+  "seeds": 1,
+  "pre_budget_tokens": 800,
+  "pre_epochs": 1,
+  "wall_seconds": 21.6,
+  "auc": {
+    "h1p:A": [
+      0.6149
+    ],
+    "h1p:B": [
+      0.6014
+    ],
+    "h1p:C": [
+      0.6216
+    ]
+  },
+  "tokens_to_theta": {
+    "h1p:A": [
+      null
+    ],
+    "h1p:B": [
+      null
+    ],
+    "h1p:C": [
+      null
+    ]
+  },
+  "early_accuracy": {
+    "h1p:A": [
+      0.6081
+    ],
+    "h1p:B": [
+      0.5676
+    ],
+    "h1p:C": [
+      0.6081
+    ]
+  },
+  "graph_prakarata_disc": {
+    "h1p:A": [
+      0.9166666666666666
+    ],
+    "h1p:B": [
+      0.9833333333333333
+    ],
+    "h1p:C": [
+      0.95
+    ]
+  },
+  "delta_auc_B_minus_C": {
+    "mean": -0.020199999999999996,
+    "ci": [
+      -0.020199999999999996,
+      -0.020199999999999996
+    ]
+  },
+  "verdict": "NOT_LEARNED_AT_SCALE: baseline h1p:A never reaches \u03b8=0.7."
+}
