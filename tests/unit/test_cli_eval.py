@@ -24,7 +24,7 @@ def test_eval_babylm_smoke(tmp_path: Path) -> None:
 def test_eval_babylm_smoke_elc(tmp_path: Path) -> None:
     pytest.importorskip("torch")
     out = tmp_path / "elc_smoke.json"
-    result = runner.invoke(app, ["eval", "babylm", "smoke", "--elc", "-o", str(out)])
+    result = runner.invoke(app, ["eval", "babylm", "smoke", "-o", str(out)])
     assert result.exit_code == 0
     assert out.exists()
     assert "aggregate" in result.stdout.lower()

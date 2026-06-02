@@ -2,10 +2,11 @@
 
 Wraps ``babylm/evaluation-pipeline-2025`` when installed via
 ``scripts/setup_babylm_eval_pipeline.sh`` (pinned commit, not vendored in-repo).
-Falls back to a MOCK minimal-pair harness for CI and wiring smoke tests.
+Uses a local BLiMP/EWoK-style minimal-pair PLL harness (``ElcPsalmEvaluator`` or any
+``PseudoLogLikelihoodModel``) for smoke and CI; ``invoke_official_zero_shot`` targets
+HF-exported checkpoints on the full suite.
 
-Live fetch TODO: run the setup script on a machine with network + ``psalm[ml]``;
-set ``BABYLM_EVAL_ROOT`` to the clone root. See ``docs/decisions/0020-babylm-dual-track.md``.
+See ``docs/decisions/0020-babylm-dual-track.md`` and ``docs/data/eval-train-status.md``.
 """
 
 from __future__ import annotations
@@ -27,7 +28,10 @@ DEFAULT_EVAL_ROOT = Path("vendor/babylm-evaluation-pipeline-2025")
 
 
 class RunMode(StrEnum):
-    LIVE = "live"
+    """Eval data path: built-in minimal pairs vs official pipeline layout detected."""
+
+    LOCAL = "local"
+    OFFICIAL = "official"
     MOCK = "mock"
 
 
@@ -40,7 +44,7 @@ class PseudoLogLikelihoodModel(Protocol):
 
 @dataclass(frozen=True)
 class SmokeTask:
-    """A tiny minimal-pair probe used by the mock harness."""
+    """A tiny minimal-pair probe (BLiMP / EWoK style)."""
 
     name: str
     good: str
@@ -55,6 +59,7 @@ class SmokeEvalResult:
     report_path: Path | None = None
     pipeline_root: Path | None = None
     notes: str = ""
+    pipeline_installed: bool = False
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -63,20 +68,20 @@ class SmokeEvalResult:
             "aggregate_score": self.aggregate_score,
             "report_path": str(self.report_path) if self.report_path else None,
             "pipeline_root": str(self.pipeline_root) if self.pipeline_root else None,
+            "pipeline_installed": self.pipeline_installed,
             "notes": self.notes,
             "pipeline_commit": BABYLM_EVAL_PIPELINE_COMMIT,
         }
 
 
 class MockUniformBaseline:
-    """Random log-uniform scores — proves eval wiring returns numbers."""
+    """Random log-uniform scores — wiring-only baseline when ``--mock`` is set."""
 
     def __init__(self, vocab_size: int = 1000, seed: int = 0) -> None:
         self._rng = random.Random(seed)
         self._vocab_size = max(vocab_size, 2)
 
     def pseudo_log_likelihood(self, text: str) -> float:
-        # Lower (more negative) is worse; score = sum log p(token|context).
         total = 0.0
         for _ in text.split():
             p = self._rng.random() / self._vocab_size
@@ -85,10 +90,12 @@ class MockUniformBaseline:
 
 
 def smoke_tasks() -> tuple[SmokeTask, ...]:
+    """Built-in minimal pairs for smoke / CI (not the full BLiMP release)."""
     return (
         SmokeTask("blimp_agreement", "the cat sleeps", "the cat sleep"),
         SmokeTask("blimp_determiner", "a big dog runs", "a big dogs runs"),
         SmokeTask("ewok_simple", "birds have wings", "birds have engines"),
+        SmokeTask("blimp_island", "who did john see", "who did john sees"),
     )
 
 
@@ -106,10 +113,19 @@ def eval_root() -> Path:
     return DEFAULT_EVAL_ROOT
 
 
-def _mock_accuracy(model: PseudoLogLikelihoodModel, task: SmokeTask) -> float:
+def minimal_pair_accuracy(model: PseudoLogLikelihoodModel, task: SmokeTask) -> float:
+    """Zero-shot accuracy: 1.0 iff PLL(good) > PLL(bad)."""
     good = model.pseudo_log_likelihood(task.good)
     bad = model.pseudo_log_likelihood(task.bad)
     return 1.0 if good > bad else 0.0
+
+
+def run_pll_minimal_pair_eval(
+    model: PseudoLogLikelihoodModel,
+    tasks: tuple[SmokeTask, ...],
+) -> dict[str, float]:
+    """Score each minimal pair with real pseudo-log-likelihoods."""
+    return {t.name: minimal_pair_accuracy(model, t) for t in tasks}
 
 
 def run_smoke_eval(
@@ -119,30 +135,44 @@ def run_smoke_eval(
     tasks: tuple[SmokeTask, ...] | None = None,
     output_path: Path | None = None,
     pipeline_root: Path | None = None,
+    force_mock_baseline: bool = False,
 ) -> SmokeEvalResult:
-    """Run fast smoke evaluation (MOCK or LIVE stub delegation)."""
+    """Run fast zero-shot smoke eval with real PLL minimal-pair scoring."""
     root = pipeline_root or eval_root()
+    installed = detect_pipeline_install(root)
     resolved_mode = mode
     if resolved_mode is None:
-        resolved_mode = RunMode.LIVE if detect_pipeline_install(root) else RunMode.MOCK
+        resolved_mode = RunMode.OFFICIAL if installed else RunMode.LOCAL
 
     task_list = tasks or smoke_tasks()
-    if resolved_mode is RunMode.MOCK:
-        scores = {t.name: _mock_accuracy(model, t) for t in task_list}
+    scores = run_pll_minimal_pair_eval(model, task_list)
+
+    if force_mock_baseline or resolved_mode is RunMode.MOCK:
         notes = (
-            "MOCK harness: minimal-pair accuracy from pseudo_log_likelihood. "
-            "Install official pipeline via scripts/setup_babylm_eval_pipeline.sh for LIVE."
+            "MOCK baseline model: scores are not from ELC-PSALM. "
+            "Use --elc (default) for real PLL minimal-pair accuracy."
+        )
+        resolved_mode = RunMode.MOCK
+    elif resolved_mode is RunMode.OFFICIAL:
+        notes = (
+            "Real PLL minimal-pair accuracy on built-in smoke tasks. "
+            "Official full-suite zero-shot: export HF checkpoint and call "
+            "invoke_official_zero_shot (see docs/data/eval-train-status.md)."
         )
     else:
-        scores = _live_smoke_stub(model, root, task_list)
-        notes = "LIVE stub: pipeline detected; full zero-shot run requires psalm[ml] + HF model."
+        notes = (
+            "Real PLL minimal-pair accuracy (local harness). "
+            "Install official pipeline via scripts/setup_babylm_eval_pipeline.sh "
+            "for invoke_official_zero_shot on BLiMP/EWoK releases."
+        )
 
     aggregate = sum(scores.values()) / len(scores) if scores else 0.0
     result = SmokeEvalResult(
         mode=resolved_mode,
         task_scores=scores,
         aggregate_score=aggregate,
-        pipeline_root=root if resolved_mode is RunMode.LIVE else None,
+        pipeline_root=root if installed else None,
+        pipeline_installed=installed,
         notes=notes,
     )
     if output_path is not None:
@@ -150,23 +180,6 @@ def run_smoke_eval(
         output_path.write_text(json.dumps(result.to_dict(), indent=2), encoding="utf-8")
         result.report_path = output_path
     return result
-
-
-def _live_smoke_stub(
-    model: PseudoLogLikelihoodModel,
-    root: Path,
-    tasks: tuple[SmokeTask, ...],
-) -> dict[str, float]:
-    """Placeholder LIVE path: same minimal pairs until HF backend is wired.
-
-    TODO: invoke ``python -m evaluation_pipeline.sentence_zero_shot.run`` with a
-    converted HF checkpoint. For now we verify install layout and still score pairs.
-    """
-    if not detect_pipeline_install(root):
-        raise FileNotFoundError(
-            f"BabyLM pipeline not found under {root}. Run scripts/setup_babylm_eval_pipeline.sh"
-        )
-    return {t.name: _mock_accuracy(model, t) for t in tasks}
 
 
 def invoke_official_zero_shot(
@@ -179,7 +192,7 @@ def invoke_official_zero_shot(
     pipeline_root: Path | None = None,
     extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run one official zero-shot task (requires psalm[ml] env in pipeline clone).
+    """Run one official zero-shot task (requires HF model dir + psalm[ml] in pipeline env).
 
     Raises FileNotFoundError if the pipeline is not installed.
     """

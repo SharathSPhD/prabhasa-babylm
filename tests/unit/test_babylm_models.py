@@ -13,8 +13,16 @@ from psalm.benchmarks.babylm_eval import (
 from psalm.benchmarks.babylm_models import build_babylm_smoke_model
 
 
-def test_mock_default_when_no_elc() -> None:
-    model = build_babylm_smoke_model(seed=0)
+@pytest.mark.slow
+def test_elc_default_when_not_mock() -> None:
+    pytest.importorskip("torch")
+    model = build_babylm_smoke_model(seed=0, vocab_size=64)
+    assert isinstance(model, PseudoLogLikelihoodModel)
+    assert not isinstance(model, MockUniformBaseline)
+
+
+def test_mock_when_no_elc_flag() -> None:
+    model = build_babylm_smoke_model(use_elc=False, seed=0)
     assert isinstance(model, MockUniformBaseline)
 
 

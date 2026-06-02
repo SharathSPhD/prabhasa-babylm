@@ -16,6 +16,7 @@ from rich.table import Table
 
 from psalm import __version__
 from psalm.cli.eval import eval_app
+from psalm.cli.train import train_app
 from psalm.config.loader import config_hash, load_config
 from psalm.domain.contracts.closure import PhaseClosureReport
 
@@ -39,6 +40,7 @@ contract_app = typer.Typer(help="Evaluate phase-closure contracts.", no_args_is_
 app.add_typer(config_app, name="config")
 app.add_typer(contract_app, name="contract")
 app.add_typer(eval_app, name="eval")
+app.add_typer(train_app, name="train")
 
 
 @config_app.command("show")

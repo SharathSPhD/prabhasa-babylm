@@ -36,6 +36,28 @@ class TokenPacker:
                 yield buf
                 buf = []
 
+    def packed_windows(self, lines: Iterable[str]) -> Iterator[list[int]]:
+        """Yield ``seq_len``-length id windows (no next-token shift) for MLM encoders."""
+        buf: list[int] = []
+        for tid in self._id_stream(lines):
+            buf.append(tid)
+            if len(buf) == self.seq_len:
+                yield buf
+                buf = []
+
+    def packed_batches(
+        self, lines: Iterable[str], *, batch_size: int, device: str
+    ) -> Iterator[torch.Tensor]:
+        """Yield packed Long tensors of shape ``(batch_size, seq_len)``."""
+        batch: list[list[int]] = []
+        for window in self.packed_windows(lines):
+            batch.append(window)
+            if len(batch) == batch_size:
+                yield torch.tensor(batch, dtype=torch.long, device=device)
+                batch = []
+        if batch:
+            yield torch.tensor(batch, dtype=torch.long, device=device)
+
     def batches(
         self, lines: Iterable[str], *, batch_size: int, device: str
     ) -> Iterator[tuple[torch.Tensor, torch.Tensor]]:
