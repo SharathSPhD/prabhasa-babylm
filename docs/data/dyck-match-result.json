@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-06-02T21:31:24.216385+00:00",
+  "baseline_source": "docs/data/phase2-samsadhani-diversity.json",
+  "pending_u2_fixture": true,
+  "targets": {
+    "type_token_ratio": 0.2625,
+    "bigram_entropy": 0.9856,
+    "trigram_entropy": 0.9986
+  },
+  "matched_config": {
+    "bracket_types": 5,
+    "max_depth": 8,
+    "n_shuffles": 3,
+    "min_len": 16,
+    "max_len": 192
+  },
+  "matched_distance": 0.26319290481660645,
+  "matched_stats": {
+    "n_sequences": 200.0,
+    "type_token_ratio": 0.0004757826624797792,
+    "bigram_entropy": 0.9858388690450198,
+    "trigram_entropy": 0.9738258680062745,
+    "pattern_coverage": 0.0
+  },
+  "hu_replication_config": {
+    "bracket_types": 35,
+    "max_depth": 16,
+    "n_shuffles": 35,
+    "min_len": 2,
+    "max_len": 2048
+  },
+  "hu_replication_distance": 0.2624958036769435,
+  "hu_replication_stats": {
+    "n_sequences": 200.0,
+    "type_token_ratio": 0.00035014005602240897,
+    "bigram_entropy": 0.997722867050758,
+    "trigram_entropy": 0.9927234386051836,
+    "pattern_coverage": 0.0
+  },
+  "hu_vs_matched_byte_hist_l1": 0.0
+}

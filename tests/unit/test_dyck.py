@@ -30,7 +30,7 @@ class TestGeneration:
         cfg = DyckConfig(bracket_types=3, n_shuffles=1, min_len=8, max_len=64)
         rng = random.Random(0)
         for _ in range(50):
-            assert is_balanced(generate_sequence(rng, cfg))
+            assert is_balanced(generate_sequence(rng, cfg), cfg)
 
     def test_reproducible_with_seed(self) -> None:
         a = generate_corpus(20, DyckConfig(), seed=42)
