@@ -2828,6 +2828,7 @@ all = [
     { name = "datasets" },
     { name = "huggingface-hub" },
     { name = "hypothesis" },
+    { name = "jsonschema" },
     { name = "matplotlib" },
     { name = "mypy" },
     { name = "pandas" },
@@ -2859,6 +2860,7 @@ data = [
 ]
 dev = [
     { name = "hypothesis" },
+    { name = "jsonschema" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -2904,6 +2906,7 @@ requires-dist = [
     { name = "huggingface-hub", marker = "extra == 'data'", specifier = ">=0.24" },
     { name = "huggingface-hub", marker = "extra == 'ml'", specifier = ">=0.24" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.100" },
+    { name = "jsonschema", marker = "extra == 'dev'", specifier = ">=4.26" },
     { name = "matplotlib", marker = "extra == 'stats'", specifier = ">=3.9" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11" },
     { name = "numpy", specifier = ">=1.26" },

@@ -1,0 +1,11 @@
+{
+  "schema_version": "shabdabodha-export-v1",
+  "input": "data/fixtures/vidyut-fixtures-ci.jsonl",
+  "output": "data/fixtures/shabdabodha-aligned-ci.jsonl",
+  "n_aligned_rows": 128,
+  "n_sentences": 128,
+  "n_valid_graphs": 128,
+  "coverage_fraction": 1.0,
+  "skip_reasons": {},
+  "pipeline_source": "shabdabodha-vyutpattivada"
+}
