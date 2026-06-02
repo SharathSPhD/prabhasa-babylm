@@ -22,7 +22,7 @@
   "seeds": 1,
   "pre_budget_tokens": 800,
   "pre_epochs": 1,
-  "wall_seconds": 21.6,
+  "wall_seconds": 3.9,
   "auc": {
     "h1p:A": [
       0.6149
