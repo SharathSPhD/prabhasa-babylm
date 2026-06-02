@@ -161,6 +161,9 @@ known-first-party = ["psalm"]
 "src/psalm/cli/*" = ["B008"]
 # Tests may use asserts on optionals after explicit None-checks.
 "tests/*" = ["B011"]
+# Optional sentencepiece: imports after importorskip.
+"tests/unit/test_babylm_joint_tokenizer.py" = ["E402", "I001"]
+"tests/unit/test_tokenizer.py" = ["E402", "I001"]
 
 [tool.mypy]
 python_version = "3.11"
