@@ -51,3 +51,32 @@ def test_single_word_sentence_passes_through() -> None:
     scr = ScramblingGenerator(_OneWord())
     (only,) = list(scr.stream(1, seed=0))
     assert only.text == "ekam"
+
+
+def test_scramble_preserves_derivation_and_language() -> None:
+    inner = _FakeGen()
+    scr = ScramblingGenerator(inner)
+    orig = list(inner.stream(5, seed=2))
+    out = list(scr.stream(5, seed=2))
+    for o, s in zip(orig, out, strict=True):
+        assert s.derivation == o.derivation
+        assert s.language == o.language
+
+
+def test_scramble_differs_per_sentence_index() -> None:
+    """Deterministic in (seed, idx) but not identical across the stream."""
+    scr = ScramblingGenerator(_FakeGen())
+    texts = [s.text for s in scr.stream(8, seed=99)]
+    assert len(set(texts)) > 1
+
+
+def test_scramble_never_identity_for_three_or_more_words() -> None:
+    class _Triple:
+        def stream(self, n: int, *, seed: int = 0) -> Iterator[AnnotatedSentence]:
+            for _ in range(n):
+                yield AnnotatedSentence(text="a b c")
+
+    scr = ScramblingGenerator(_Triple())
+    for sc in scr.stream(30, seed=42):
+        assert sc.text != "a b c"
+        assert sorted(sc.text.split()) == ["a", "b", "c"]
