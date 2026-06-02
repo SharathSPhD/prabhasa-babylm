@@ -1,112 +1,208 @@
-# PSALM specification
+# PSALM specification (reframe 2026-06)
 
-This is the system and experimental specification for PSALM. It is the
-authoritative description of *what* the program builds and *how* its claims are
-established. The PRD (`docs/prd.md`) covers product/deliverable requirements; the
-implementation plan (`docs/implementation-plan.md`) covers sequencing.
+Authoritative system and experimental specification. PRD: `docs/prd.md`. Interface
+freeze for Wave 1: `docs/contracts/interface-freeze-2026-06.md`.
 
-## 1. Problem and thesis
+## 1. Hexagonal boundaries
 
-Small language models are data-hungry: competence is bought with internet-scale
-text. PSALM asks whether *structure* can substitute for *scale*. Pāṇini's
-Aṣṭādhyāyī is a complete generative grammar; used as a data engine it produces an
-unbounded stream of well-formed Sanskrit with gold syntactic-semantic
-annotations. The thesis is that pre-pretraining on this grammar-generated stream
-endows a small model with a stronger, more transferable structural inductive bias
-than the artificial formal languages (k-Shuffle Dyck) used in prior work, and
-that a Navya-Nyāya epistemic layer can make the model's reasoning formally
-disciplined.
+```
+domain/          Pure logic: experiments, contracts, data stats, Paribhāṣā types (future)
+application/     Use cases: assembly, ports (AnnotatedSentence), orchestration
+infrastructure/  torch, generators, HF, SQLite ledger, BabyLM runner, Z3
+```
 
-## 2. Design: one model, three readings
+Dependencies point inward only. `domain/` has no torch/I/O. Generators implement
+`SentenceGenerator` / `CorpusSource` from `psalm.application.data.ports`.
 
-A single small multilingual decoder is trained in three stages and read three
-ways. See ADR 0002.
+## 2. Two arm matrices (namespaced)
 
-Training:
+### 2.1 H1 research matrix (frozen — `matrix.py`)
 
-- Pre-pretraining: Pāṇinian synthetic Sanskrit (structure; gold kāraka + parse).
-- Pretraining: real Sanskrit (DCS/GRETIL) + BabyLM English.
-- Post-training: Navya-Nyāya reasoning scaffold (H2); epistemic kernel (H3).
+Canonical IDs **`A`–`H`** in `src/psalm/domain/experiments/matrix.py`. **Do not
+rename** (closed Phase-2 ledger, tag `h1-proxy-null-2026-06`).
 
-Readings:
+| Arm | Pre-pretrain | NL budget | Role |
+|---|---|---|---|
+| A | none | 100M | Baseline |
+| B | paninian | 100M | H1 treatment (closed null vs C) |
+| C | dyck | 100M | Primary control |
+| D | paninian_karaka_aux | 100M | Aux-loss ablation |
+| E | paninian | 10M | Data-efficiency |
+| F | dyck | 10M | Low-budget control |
+| G | none | 10M | Low-budget baseline |
+| H | paninian_scrambled | 100M | Structure vs tokens |
 
-- English structural generalization (SCAN, COGS/ReCOGS, CFQ, BLiMP, GLUE, EWoK).
-- Sanskrit competence (morphology, sandhi, kāraka role tasks).
-- Cross-lingual transfer gap.
+Decisive pair: **B vs C**. Config root: `configs/phase2/`. Ledger `arm_id`: bare letter.
 
-## 3. Hypotheses
+### 2.2 Competition matrix (`comp:*`)
 
-H1 (Grammar Prior). Pāṇinian pre-pretraining gives ≥20% token savings versus a
-matched k-Shuffle Dyck control on compositional benchmarks, or a ≥3-point
-compositional-accuracy gain. H1 is load-bearing; H2 and H3 build on a validated
-H1 base.
+Namespace: **`comp:{track}:{arm}`** with `track ∈ {strict_small, strict}` (ADR-0021).
 
-H2 (Nyāya Scaffold). A 6-phase Navya-Nyāya reasoning scaffold lowers fallacious-
-inference rates. The novel claim is the H1×H2 synergy test: a grammar-structured
-base (PSALM) is more sample-efficient to scaffold than a matched generic base
-(TinyLlama-1B). DeepSeek-R1-8B + scaffold provides the absolute ceiling.
+| comp arm | Pre-pretrain | Pretrain | Eval emphasis |
+|---|---|---|---|
+| A | none | English | BabyLM baseline |
+| B | paninian | English | Grammar prior |
+| C | dyck | English | Formal control |
+| D | **paribhasha** | English | **H1′ treatment** |
+| E | paninian | Sanskrit + English | Multi-target |
+| F | paninian + paribhasha | Sanskrit + English | Full stack |
 
-H3 (Epistemic Constraint). A GBNF schema + Z3 vyāpti verifier + hetvābhāsa filter
-enforce epistemic validity by construction at inference; the cost is a measurable
-fluency tradeoff.
+Config root: `configs/competition/{track}/`. Implementation:
+`competition_matrix.py` on `integration/data-engine-v2` only.
 
-## 4. Experimental arms (Tier 2, 100M, 100M-word budget; each × ≥3–5 seeds)
+**Collision warning:** `comp:*:D` is Paribhāṣā; H1 `D` is kāraka auxiliary loss.
 
-| Arm | Pre-pretrain | Pretrain | Tests |
-|-----|--------------|----------|-------|
-| A | none | English | baseline |
-| B | Pāṇinian | English | H1 treatment |
-| C | k-Shuffle Dyck | English | H1 control (Hu et al. replication) |
-| D | Pāṇinian + kāraka aux loss | English | structure-supervision effect |
-| E | Pāṇinian | English @10M words | data-efficiency |
-| F | Pāṇinian | Sanskrit + English | multilingual (readings B/C) |
-| G | none | Sanskrit + English | multilingual baseline |
+### 2.3 H1′ research matrix (`h1p:*`)
 
-Arms must be matched on architecture, token budget, and tokenizer. The decisive
-H1 comparison is B vs C.
+Future pre-registered battery: **`h1p:{arm}`** e.g. `h1p:B` Paribhāṣā, `h1p:C` Dyck,
+matched on manifest tokens and architecture. Config root: `configs/research/h1p/`.
 
-## 5. Size ladder (single DGX Spark GB10; see ADR 0005)
+## 3. Data ports
 
-- Tier 1 proxy: 60M @ 10M-word (~25 min/run) — ablation workhorse.
-- Tier 2 battery: 100–150M @ 100M-word (~1 hr/run) — the publishable unit.
-- Tier 3 confirm: 350M @ 100M-word (~2 hr/run) — single best-arm confirmation via
-  μTransfer.
-- 1B: only on a strongly positive go/no-go, fixed 1–2B-token budget (~35 hr),
-  framed as an underfit scaling reference.
+### 3.1 `AnnotatedSentence` (frozen)
 
-## 6. Metrics and statistical validation
+Defined in `src/psalm/application/data/ports.py` — see interface-freeze doc for pinned
+fields: `text`, `language`, `karaka_parse`, `derivation`, `meta`, `has_gold_parse`.
 
-Primary H1 metric: token savings vs Dyck on compositional benchmarks, or
-compositional-accuracy gain (pre-registered thresholds in `configs/*.yaml`).
-Report mean ± 95% CI over seeds (bootstrap); compare arms with permutation tests;
-correct families with Holm–Bonferroni at α = 0.05
-(`psalm.analysis.comparison_tests`). Report ECE for confidence/Nirṇaya. Report
-MMLU/ARC/HellaSwag only as honest reference points.
+### 3.2 Generators (existing)
 
-## 7. Data engine (Phase 1)
+| Module | Source enum | Output |
+|---|---|---|
+| `dyck_source.py` | `DYCK` | Bracket strings |
+| `samsadhani.py` / `vidyut_source.py` | `PANINIAN`, aux, scrambled | Sanskrit + gold |
+| `scramble_source.py` | (arm H path) | Permuted tokens |
+| `jsonl_source.py` | fixtures | Replay frozen JSONL |
 
-Wrap the Saṃsādhanī generator to stream `(sentence, kāraka parse, derivation)`;
-measure diversity/coverage before committing compute (the generator's diversity
-ceiling may bound the pre-pretraining budget — flagged risk). Build a sandhi-aware
-SentencePiece tokenizer. Gather license-clean DCS/GRETIL/BabyLM/HF Sanskrit.
-Implement a k-Shuffle Dyck control generator matched to the Pāṇinian stream's
-statistics. Publish the corpus to HF under `qbz506/psalm-*`.
+### 3.3 `PrePretrainSource` extension process
 
-## 8. Epistemic kernel (Phase 5)
+Current enum in `src/psalm/domain/experiments/models.py`:
 
-GBNF grammar constrains decoding to the 6-phase Nyāya schema; a Z3-backed verifier
-checks vyāpti (pervasion) for formally expressible rules; a hetvābhāsa filter
-rejects fallacy classes. Scope is an honest proof-of-concept: Z3 coverage is
-limited to formally expressible vyāpti.
+`none | paninian | dyck | paninian_karaka_aux | paninian_scrambled`
 
-## 9. Constraints
+**Additive extension (Wave 1 workers):**
 
-Single DGX Spark GB10 (aarch64, 128GB, ~273 GB/s); no cloud unless a strong
-go/no-go warrants one bounded 1B run. NGC Blackwell/CUDA-13/arm64 container; uv.
-All artifacts public on HF. The closure contract (`docs/contracts/`) binds every
-phase.
+1. ADR approving value (e.g. `paribhasha`).
+2. Register in `src/psalm/domain/experiments/source_extensions.py` (planned stub).
+3. Wire generator in `application/data/assembly.py` on integration branch only.
+4. **Never** edit `matrix.py` in unit worktrees.
 
-## 10. Out of scope
+### 3.4 Aligned pair schema `paribhasha_aligned_v1`
 
-Frontier-scale capability claims; world-knowledge QA performance; languages other
-than Sanskrit and English; non-decoder architectures; multi-node training.
+JSONL records for L2/L5 — schema at `docs/contracts/aligned-pair-schema.json`.
+
+## 4. Paribhāṣā module spec (consolidation §5.1–5.3)
+
+Path: `src/psalm/infrastructure/generators/paribhasha/`
+
+```
+types.py       PadarthaCategory, SansaType, Operator + validation rules
+ontology.py    sapta-padārtha
+relations.py   VISAYATA, PRAKARATA, VISESYATA, AVACCHEDAKA, …
+inference.py   PAKSA, HETU, VYAPTI, UDAHARANA, UPANAYA, NIGAMANA
+generator.py   strata 1–3 emission + optional synthetic aligned pairs
+renderer.py    graph → canonical Paribhāṣā string (ASCII default)
+```
+
+**Type rules (examples, enforced in code):**
+
+- `DRAVYA`: anuyogin/pratiyogin in `SAMAVAYA`
+- `GUNA` / `KRIYA`: prakāratā holders per relation kind
+- `ABHAVA`: requires anuyogin + pratiyogin
+- `AVACCHEDAKA`: scopes any relation
+
+**Strata:**
+
+1. Atomic relations.
+2. Nested depth 2–4.
+3. Inference templates.
+4. Aligned pairs (U5) → `paribhasha_aligned_v1`.
+
+## 5. Śabdabodha pipeline spec (§5.4, full Vyutpattivāda)
+
+```
+AnnotatedSentence (Sanskrit)
+  → kāraka parse (gold or Vidyut)
+  → Vyutpattivāda engine (rule ids, coverage ledger)
+  → shabdabodha_graph (typed JSON)
+  → renderer → paribhasha_string
+  → paribhasha_aligned_v1 export
+```
+
+**Coverage:** fixture strata ≥90% before training mix; full Gadādhara/Vyutpattivāda scope
+per ADR-0019 with per-rule failure logging. U5 Wave 2.
+
+## 6. Curriculum and BabyLM budget accounting
+
+- All pretrain-visible text counts toward cap (`babylm-res-2`).
+- `corpus_manifest.yaml`: per-source `word_count`, `dedup_hash`, `epochs`, `license`.
+- Strict-Small illustrative mix (strategy doc): ~6.5M EN, ~2M Paribhāṣā, ~1M Pāṇinian,
+  ~0.5M Dyck — finalize in U6 manifest, not hard-coded in domain.
+- Temperature schedule: L0–L2 prefix → L4 dominant (annealing).
+
+## 7. Evaluation suites
+
+| Suite | Track | Role |
+|---|---|---|
+| Official BabyLM pipeline | Competition | BLiMP, GLUE, EWoK, compositional (U6) |
+| COGS / SCAN | Research secondary | Historical H1 venue; not go/no-go |
+| Sanskrit competence | Research | Morphology, sandhi, kāraka |
+| EWoK + BLiMP (argument-structure subsets) | H1′ primary candidates | Paribhāṣā vs Dyck |
+| Śabdabodha graph consistency | H1′ / L2 | Parse ↔ graph round-trip metrics |
+| H2 Nyāya / H3 kernel | Phase 4–5 | Per phase YAML |
+
+Pseudo-log-likelihood output required for BabyLM classifier models (ELC-PSALM).
+
+## 8. Pre-registered go/no-go registry
+
+| Claim | Metric home | Threshold status |
+|---|---|---|
+| H1 B vs C (COGS SE) | Closed | NULL @ proxy — ADR-0017 |
+| H1′ Paribhāṣā vs Dyck | TBD in `configs/research/h1p/go_no_go.yaml` | **Human sign-off before battery** |
+| H2 synergy | ADR-0006 | Open |
+| H3 fluency cost | Phase 5 prereg | Open |
+| C-S2 efficiency | Crystallization charter | N ≥ 3 at Milestone 2 |
+| BabyLM submission | Competition checklist | Manifest + official eval pass |
+
+Changing thresholds → superseding ADR.
+
+## 9. Ledger and artifact schema
+
+- SQLite: `src/psalm/infrastructure/ledger/sqlite_ledger.py`
+- Human mirror: `docs/experiments/schema.sql`
+- Row key: `run_id`, `arm_id` (namespaced for new work), `config_hash`, `seed`, `attempt`, `metrics` JSON
+- Knowledge store: `knowledge_store.py` (vectors/SQLite)
+
+Closure reports: `docs/contracts/phase-*.yaml` + `psalm contract check`.
+
+## 10. Closure-contract mapping
+
+| Phase | Contract file | Empirical focus |
+|---|---|---|
+| 0 | `phase-0.yaml` | Foundation / stack |
+| 1 | `phase-1.yaml` | Data engine, tokenizer |
+| 2 | `phase-2.yaml` | H1 battery — **closed** |
+| 3+ | `phase-3.yaml` … | H1′, scale, multi-target |
+| Crystallization | charter MD | C-S2 milestones CPU-first |
+
+Each phase: TECHNICAL → EMPIRICAL → INTEGRITY (Tarka) → ARTIFACTS → MEMORY → SIGN-OFF.
+
+## 11. Dyck matching (U3)
+
+`match_dyck` in `src/psalm/domain/data/matching.py` — `DEFAULT_KEYS` frozen in
+interface-freeze. U3: recompute targets vs **sentence-level** Saṃsādhanī stats;
+document Hu et al. ACL'25 replication ADR; verify arm-H scramble fairness.
+
+## 12. ELC-PSALM backbone (U7)
+
+ELC-BERT every-layer-counts + GPT-BERT hybrid; competition primary. Depends on U6
+tokenizer and U1 verified container. Sizes: 90–140M (Strict-Small), 180–280M (Strict).
+
+## 13. Constraints
+
+Single GB10; uv; config-driven (`configs/*.yaml`); coverage ≥80%; citation integrity
+(ADR-0008). No fabricated arXiv:2605.12548.
+
+## 14. Out of scope
+
+350M COGS rescue; `matrix.py` edits outside integration branch; reusing `comp` letters
+in `phase2` configs; cloud training unless ADR-0005 exception.
