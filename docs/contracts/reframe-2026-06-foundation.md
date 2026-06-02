@@ -17,6 +17,7 @@ No worktrees, training, or `matrix.py` edits on this branch.
 | ADR-0022 GB10 gate | [docs/decisions/0022-gb10-full-stack-validation-gate.md](../decisions/0022-gb10-full-stack-validation-gate.md) |
 | ADR-0023 GB10 SDPA fallback | [docs/decisions/0023-flash-attn-gb10-sdpa-fallback.md](../decisions/0023-flash-attn-gb10-sdpa-fallback.md) |
 | Wave-1 integration report | [integration-data-engine-v2-2026-06.md](./integration-data-engine-v2-2026-06.md) |
+| Wave-2 integration report | [integration-data-engine-v2-wave2-2026-06.md](./integration-data-engine-v2-wave2-2026-06.md) |
 | Interface freeze | [docs/contracts/interface-freeze-2026-06.md](./interface-freeze-2026-06.md) |
 | Aligned-pair JSON Schema | [docs/contracts/aligned-pair-schema.json](./aligned-pair-schema.json) |
 
@@ -64,16 +65,29 @@ All must be true before forking unit worktrees:
 3. U4 `types.py` + `renderer.py` API stable per U5 charter.
 4. U6 tokenizer + manifest v0 frozen for U7.
 
+## Wave-2 integration checklist (2026-06)
+
+- [x] `workstream/shabdabodha` merged (Vyutpattivāda + aligned export + CI fixture)
+- [x] `workstream/backbone` merged (ELC-PSALM + ADR-0029)
+- [x] `paribhasha` public aligned API exports
+- [x] `SHABDABODHA_ALIGNED` enum + assembly + `ShabdabodhaAlignedSource`
+- [x] ELC-PSALM `ml` package exports + BabyLM PLL eval factory + `psalm eval --elc`
+- [x] `resolve_architecture(elc_psalm_s|m)` (training-loop hook deferred)
+- [x] Full gate green (361 tests, ≥80% coverage) — see Wave-2 integration report
+- [ ] Human sign-off on Wave-2 merge to `main` (agent: FF merge when gate green)
+
 ## Already implemented (do not re-open as gaps)
 
 Experiment ledger, `comparison_tests.py`, `knowledge_store.py`, generators
-(dyck, scramble, samsadhani, vidyut, jsonl), `karaka_frames.py`, H1 matrix A–H,
-closure discipline, ADR-0002 three readings.
+(dyck, scramble, samsadhani, vidyut, jsonl, paribhasha, shabdabodha aligned),
+`karaka_frames.py`, H1 matrix A–H, closure discipline, ADR-0002 three readings,
+Vyutpattivāda engine (U5), ELC-PSALM encoder skeleton (U7).
 
 ## Genuinely absent (charter scope)
 
-Paribhāṣā generator, Śabdabodha pipeline, official BabyLM eval integration,
-`Dockerfile.verified`, full GB10 validation, joint tokenizer + BabyLM manifest.
+Live BabyLM official-pipeline eval run, trained ELC-PSALM HF export,
+ELC training-loop in competition runner, `Dockerfile.verified` flash-attn proof,
+U2 fixture-vs-live Dyck target parity, Hu k=64 alphabet extension.
 
 ## Human decisions before charters
 
