@@ -1,0 +1,30 @@
+schema_version: babylm_manifest_v1
+track: strict
+notes: >
+  Illustrative Strict (100M) manifest — scale EN + structural priors proportionally.
+  Final shard hashes must be computed from frozen exports (psalm manifest check).
+sources:
+  - name: babylm-en
+    word_count: 65000000
+    dedup_hash: "1000000000000000000000000000000000000000000000000000000000000001"
+    epochs: 3.0
+    license_spdx: research-only
+    stage: pretrain
+  - name: paribhasha-synthetic
+    word_count: 20000000
+    dedup_hash: "1000000000000000000000000000000000000000000000000000000000000002"
+    epochs: 2.0
+    license_spdx: CC0-1.0
+    stage: pre_pretrain
+  - name: paninian-synthetic
+    word_count: 10000000
+    dedup_hash: "1000000000000000000000000000000000000000000000000000000000000003"
+    epochs: 1.0
+    license_spdx: CC0-1.0
+    stage: pre_pretrain
+  - name: dyck-control
+    word_count: 5000000
+    dedup_hash: "1000000000000000000000000000000000000000000000000000000000000004"
+    epochs: 1.0
+    license_spdx: CC0-1.0
+    stage: pre_pretrain

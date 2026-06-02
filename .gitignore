@@ -24,6 +24,9 @@ htmlcov/
 .env
 .env.local
 
+# BabyLM official eval pipeline clone (scripts/setup_babylm_eval_pipeline.sh)
+vendor/babylm-evaluation-pipeline-2025/
+
 # Experiment artifacts (large; tracked on HF, not git)
 data/synthetic/*
 data/corpora/*
