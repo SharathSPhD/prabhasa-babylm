@@ -8,12 +8,12 @@ import typer
 from rich.console import Console
 
 from psalm.benchmarks.babylm_eval import (
-    MockUniformBaseline,
     RunMode,
     detect_pipeline_install,
     eval_root,
     run_smoke_eval,
 )
+from psalm.benchmarks.babylm_models import build_babylm_smoke_model
 from psalm.infrastructure.babylm.manifest_io import check_manifest_file
 
 console = Console()
@@ -37,11 +37,26 @@ def babylm_smoke(
         "--mock",
         help="Force MOCK harness even if pipeline is installed",
     ),
+    elc: bool = typer.Option(
+        False,
+        "--elc",
+        help="Score with untrained ELC-PSALM PLL adapter (requires psalm[ml])",
+    ),
+    checkpoint: Path | None = typer.Option(
+        None,
+        "--checkpoint",
+        help="ELC-PSALM checkpoint (.pt); falls back to mock if missing or unloadable",
+    ),
     seed: int = typer.Option(0, help="RNG seed for MockUniformBaseline"),
 ) -> None:
     """Smoke-test eval wiring with a random PLL baseline (produces numeric scores)."""
     mode = RunMode.MOCK if mock else None
-    model = MockUniformBaseline(vocab_size=128, seed=seed)
+    model = build_babylm_smoke_model(
+        mock=mock,
+        use_elc=elc,
+        checkpoint=checkpoint,
+        seed=seed,
+    )
     result = run_smoke_eval(model, mode=mode, output_path=output)
     console.print(f"[bold]mode:[/bold] {result.mode.value}")
     console.print(f"[bold]aggregate:[/bold] {result.aggregate_score:.4f}")

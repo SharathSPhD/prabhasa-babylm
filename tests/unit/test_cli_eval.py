@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from psalm.cli.main import app
@@ -17,6 +18,16 @@ def test_eval_babylm_smoke(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "mock" in result.stdout.lower() or "MOCK" in result.stdout
     assert out.exists()
+
+
+@pytest.mark.slow
+def test_eval_babylm_smoke_elc(tmp_path: Path) -> None:
+    pytest.importorskip("torch")
+    out = tmp_path / "elc_smoke.json"
+    result = runner.invoke(app, ["eval", "babylm", "smoke", "--elc", "-o", str(out)])
+    assert result.exit_code == 0
+    assert out.exists()
+    assert "aggregate" in result.stdout.lower()
 
 
 def test_eval_manifest_check() -> None:

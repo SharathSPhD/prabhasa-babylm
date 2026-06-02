@@ -21,6 +21,11 @@ PLANNED_SOURCES: tuple[tuple[str, str, str], ...] = (
         "docs/decisions/0018-paribhasha-layer-2-typed-generator.md",
         "landed",
     ),
+    (
+        "shabdabodha",
+        "docs/decisions/0019-shabdabodha-pipeline-full-vyutpattivada.md",
+        "landed",
+    ),
 )
 
 LANDED_SOURCES: tuple[str, ...] = tuple(
