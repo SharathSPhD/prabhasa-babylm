@@ -1,46 +1,100 @@
-# GB10 / aarch64 stack de-risk note (Phase 1)
+# GB10 / aarch64 stack status (U1 validation gate)
 
-Status date: 2026-05-31. Host: DGX Spark, GB10 Grace-Blackwell, `aarch64`.
+Status date: **2026-06-02**. Host: DGX Spark GB10 Grace-Blackwell, `aarch64`, driver
+580.159.03, CUDA 13.0, GPU **NVIDIA GB10**, compute capability **12.1** (`sm_121`).
 
-## What this note de-risks
+Gate: ADR-0022. Flash-attn policy: ADR-0023. Artifacts: `infra/dgx_spark/`.
 
-Phase 1's contract requires confirming that the data-engine stack builds on the
-Spark's `aarch64` architecture before we commit to it for the training phases.
-This is an honest status snapshot, not a claim that the full training stack is
-built.
+## PASS / FALLBACK / FAIL matrix
 
-## Confirmed working (light data stack, base env, no container)
+| Component | Status | Evidence |
+|-----------|--------|----------|
+| Host `aarch64` | **PASS** | `uname -m` → `aarch64` |
+| `nvidia-smi` / GB10 GPU | **PASS** | `NVIDIA GB10`, driver 580.159.03, CUDA 13.0 |
+| `torch` + CUDA device | **PASS** | `torch==2.12.0+cu130`, `cuda_available=True`, arch list includes `sm_120` |
+| GPU matmul | **PASS** | 512×512 fp32 on device |
+| `torch` bf16 | **PASS** | `torch.cuda.is_bf16_supported()` + matmul |
+| `torch` SDPA attn fwd+bwd | **PASS** | causal bf16, ~64 ms (2×4×128×64) |
+| `flash-attn` | **FALLBACK** | No aarch64+cu130 prebuilt wheel; source build fails without `python3.12-dev` on host (see log). Use torch SDPA per ADR-0023. |
+| `unsloth` | **PASS** | `FastLanguageModel` import with pinned companions + `--no-deps` (avoids torch downgrade) |
+| `unsloth` minimal LoRA step | **SKIP** | Not run in U1 (import-only); full step deferred to container/long run |
+| `vidyut` wheel + generator | **PASS** | `vidyut==0.4.0`, 100-sentence smoke via `VidyutGenerator` |
+| Light data stack (base `uv`) | **PASS** | Prior 2026-05-31 note; `make gate` / pytest unchanged |
+| `datasets` / HF in base | **FAIL** (expected) | Still `data` extra only; not a U1 blocker |
+| `Dockerfile.verified` build | **SKIP** | Host validation authoritative; `RUN_DOCKER=1` for image proof |
+| `make gate` after U1 edits | **PASS** | `uv sync --extra dev` + `pytest -q` → 215 passed, 1 skipped |
 
-The Phase 1 data engine runs in the plain `uv` environment with no GPU and no
-container:
+## Environment inventory (2026-06-02)
 
-- `aarch64` architecture confirmed (`uname -m`).
-- `sentencepiece==0.2.1` installs from wheel and trains a tokenizer end-to-end
-  (`scripts/build_tokenizer.py` round-trips, preserving the `·` morpheme marker).
-- `huggingface-hub==1.17.0` installs and imports; network reachability to
-  `huggingface.co` confirmed (HTTP 200).
-- Full technical gate green here: ruff + mypy clean, 114 tests, ~97% coverage.
+```
+uname -m          aarch64
+GPU               NVIDIA GB10
+compute_capability 12.1
+driver            580.159.03
+CUDA (smi)        13.0
+python            3.12.3
+torch             2.12.0+cu130
+torch.version.cuda 13.0
+cudnn             92000
+```
 
-Note: installing `huggingface-hub` pinned `typer` to 0.25.1; the CLI tests still
-pass, but this constraint is recorded so a future `typer` bump is intentional.
+## flash-attn recommendation (build-time input)
 
-## Deferred to the NGC container (ADR-0007), not yet built here
+**Recommendation: default to torch SDPA on GB10 for proxy training; treat flash-attn
+as optional in `Dockerfile.verified`, not a gate blocker.**
 
-The heavy training stack is intentionally **not** installed in the base env. It
-belongs in the NGC PyTorch Blackwell/`aarch64` image used for Phases 2+:
+Rationale from this host:
 
-- `torch` (Blackwell/CUDA build) — not importable in base env, by design.
-- `flash-attn`, `unsloth` — build status to be verified inside the NGC image; the
-  Pramana repo's NGC + Unsloth setup is the reference (per ADR-0007).
-- `datasets` — listed in the `data` extra but not yet installed; the HF corpus
-  source therefore raises `SourceNotProvisionedError` (verified by test), which
-  is the correct fail-closed behaviour.
+1. Precompiled wheel URL guessed by flash-attn 2.8.3 installer:
+   `...linux_aarch64.whl` — **not found** for cu130/torch2.12/cp312.
+2. Source build failed in under 5s on host: `Python.h: No such file or directory`
+   (`python3.12-dev` not installed; `sudo` unavailable in agent session).
+3. torch SDPA on sm_121 is **verified** fwd+bwd; sufficient for 60M–150M proxy
+   batteries per ADR-0023.
 
-## Open de-risk item carried into the Phase 1 gate
+**Next steps for integration:** (a) add optional `gb10` extra with pinned
+`vidyut`, unsloth companion pins, and **constraints** keeping `torch>=2.12`;
+(b) install `python3.12-dev` + `ninja-build` on Spark or rely on NGC container
+build; (c) re-run `infra/dgx_spark/smoke.py --bench` after flash-attn succeeds.
 
-The one thing the data engine cannot self-provision is the **Saṃsādhanī Pāṇinian
-generator** and the license-clean Sanskrit corpora (DCS/GRETIL/HF). Until these
-are provisioned, the Phase 1 *empirical* go/no-go (`generator_diversity_sufficient`)
-cannot be computed on real data — the engine is built and tested, but the finding
-is blocked on external provisioning. This is flagged explicitly at the Phase 1
-closure gate rather than papered over.
+## Unsloth notes
+
+- **Do not** `uv pip install unsloth` without `--no-deps`: it pulled `torch==2.10.0`
+  and broke CUDA (`NotImplementedError: no torch accelerator`).
+- Verified install pattern (host):
+
+  ```bash
+  uv sync --extra dev --extra ml
+  uv pip install unsloth unsloth-zoo bitsandbytes cut-cross-entropy tyro \
+    docstring-parser msgspec hf-transfer --no-deps
+  ```
+
+- Unsloth warns flash-attn broken and uses xformers path; acceptable under FALLBACK.
+
+## Vidyut notes
+
+- `uv pip install vidyut==0.4.0` — aarch64 wheel, no compile.
+- Not in `pyproject.toml` `ml` extra yet; install in container/host validation layer.
+
+## Artifacts
+
+| Path | Purpose |
+|------|---------|
+| `infra/dgx_spark/Dockerfile.verified` | Pinned NGC 25.04-py3 + uv + vidyut + unsloth + optional flash-attn |
+| `infra/dgx_spark/build-validation.sh` | Host smoke + pytest + optional docker |
+| `infra/dgx_spark/smoke.py` | Checks 1–5; exit 1 on hard failures |
+| `docs/data/gb10-validation-log-2026-06.md` | Generated by `build-validation.sh` |
+| `docs/decisions/0023-flash-attn-gb10-sdpa-fallback.md` | SDPA default + competition caveat |
+
+## Gate declaration
+
+**`GB10_STACK_VERIFIED` (conditional):** torch GPU + SDPA + Vidyut + Unsloth import
+**PASS**; flash-attn **FALLBACK** documented. Safe to proceed with generator/data
+units; 100M training should use SDPA unless container flash-attn build is completed
+and smoke `--bench` shows benefit.
+
+## Historical note (2026-05-31)
+
+Light data stack (sentencepiece, huggingface-hub, tokenizer pipeline) was validated
+without GPU/container. That status remains valid; this document supersedes the
+“deferred to NGC container” section for torch/unsloth/vidyut with measured results.
