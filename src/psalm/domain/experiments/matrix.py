@@ -45,6 +45,9 @@ NL_BUDGET_10M = 13_000_000
 # The single comparison Phase 2's go/no-go hinges on.
 DECISIVE_PAIR: tuple[str, str] = ("B", "C")
 
+# H1′ (ADR-0030): Paribhāṣā-aligned vs matched Dyck at BabyLM minimal-pair venue.
+H1P_DECISIVE_PAIR: tuple[str, str] = ("h1p:B", "h1p:C")
+
 
 def default_h1_matrix(
     *,
@@ -126,6 +129,62 @@ def default_h1_matrix(
             token_budget=nl_budget_high,
         ),
     ]
+    return ExperimentMatrix(arms=arms, seeds=seeds)
+
+
+def default_h1p_matrix(
+    *,
+    param_count_m: float,
+    nl_budget: int = NL_BUDGET_100M,
+    seeds: tuple[int, ...] = (0, 1, 2),
+    include_l1: bool = True,
+) -> ExperimentMatrix:
+    """Build the pre-registered H1′ matrix (ADR-0030, namespace ``h1p:``).
+
+    Arms:
+      ``h1p:A`` — no structural prior
+      ``h1p:B`` — Śabdabodha-aligned Paribhāṣā (treatment)
+      ``h1p:C`` — matched k-Shuffle Dyck (control)
+      ``h1p:L`` — optional L1 Pāṇinian contrast (diagnostic)
+    """
+    corpus = PretrainCorpus.ENGLISH
+    arms = [
+        ExperimentArm(
+            arm_id="h1p:A",
+            label="baseline (no pre-pretraining)",
+            pre_pretrain=PrePretrainSource.NONE,
+            pretrain_corpus=corpus,
+            param_count_m=param_count_m,
+            token_budget=nl_budget,
+        ),
+        ExperimentArm(
+            arm_id="h1p:B",
+            label="Śabdabodha-aligned Paribhāṣā (H1′ treatment)",
+            pre_pretrain=PrePretrainSource.SHABDABODHA_ALIGNED,
+            pretrain_corpus=corpus,
+            param_count_m=param_count_m,
+            token_budget=nl_budget,
+        ),
+        ExperimentArm(
+            arm_id="h1p:C",
+            label="k-Shuffle Dyck control",
+            pre_pretrain=PrePretrainSource.DYCK,
+            pretrain_corpus=corpus,
+            param_count_m=param_count_m,
+            token_budget=nl_budget,
+        ),
+    ]
+    if include_l1:
+        arms.append(
+            ExperimentArm(
+                arm_id="h1p:L",
+                label="L1 Pāṇinian contrast (diagnostic)",
+                pre_pretrain=PrePretrainSource.PANINIAN,
+                pretrain_corpus=corpus,
+                param_count_m=param_count_m,
+                token_budget=nl_budget,
+            )
+        )
     return ExperimentMatrix(arms=arms, seeds=seeds)
 
 

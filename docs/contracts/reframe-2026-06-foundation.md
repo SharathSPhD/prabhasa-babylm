@@ -18,6 +18,7 @@ No worktrees, training, or `matrix.py` edits on this branch.
 | ADR-0023 GB10 SDPA fallback | [docs/decisions/0023-flash-attn-gb10-sdpa-fallback.md](../decisions/0023-flash-attn-gb10-sdpa-fallback.md) |
 | Wave-1 integration report | [integration-data-engine-v2-2026-06.md](./integration-data-engine-v2-2026-06.md) |
 | Wave-2 integration report | [integration-data-engine-v2-wave2-2026-06.md](./integration-data-engine-v2-wave2-2026-06.md) |
+| Wave-3 integration report | [integration-wave3-experiment-enablement-2026-06.md](./integration-wave3-experiment-enablement-2026-06.md) |
 | Interface freeze | [docs/contracts/interface-freeze-2026-06.md](./interface-freeze-2026-06.md) |
 | Aligned-pair JSON Schema | [docs/contracts/aligned-pair-schema.json](./aligned-pair-schema.json) |
 
@@ -74,7 +75,18 @@ All must be true before forking unit worktrees:
 - [x] ELC-PSALM `ml` package exports + BabyLM PLL eval factory + `psalm eval --elc`
 - [x] `resolve_architecture(elc_psalm_s|m)` (training-loop hook deferred)
 - [x] Full gate green (361 tests, ≥80% coverage) — see Wave-2 integration report
-- [ ] Human sign-off on Wave-2 merge to `main` (agent: FF merge when gate green)
+- [x] Wave-2 FF merge to `main` (no remote push)
+
+## Wave-3 integration checklist (2026-06)
+
+- [x] `workstream/eval-train` merged (PLL minimal pairs, ELC trainer, HF export, ADR-0032)
+- [x] `workstream/h1prime` merged (ADR-0030, `run_h1prime_pilot.py`, `configs/research/h1p/`)
+- [x] `workstream/crystallization` merged (M1 pipeline, ADR-0031)
+- [x] `default_h1p_matrix()` registered (`h1p:A`–`C`, optional `h1p:L`)
+- [x] H1′ harness primary venue → `babylm_eval` minimal pairs (COGS fallback)
+- [x] CLI: `psalm train elc-smoke` + `psalm eval babylm smoke`
+- [x] Full gate green (382 tests, 89.46% coverage) — see Wave-3 report
+- [ ] Human sign-off on H1′ proxy battery launch (ADR-0030; status UNBLOCKED/RUN-PENDING)
 
 ## Already implemented (do not re-open as gaps)
 
@@ -85,9 +97,11 @@ Vyutpattivāda engine (U5), ELC-PSALM encoder skeleton (U7).
 
 ## Genuinely absent (charter scope)
 
-Live BabyLM official-pipeline eval run, trained ELC-PSALM HF export,
-ELC training-loop in competition runner, `Dockerfile.verified` flash-attn proof,
-U2 fixture-vs-live Dyck target parity, Hu k=64 alphabet extension.
+Official full BLiMP/EWoK zero-shot via installed pipeline (smoke PLL only),
+trained ELC-PSALM HF export + competition YAML training hook,
+`Dockerfile.verified` flash-attn proof,
+U2 fixture-vs-live Dyck target parity, Hu k=64 alphabet extension,
+Saṃsādhanī-live crystallization sentence yield.
 
 ## Human decisions before charters
 
