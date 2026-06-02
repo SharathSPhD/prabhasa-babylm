@@ -1,0 +1,48 @@
+# H1′ pre-registered thresholds (ADR-0030). Freeze at battery lock; supersede via ADR only.
+phase: h1prime
+namespace: h1p
+decisive_pair: [h1p:B, h1p:C]
+
+arms:
+  h1p:A: { pre_pretrain_source: none, label: baseline }
+  h1p:B: { pre_pretrain_source: shabdabodha_aligned, label: sabdabodha_aligned_l2 }
+  h1p:C: { pre_pretrain_source: dyck, label: matched_dyck_control }
+  h1p:L: { pre_pretrain_source: paninian, label: l1_paninian_contrast }
+
+dose:
+  pre_budget_tokens: 60000
+  pre_epochs: 4
+  nl_budget_proxy_tokens: 13000000
+  nl_budget_battery_tokens: 130000000
+
+primary_venue:
+  suite: babylm_official_minimal_pairs
+  shards:
+    - ewok
+    - blimp_anaphor_agreement
+    - blimp_argument_structure
+    - blimp_binding
+    - blimp_control_raising
+    - blimp_ellipsis
+    - blimp_quantifiers
+  blocked_until: eval_train_zero_shot  # integration/eval-train workstream
+
+secondary_venue:
+  suite: shabdabodha_graph_consistency
+  corruption: swap_prakarata_target  # fixed operator; see harness build_graph_pairs
+
+readout:
+  adr: "0030"
+  primary_metric: normalized_discrimination_auc
+  theta: 0.70
+  eval_fracs: [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.35, 0.55, 0.8, 1.0]
+  early_frac: 0.1
+  delta_auc_min: 0.02
+  ci_method: bootstrap_seed_diffs
+
+verdicts:
+  launch_recommended: all_conjunctive_criteria
+  no_or_weak: null_result_report_required
+  venue_saturates: earliest_checkpoint_all_arms_ge_theta
+  not_learned: baseline_never_reaches_theta
+  blocked: eval_shards_unavailable

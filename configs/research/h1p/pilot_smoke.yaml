@@ -1,0 +1,17 @@
+# CPU wiring smoke for scripts/run_h1prime_pilot.py --smoke (NOT scientific evidence).
+phase: h1prime-smoke
+namespace: h1p
+param_count_m: 10.0
+seeds: 1
+arms: [h1p:A, h1p:B, h1p:C]
+pre_budget_tokens: 800
+pre_epochs: 1
+max_steps: 40
+batch_size: 4
+seq_len: 64
+vocab_size: 512
+venue_smoke: cogs_noncanonical_discrimination  # until eval_train EWoK/BLiMP live
+eval_fracs: [0.25, 0.5, 1.0]
+theta: 0.70
+aligned_fixture: data/fixtures/shabdabodha-aligned-ci.jsonl
+paninian_cache: data/cache/samsadhani_75k.jsonl
