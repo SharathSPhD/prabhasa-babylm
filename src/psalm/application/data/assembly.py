@@ -30,14 +30,35 @@ _PANINIAN_SOURCES = (
     PrePretrainSource.PANINIAN_KARAKA_AUX,
 )
 
+# Arms whose *input* is the explicit Paribhāṣā graph string, never the Sanskrit
+# surface (ADR-0034 D2). Training these on ``sentence.text`` would collapse the
+# Paribhāṣā-vs-Dyck contrast into "Sanskrit LM vs Dyck" and is forbidden.
+_PARIBHASHA_STRING_SOURCES = (
+    PrePretrainSource.PARIBHASHA,
+    PrePretrainSource.SHABDABODHA_ALIGNED,
+)
+
 
 def serialize_line(sentence: AnnotatedSentence, source: PrePretrainSource) -> str:
     """Render one annotated sentence as a single training line.
 
     Dyck control passes its bracket string through unchanged; Pāṇinian arms emit
-    the surface form. (Both arms' auxiliary structure, if any, is carried by
-    :func:`aux_targets`, never mixed into the input text.)
+    the surface form. The Paribhāṣā / Śabdabodha-aligned arms emit the lossless
+    ``paribhasha_string`` (ASCII channel, ADR-0026/0034) — the dense structural
+    prior under test — and *never* the Sanskrit surface; if a sentence on those
+    arms lacks ``meta['paribhasha_string']`` this raises rather than silently
+    leaking surface text into the experiment. (All arms' auxiliary structure, if
+    any, is carried by :func:`aux_targets`, never mixed into the input text.)
     """
+    if source in _PARIBHASHA_STRING_SOURCES:
+        paribhasha_string = sentence.meta.get("paribhasha_string")
+        if isinstance(paribhasha_string, str) and paribhasha_string:
+            return paribhasha_string
+        raise ValueError(
+            f"{source.value} arm requires a non-empty meta['paribhasha_string'] "
+            "(ADR-0034 D2); refusing to train on the Sanskrit surface form. "
+            "Regenerate the aligned fixture with the lossless renderer."
+        )
     return sentence.text
 
 

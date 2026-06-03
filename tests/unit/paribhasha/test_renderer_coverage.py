@@ -1,4 +1,4 @@
-"""Additional renderer/parser coverage for branch targets."""
+"""Additional renderer/parser coverage for the lossless flat form (ADR-0034)."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from psalm.infrastructure.generators.paribhasha.renderer import (
     render_graph,
 )
 from psalm.infrastructure.generators.paribhasha.types import (
+    GraphEdge,
     GraphNode,
     PadarthaCategory,
     SansaType,
@@ -65,10 +66,25 @@ def test_abhava_ascii_round_trip() -> None:
     assert parsed.to_canonical_schema_dict() == g.to_canonical_schema_dict()
 
 
-def test_avacchedaka_parse() -> None:
-    text = "AVACCHEDAKA(VISESA:this_pot,PRAKARATA(GUNA:redness,DRAVYA:pot))"
-    g = parse_paribhasha_ascii(text)
-    assert any(e.sansa == SansaType.AVACCHEDAKA for e in g.edges)
+def test_avacchedaka_flat_round_trip() -> None:
+    g = ShabdabodhaGraph(
+        nodes=[
+            GraphNode(id="this_pot", category=PadarthaCategory.VISESA, label="this_pot"),
+            GraphNode(id="redness", category=PadarthaCategory.GUNA, label="redness"),
+            GraphNode(id="pot", category=PadarthaCategory.DRAVYA, label="pot"),
+        ],
+        edges=[
+            GraphEdge("redness", "pot", SansaType.PRAKARATA),
+            GraphEdge("this_pot", "redness", SansaType.AVACCHEDAKA),
+        ],
+    )
+    out = render_graph(g)
+    assert any(
+        e.sansa == SansaType.AVACCHEDAKA for e in parse_paribhasha_ascii(out.ascii).edges
+    )
+    assert parse_paribhasha_ascii(out.ascii).to_canonical_schema_dict() == (
+        g.to_canonical_schema_dict()
+    )
 
 
 def test_inference_suffix_preserved() -> None:
@@ -81,25 +97,28 @@ def test_inference_suffix_preserved() -> None:
     assert parsed.inference_roles == g.inference_roles
 
 
-def test_empty_render_components_only_inference() -> None:
+def test_isolated_node_and_inference_both_emitted() -> None:
     g = ShabdabodhaGraph(
-        nodes=[GraphNode(id="hill", category=PadarthaCategory.DRAVYA)],
+        nodes=[GraphNode(id="hill", category=PadarthaCategory.DRAVYA, label="hill")],
         edges=[],
         inference_roles={"PAKSA": "hill"},
     )
     out = render_graph(g)
-    assert out.ascii.startswith("INFERENCE[")
+    # lossless: the isolated node is NOT dropped just because an inference suffix exists
+    assert "DRAVYA:hill" in out.ascii
+    assert out.ascii.rstrip().endswith("INFERENCE[PAKSA=hill]")
+    assert parse_paribhasha_ascii(out.ascii).inference_roles == {"PAKSA": "hill"}
 
 
 def test_parse_errors() -> None:
     with pytest.raises(ParseError):
         parse_paribhasha_ascii("")
     with pytest.raises(ParseError):
-        parse_paribhasha_ascii("UNKNOWN(x,y)")
+        parse_paribhasha_ascii("UNKNOWN(DRAVYA:x,DRAVYA:y)")
     with pytest.raises(ParseError):
-        parse_paribhasha_ascii("ABHAVA(only)")
+        parse_paribhasha_ascii("PRAKARATA(GUNA:x)")  # arity
     with pytest.raises(ParseError):
-        parse_paribhasha_ascii("AVACCHEDAKA(lim,not_nested)")
+        parse_paribhasha_ascii("PRAKARATA(bare,terms)")  # untyped
 
 
 def test_samyogata_round_trip() -> None:
@@ -113,8 +132,14 @@ def test_samyogata_round_trip() -> None:
     assert parsed.to_canonical_schema_dict() == g.to_canonical_schema_dict()
 
 
-def test_to_iast_abhava() -> None:
-    text = "VISAYATA(GUNA:jnana,ABHAVA(DRAVYA:locus,DRAVYA:counter))"
-    g = parse_paribhasha_ascii(text)
+def test_to_iast_operators() -> None:
+    g = ShabdabodhaGraph(
+        nodes=[
+            GraphNode(id="jnana", category=PadarthaCategory.GUNA, label="jnana"),
+            GraphNode(id="pot", category=PadarthaCategory.DRAVYA, label="pot"),
+        ],
+        edges=[GraphEdge("jnana", "pot", SansaType.VISAYATA)],
+    )
     out = render_graph(g)
-    assert "abhāva(" in out.iast or "ABHAVA(" in out.ascii
+    assert "viṣayatā" in out.iast
+    assert "VISAYATA" in out.ascii
