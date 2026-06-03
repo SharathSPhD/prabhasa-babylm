@@ -108,4 +108,24 @@ class TestStandalone:
     """D-standalone: domain modules must not pull in torch."""
 
     def test_no_torch_imported(self) -> None:
-        assert "torch" not in sys.modules, "a domain import pulled in torch"
+        # Must run in a FRESH interpreter: in the full suite other tests import
+        # torch into the shared sys.modules, so asserting on this process's
+        # sys.modules is meaningless. Spawn a clean process that imports only the
+        # Dyck domain modules and verify torch was not transitively pulled in.
+        import subprocess
+
+        code = (
+            "import sys; "
+            "import psalm.domain.data.dyck; "
+            "import psalm.domain.data.matching; "
+            "import psalm.domain.data.diversity; "
+            "assert 'torch' not in sys.modules, sorted(m for m in sys.modules if 'torch' in m); "
+            "print('OK')"
+        )
+        proc = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+        )
+        assert proc.returncode == 0, f"dyck domain import pulled in torch:\n{proc.stderr}"
+        assert proc.stdout.strip() == "OK"
