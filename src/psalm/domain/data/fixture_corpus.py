@@ -71,6 +71,24 @@ def stream_realized_corpus(n: int, *, seed: int = 0) -> Iterator[AnnotatedSenten
     yield from VidyutFrameRealizer().stream(n, seed=seed)
 
 
+def stream_expanded_label_corpus(
+    n: int, *, seed: int = 0, lexicon_path: str
+) -> Iterator[AnnotatedSentence]:
+    """Yield ``n`` *label* sentences from the expanded lexicon (ADR-0036).
+
+    Surfaces are the deterministic ``stem.vacana.kāraka … dhātu.lakāra`` labels
+    consumed by the Vyutpattivāda :func:`compile_shabdabodha` pipeline (the
+    Paribhāṣā arm trains on the graph linearisation, not the Sanskrit surface).
+    Carries the same frame structure as the realized stream, so arm B (Pāṇinian
+    surface) and arm D (Paribhāṣā graph) render the *same* frames.
+    """
+    from psalm.domain.data.expanded_lexicon import load_lexicon, sample_expanded_frames
+
+    lexicon = load_lexicon(lexicon_path)
+    for i, frame in enumerate(sample_expanded_frames(n, seed=seed, lexicon=lexicon)):
+        yield frame_to_sentence(frame, fixture_id=f"exp-{seed}-{i:06d}")
+
+
 def stream_expanded_realized_corpus(
     n: int, *, seed: int = 0, lexicon_path: str
 ) -> Iterator[AnnotatedSentence]:
