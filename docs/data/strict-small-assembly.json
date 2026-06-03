@@ -1,0 +1,67 @@
+{
+  "schema": "strict-small-assembly-v1",
+  "english": {
+    "per_source": {
+      "childes": {
+        "base_words": 2556991,
+        "heldout_words": 284110,
+        "total_words": 2841101
+      },
+      "gutenberg": {
+        "base_words": 2301992,
+        "heldout_words": 255729,
+        "total_words": 2557721
+      },
+      "open_subtitles": {
+        "base_words": 2054592,
+        "heldout_words": 228285,
+        "total_words": 2282877
+      },
+      "simple_wiki": {
+        "base_words": 1378329,
+        "heldout_words": 153108,
+        "total_words": 1531437
+      },
+      "bnc_spoken": {
+        "base_words": 685874,
+        "heldout_words": 76199,
+        "total_words": 762073
+      },
+      "switchboard": {
+        "base_words": 22316,
+        "heldout_words": 2475,
+        "total_words": 24791
+      }
+    },
+    "base_words": 9000094,
+    "heldout_words": 999906,
+    "base_path": "data/corpora/strict_small/english_base.txt",
+    "heldout_path": "data/corpora/strict_small/english_heldout.txt",
+    "base_sha256": "96423a0abbfa67348e025fcd30f8eb2c757023faab7efbb48c6b958dd70b7546",
+    "heldout_sha256": "dc6a6dcca3c853d5607b16adcce502c8220d8354800c7fbba491b745c4eec4e2"
+  },
+  "priors": {
+    "paninian": {
+      "present": true,
+      "path": "data/corpora/priors/paninian.txt",
+      "sequences": 400000,
+      "words": 1053608,
+      "sha256": "f766223782b4aae98dfdcfbb96adbd7d59b00dce4fcb11805a7732a1685a4e52"
+    },
+    "paribhasha": {
+      "present": true,
+      "path": "data/corpora/priors/paribhasha.txt",
+      "sequences": 400000,
+      "words": 1348530,
+      "sha256": "c4ff5a9be0bcadf5657753db2cbd0bd40e4300fb0a967f026cbdd60be8abdf21"
+    },
+    "dyck": {
+      "present": true,
+      "path": "data/corpora/priors/dyck.txt",
+      "sequences": 40000,
+      "words": 1462276,
+      "sha256": "54588b5f384140e08c1340a90da8eaff63c64b6c0416a8a866110a3b63db31e4"
+    }
+  },
+  "fairness": "Doses across arms B/C/D are matched by POST-TOKENIZER TOKEN COUNT (compute parity, Hu et al. 2024), trimmed in build_arm_corpora.py. Arm A dose = 1M held-out English words. Shared 9M English base is byte-identical across all arms."
+}

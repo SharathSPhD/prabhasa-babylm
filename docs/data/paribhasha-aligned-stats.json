@@ -1,0 +1,11 @@
+{
+  "schema_version": "shabdabodha-export-v1",
+  "input": "data/corpora/priors/paribhasha_labels.jsonl",
+  "output": "data/corpora/priors/paribhasha_aligned.jsonl",
+  "n_aligned_rows": 400000,
+  "n_sentences": 400000,
+  "n_valid_graphs": 400000,
+  "coverage_fraction": 1.0,
+  "skip_reasons": {},
+  "pipeline_source": "shabdabodha-vyutpattivada"
+}
