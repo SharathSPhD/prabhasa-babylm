@@ -182,6 +182,13 @@ exclude = ["src/psalm/infrastructure/ml/", "src/psalm/infrastructure/generators/
 module = "psalm.infrastructure.generators.vidyut_source"
 disable_error_code = ["attr-defined", "no-untyped-call"]
 
+# The realizer drives the same native extension (vidyut.prakriya) whose enum /
+# factory attributes are invisible to the stub checker; behaviour is covered by
+# tests/unit/test_vidyut_realizer.py.
+[[tool.mypy.overrides]]
+module = "psalm.infrastructure.generators.vidyut_realizer"
+disable_error_code = ["attr-defined", "no-untyped-call", "union-attr"]
+
 [[tool.mypy.overrides]]
 module = "psalm.infrastructure.generators.samsadhani"
 disable_error_code = ["attr-defined", "no-untyped-call", "no-untyped-def"]

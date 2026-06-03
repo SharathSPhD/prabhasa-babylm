@@ -54,6 +54,12 @@ DHATUS: tuple[tuple[str, int], ...] = (
     ("vax1", 2),  # speak
 )
 
+# Transitivity annotation (ADR-0033): strictly akarmaka dhātus that must NEVER
+# license a karma. NOTE: ``gam`` is deliberately absent — it takes an accusative
+# of destination (e.g. grāmaṃ gacchati), so a karma with ``gam1`` is well-formed.
+# The realizer and any frame validator use this to reject akarmaka+karma frames.
+AKARMAKA_DHATUS: frozenset[str] = frozenset({"BU1", "sWA1", "vas1"})
+
 # Verified oblique-kāraka frames: which verbs license which oblique kāraka,
 # and whether a karma may co-occur. Established empirically against the live
 # Saṃsādhanī generator (only aligned, accepted (verb, kāraka, ±karma) triples are

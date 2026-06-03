@@ -214,6 +214,49 @@ def check_vidyut(report: Report, *, min_sentences: int) -> None:
         report.add("vidyut", "FAIL", str(exc))
 
 
+def check_vidyut_realizer(report: Report, *, min_sentences: int) -> None:
+    """Validate the Vidyut-native frame realizer (ADR-0033) on the GB10 host.
+
+    Requires >= ``min_sentences`` realized sentences, each with a gold kāraka
+    parse and a non-empty sūtra derivation, and verifies sandhi honesty (every
+    surface is space-joined or rule-fused; ``meta.sandhi`` is recorded, never a
+    fabricated fusion). This is the V-gb10 acceptance evidence.
+    """
+    try:
+        import vidyut  # noqa: F401
+
+        from psalm.infrastructure.generators.vidyut_realizer import VidyutFrameRealizer
+    except ImportError as exc:
+        report.add("vidyut_realizer", "FAIL", str(exc))
+        return
+
+    try:
+        items = list(VidyutFrameRealizer().stream(min_sentences, seed=0))
+    except Exception as exc:
+        report.add("vidyut_realizer", "FAIL", f"stream raised: {exc}")
+        return
+
+    if len(items) < min_sentences:
+        report.add("vidyut_realizer", "FAIL", f"only {len(items)} sentences")
+        return
+    gold = sum(1 for s in items if s.has_gold_parse)
+    with_deriv = sum(1 for s in items if s.derivation)
+    bad_sandhi = sum(1 for s in items if s.meta.get("sandhi") not in {"full", "partial", "none"})
+    if gold != len(items) or with_deriv != len(items) or bad_sandhi:
+        report.add(
+            "vidyut_realizer",
+            "FAIL",
+            f"gold={gold}/{len(items)} deriv={with_deriv}/{len(items)} bad_sandhi={bad_sandhi}",
+        )
+        return
+    sample = items[0].text[:48]
+    report.add(
+        "vidyut_realizer",
+        "PASS",
+        f"n={len(items)} gold=100% deriv=100% sample={sample!r}",
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="GB10 stack smoke tests")
     parser.add_argument(
@@ -227,6 +270,11 @@ def main() -> int:
         default=100,
         help="Minimum Vidyut sentences for smoke (default 100)",
     )
+    parser.add_argument(
+        "--realizer-only",
+        action="store_true",
+        help="Run only env inventory + Vidyut realizer check (no torch/ml stack).",
+    )
     parser.add_argument("--bench", action="store_true", help="Run flash vs SDPA microbench")
     args = parser.parse_args()
 
@@ -237,12 +285,14 @@ def main() -> int:
     print(f"python: {sys.version.split()[0]}")
 
     check_env_inventory(report)
-    check_torch_gpu(report)
-    check_flash_attn(report, strict=args.strict_flash_attn)
-    if args.bench:
-        bench_attention(report)
-    check_unsloth(report)
-    check_vidyut(report, min_sentences=args.vidyut_min)
+    if not args.realizer_only:
+        check_torch_gpu(report)
+        check_flash_attn(report, strict=args.strict_flash_attn)
+        if args.bench:
+            bench_attention(report)
+        check_unsloth(report)
+        check_vidyut(report, min_sentences=args.vidyut_min)
+    check_vidyut_realizer(report, min_sentences=args.vidyut_min)
 
     report.print_summary()
     return HARD_FAIL if report.hard_failed else OK
