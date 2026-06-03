@@ -69,3 +69,28 @@ def stream_realized_corpus(n: int, *, seed: int = 0) -> Iterator[AnnotatedSenten
     from psalm.infrastructure.generators.vidyut_realizer import VidyutFrameRealizer
 
     yield from VidyutFrameRealizer().stream(n, seed=seed)
+
+
+def stream_expanded_realized_corpus(
+    n: int, *, seed: int = 0, lexicon_path: str
+) -> Iterator[AnnotatedSentence]:
+    """Yield up to ``n`` real Sanskrit sentences from the *expanded* lexicon (ADR-0036).
+
+    Samples frequency-weighted, well-formed kāraka frames from the verified,
+    DCS-grounded lexicon and realizes each via ``vidyut.prakriya``. Lifts the
+    74,760-frame ceiling so a 1M-word prior is diverse rather than 4× repetition.
+    """
+    from psalm.domain.data.expanded_lexicon import load_lexicon, sample_expanded_frames
+    from psalm.infrastructure.generators.vidyut_realizer import VidyutFrameRealizer
+
+    lexicon = load_lexicon(lexicon_path)
+    realizer = VidyutFrameRealizer()
+    emitted = 0
+    for frame in sample_expanded_frames(n * 2 + 128, seed=seed, lexicon=lexicon):
+        if emitted >= n:
+            break
+        sentence = realizer.realize(frame)
+        if sentence is None:
+            continue
+        yield sentence
+        emitted += 1

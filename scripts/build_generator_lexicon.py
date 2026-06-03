@@ -85,6 +85,19 @@ def _kosha_basic_stems(data_dir: Path) -> dict[str, set[str]]:
 _KOSHA_LINGA = {"puM": "pum", "napuMsaka": "napum", "strI": "stri"}
 
 
+def _gana_attr_map() -> dict[str, str]:
+    """Map each Gaṇa's ``str()`` value (e.g. ``BvAdi``) → its Python attribute
+    name (e.g. ``Bhvadi``), which is what ``getattr(prakriya.Gana, ...)`` needs."""
+    out: dict[str, str] = {}
+    for name in dir(P.Gana):
+        if not name[:1].isupper():
+            continue
+        val = getattr(P.Gana, name)
+        if isinstance(val, P.Gana):
+            out[str(val).split(".")[-1]] = name
+    return out
+
+
 def build(dcs_path: Path, data_dir: Path, max_stems: int) -> dict[str, object]:
     dcs = json.loads(dcs_path.read_text(encoding="utf-8"))
     verified = _kosha_basic_stems(data_dir)
@@ -111,12 +124,13 @@ def build(dcs_path: Path, data_dir: Path, max_stems: int) -> dict[str, object]:
             break
 
     dcs_verbs = {v["slp1"]: v for v in dcs["verb_lemmas"]}
+    gana_attr = _gana_attr_map()
     entries = P.Data(str(data_dir / "prakriya")).load_dhatu_entries()
     dhatus: list[dict[str, object]] = []
     seen: set[tuple[str, str]] = set()
     for e in entries:
         aup = e.dhatu.aupadeshika
-        gana = str(e.dhatu.gana).split(".")[-1]
+        gana = gana_attr[str(e.dhatu.gana).split(".")[-1]]
         key = (aup, gana)
         if key in seen:
             continue

@@ -220,12 +220,24 @@ def forward_sandhi(padas: Sequence[str]) -> tuple[str, str]:
 
 
 def frame_transitivity_violation(frame: KarakaFrame) -> bool:
-    """True iff the frame pairs a strictly akarmaka dhātu with a karma noun."""
+    """True iff the frame pairs a non-transitive dhātu with a karma noun.
+
+    Native (expanded-lexicon) frames carry a DCS-grounded ``transitive`` flag on
+    the verb; legacy frames fall back to the WX akarmaka set.
+    """
     words = _frame_words(frame)
     has_karma = any(w.get("pos") == "noun" and w.get("karaka") == "karma" for w in words)
     if not has_karma:
         return False
-    return any(w.get("pos") == "verb" and w.get("dhatu") in AKARMAKA for w in words)
+    for w in words:
+        if w.get("pos") != "verb":
+            continue
+        if "transitive" in w:
+            if not bool(w["transitive"]):
+                return True
+        elif w.get("dhatu") in AKARMAKA:
+            return True
+    return False
 
 
 @dataclass(frozen=True)
@@ -272,10 +284,19 @@ class VidyutFrameRealizer:
 
     def _decline(self, noun: Word) -> str | None:
         p = self._vidyut()
-        stem_wx = str(noun["stem"])
-        entry = STEMS.get(stem_wx)
-        if entry is None:
-            return None
+        # Native (expanded-lexicon) frames carry SLP1 + liṅga + nyāp directly and
+        # bypass the small WX-keyed STEMS table; legacy frames look up STEMS.
+        entry: StemEntry | None
+        if "slp1" in noun:
+            entry = StemEntry(
+                slp1=str(noun["slp1"]),
+                linga=str(noun["linga"]),
+                nyap=bool(noun.get("nyap", False)),
+            )
+        else:
+            entry = STEMS.get(str(noun["stem"]))
+            if entry is None:
+                return None
         karaka = str(noun["karaka"])
         vibhakti_name = VIBHAKTI_FOR_KARAKA.get(karaka)
         if vibhakti_name is None:
@@ -300,7 +321,13 @@ class VidyutFrameRealizer:
 
     def _conjugate(self, verb: Word, vacana_label: str) -> tuple[str | None, tuple[str, ...]]:
         p = self._vidyut()
-        entry = DHATUS.get(str(verb["dhatu"]))
+        # Native frames carry the upadeśa + gaṇa directly; legacy frames look up DHATUS.
+        if "aupadeshika" in verb:
+            entry: DhatuEntry | None = DhatuEntry(
+                upadesha=str(verb["aupadeshika"]), gana=str(verb["gana"])
+            )
+        else:
+            entry = DHATUS.get(str(verb["dhatu"]))
         if entry is None:
             return None, ()
         lakara_name = LAKARA.get(str(verb["lakara"]))
