@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "n_checks": 6,
+  "checks": [
+    {
+      "id": "C1_H_structure_given_karaka",
+      "passed": true,
+      "value": 3.18,
+      "threshold": ">= 1.0 bits",
+      "detail": "Paribh\u0101\u1e63\u0101 graph carries info beyond the k\u0101raka roles (not a relabel)."
+    },
+    {
+      "id": "C2_visayata_transitive",
+      "passed": true,
+      "value": 1.0,
+      "threshold": "== 1.0",
+      "detail": "Every transitive sentence renders its VISAYATA edge (lossless)."
+    },
+    {
+      "id": "C3_template_count",
+      "passed": true,
+      "value": 499.0,
+      "threshold": ">= 10",
+      "detail": "Structural target is not near-degenerate (templates >> 2)."
+    },
+    {
+      "id": "C4_acceptance_ge_target",
+      "passed": true,
+      "value": 0.81,
+      "threshold": ">= 0.8",
+      "detail": "Realized corpus is faithfully comprehensible at/above target."
+    },
+    {
+      "id": "C5_venue_off_saturation",
+      "passed": true,
+      "value": 0.65,
+      "threshold": "in [0.55, 0.75]",
+      "detail": "Arm-A early accuracy has headroom to reveal a real effect."
+    },
+    {
+      "id": "C6_zero_mock_cpu_paths",
+      "passed": true,
+      "value": 0.0,
+      "threshold": "== 0",
+      "detail": "No mock baseline / RunMode.MOCK / silent CPU fallback in battery."
+    }
+  ],
+  "mock_cpu_path_hits": [],
+  "parity_report": null
+}

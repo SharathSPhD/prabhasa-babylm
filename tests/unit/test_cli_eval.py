@@ -12,12 +12,10 @@ from psalm.cli.main import app
 runner = CliRunner()
 
 
-def test_eval_babylm_smoke(tmp_path: Path) -> None:
-    out = tmp_path / "smoke.json"
-    result = runner.invoke(app, ["eval", "babylm", "smoke", "--mock", "-o", str(out)])
-    assert result.exit_code == 0
-    assert "mock" in result.stdout.lower() or "MOCK" in result.stdout
-    assert out.exists()
+def test_eval_babylm_smoke_has_no_mock_flag() -> None:
+    # --mock was removed (no-mock battery); the option must no longer be accepted.
+    result = runner.invoke(app, ["eval", "babylm", "smoke", "--mock"])
+    assert result.exit_code != 0
 
 
 @pytest.mark.slow
@@ -28,6 +26,7 @@ def test_eval_babylm_smoke_elc(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert out.exists()
     assert "aggregate" in result.stdout.lower()
+    assert "evidence" in result.stdout.lower()
 
 
 def test_eval_manifest_check() -> None:

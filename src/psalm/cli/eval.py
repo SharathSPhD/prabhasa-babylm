@@ -8,7 +8,6 @@ import typer
 from rich.console import Console
 
 from psalm.benchmarks.babylm_eval import (
-    RunMode,
     detect_pipeline_install,
     eval_root,
     run_smoke_eval,
@@ -32,40 +31,30 @@ def babylm_smoke(
         "-o",
         help="Write JSON report here",
     ),
-    mock: bool = typer.Option(
-        False,
-        "--mock",
-        help="Force random PLL baseline (not ELC-PSALM)",
-    ),
-    no_elc: bool = typer.Option(
-        False,
-        "--no-elc",
-        help="Disable ELC-PSALM; use random baseline unless checkpoint is set",
-    ),
     checkpoint: Path | None = typer.Option(
         None,
         "--checkpoint",
         help="ELC-PSALM checkpoint (.pt)",
     ),
-    seed: int = typer.Option(0, help="RNG seed for MockUniformBaseline"),
+    seed: int = typer.Option(0, help="RNG seed for the untrained ELC-PSALM encoder"),
     device: str = typer.Option("cpu", "--device", help="cpu for CI; cuda for GPU SDPA"),
 ) -> None:
-    """Smoke zero-shot eval: real PLL minimal-pair accuracy (default: untrained ELC-PSALM)."""
-    mode = RunMode.MOCK if mock else None
+    """Smoke zero-shot eval: real ELC-PSALM PLL minimal-pair accuracy.
+
+    Always evidence=False (wiring only); no mock baseline exists. Use the official
+    full suite for an evidence-grade verdict.
+    """
     model = build_babylm_smoke_model(
-        mock=mock,
-        use_elc=not no_elc,
         checkpoint=checkpoint,
         seed=seed,
         device=device,
     )
     result = run_smoke_eval(
         model,
-        mode=mode,
         output_path=output,
-        force_mock_baseline=mock,
     )
     console.print(f"[bold]mode:[/bold] {result.mode.value}")
+    console.print(f"[bold]evidence:[/bold] {result.evidence}")
     console.print(f"[bold]aggregate:[/bold] {result.aggregate_score:.4f}")
     for name, score in result.task_scores.items():
         console.print(f"  {name}: {score:.4f}")

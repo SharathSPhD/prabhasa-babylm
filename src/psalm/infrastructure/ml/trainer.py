@@ -25,6 +25,7 @@ from torch import nn
 from psalm.domain.model.config import ModelConfig
 from psalm.domain.model.training import Precision, TrainConfig, TrainOutcome
 from psalm.infrastructure.ml.decoder import Decoder, cosine_lr
+from psalm.infrastructure.ml.device import resolve_training_device
 from psalm.infrastructure.ml.packing import TokenPacker
 
 logger = logging.getLogger(__name__)
@@ -75,16 +76,13 @@ def _repeat(make_stream: Callable[[], Iterable[str]], n: int) -> Iterator[str]:
 
 
 def _resolve_device(train_cfg: TrainConfig) -> str:
-    if train_cfg.device.startswith("cuda") and not torch.cuda.is_available():
-        logger.warning(
-            "TrainConfig.device=%r but torch.cuda.is_available() is False "
-            "(torch=%s); silently falling back to CPU. This is correct only for "
-            "intentional proxy runs — a GPU battery must assert CUDA up front "
-            "(see scripts --require-cuda).",
-            train_cfg.device,
-            torch.__version__,
-        )
-    return train_cfg.device if (train_cfg.device != "cuda" or torch.cuda.is_available()) else "cpu"
+    """Resolve the training device with **no silent CUDA→CPU fallback** (ADR-0035).
+
+    A requested ``cuda`` device on a CPU-only host raises ``CudaUnavailableError``
+    rather than quietly producing CPU numbers; explicit ``device='cpu'`` is honoured
+    for intentional proxy / CI runs.
+    """
+    return resolve_training_device(train_cfg.device)
 
 
 @dataclass
