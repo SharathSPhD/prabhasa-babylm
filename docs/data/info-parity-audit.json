@@ -1,11 +1,11 @@
 {
-  "passed": true,
+  "passed": false,
   "n_checks": 6,
   "checks": [
     {
       "id": "C1_H_structure_given_karaka",
       "passed": true,
-      "value": 3.18,
+      "value": 3.1755,
       "threshold": ">= 1.0 bits",
       "detail": "Paribh\u0101\u1e63\u0101 graph carries info beyond the k\u0101raka roles (not a relabel)."
     },
@@ -26,14 +26,14 @@
     {
       "id": "C4_acceptance_ge_target",
       "passed": true,
-      "value": 0.81,
+      "value": 0.808,
       "threshold": ">= 0.8",
       "detail": "Realized corpus is faithfully comprehensible at/above target."
     },
     {
       "id": "C5_venue_off_saturation",
-      "passed": true,
-      "value": 0.65,
+      "passed": false,
+      "value": 0.518,
       "threshold": "in [0.55, 0.75]",
       "detail": "Arm-A early accuracy has headroom to reveal a real effect."
     },
@@ -46,5 +46,5 @@
     }
   ],
   "mock_cpu_path_hits": [],
-  "parity_report": null
+  "parity_report": "../PSALM-paribhasha-core/docs/data/paribhasha-parity-ledger.json"
 }
