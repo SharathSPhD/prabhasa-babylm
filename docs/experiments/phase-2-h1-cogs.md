@@ -89,3 +89,22 @@ sample-efficiency B ≈ C). The live program claim relocates to the Stage-2
 data-format thesis (`docs/contracts/crystallization-track-charter-2026-06-01.md`),
 decoupled from H1. Phase-3 scale is reserved for that claim, not spent to rescue a
 resolved proxy-scale null. Awaiting human gate sign-off.
+
+## Re-scope (2026-06-03)
+
+This H1 record stands as reported (the decisive ΔAUC used the correct paired
+bootstrap, `mean_ci` over per-seed B−C differences), but its **scope is narrower
+than later documents implied** and two scope corrections are now binding:
+
+1. **H1 tested L1 (Pāṇinian kāraka) only — arms B vs C.** It does **not** bear on
+   the L2 **Paribhāṣā / Vyutpattivāda** prior. Any statement that "Paribhāṣā does
+   not beat Dyck" is unsupported by this experiment.
+2. **The venue is saturated, not merely "informative null."** Arm A reaches
+   discrimination ≥0.90 with zero structural dose; the instrument has no headroom to
+   detect a prior on argument-role composition. The honest reading is *"this venue
+   cannot adjudicate the prior on this capability,"* which is weaker than *"the prior
+   confers no advantage."* A fair test requires an off-saturation venue (arm A early
+   accuracy in the 0.55–0.75 band) per ADR-0035.
+
+The separately-committed **H1′ (L2 Paribhāṣā) results are withdrawn as NOT
+EVIDENCE** — see `docs/experiments/h1prime-invalidation-2026-06.md`.
