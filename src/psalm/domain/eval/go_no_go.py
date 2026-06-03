@@ -17,7 +17,7 @@ from collections.abc import Sequence
 
 from pydantic import BaseModel
 
-from psalm.analysis.comparison_tests import permutation_test
+from psalm.analysis.comparison_tests import MIN_GATING_SEEDS, paired_permutation_test
 from psalm.domain.eval.metrics import token_savings
 
 TOKEN_SAVINGS_THRESHOLD = 0.20
@@ -36,6 +36,8 @@ class H1Decision(BaseModel):
     effect_ci_high: float
     go: bool
     finding: str  # positive | marginal | null
+    n_seeds: int
+    evidence: bool  # False for wiring smokes (< MIN_GATING_SEEDS seeds)
 
     @property
     def significant(self) -> bool:
@@ -48,16 +50,34 @@ def decide_h1(
     control_scores: Sequence[float],
     treatment_tokens_to_quality: float,
     control_tokens_to_quality: float,
+    wiring_smoke: bool = False,
 ) -> H1Decision:
     """Compute the H1 decision from per-seed compositional accuracies and the
     tokens-to-quality of each arm.
 
-    ``*_scores`` are per-seed compositional accuracies in [0, 1].
+    ``*_scores`` are per-seed compositional accuracies in [0, 1], **paired by
+    seed** (the i-th entry of each arm is the same seed). A gating decision
+    requires ``>= MIN_GATING_SEEDS`` seeds and fails closed otherwise; pass
+    ``wiring_smoke=True`` to permit a smaller n, which stamps ``evidence=False``
+    so the result can never be cited as a verdict (acceptance M-seeds).
     """
+    n_seeds = len(treatment_scores)
+    if n_seeds != len(control_scores):
+        raise ValueError(
+            f"paired H1 contrast requires equal-length arms; got {n_seeds} vs {len(control_scores)}"
+        )
+    evidence = n_seeds >= MIN_GATING_SEEDS
+    if not evidence and not wiring_smoke:
+        raise ValueError(
+            f"gating H1 decision requires >= {MIN_GATING_SEEDS} seeds, got {n_seeds}; "
+            "pass wiring_smoke=True for a non-evidence wiring check"
+        )
     savings = token_savings(
         treatment=treatment_tokens_to_quality, control=control_tokens_to_quality
     )
-    cmp = permutation_test(list(treatment_scores), list(control_scores), higher_is_better=True)
+    cmp = paired_permutation_test(
+        list(treatment_scores), list(control_scores), higher_is_better=True
+    )
     gain_points = (cmp.treatment_mean - cmp.control_mean) * 100.0
 
     savings_pass = savings >= TOKEN_SAVINGS_THRESHOLD - _EPS
@@ -82,4 +102,6 @@ def decide_h1(
         effect_ci_high=cmp.ci_high,
         go=go,
         finding=finding,
+        n_seeds=n_seeds,
+        evidence=evidence,
     )
