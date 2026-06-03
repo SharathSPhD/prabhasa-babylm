@@ -32,9 +32,9 @@ def _runner_tie(arm, seed):
     return {"compositional_accuracy": 0.50 + seed * 0.001, "tokens_to_quality": 100.0}
 
 
-def _orch(tmp_path: Path, runner) -> H1Orchestrator:
+def _orch(tmp_path: Path, runner, seeds: tuple[int, ...] = (0, 1, 2)) -> H1Orchestrator:
     ledger = SqliteLedger(tmp_path / "ledger.db")
-    matrix = default_h1_matrix(param_count_m=60.0, seeds=(0, 1, 2))
+    matrix = default_h1_matrix(param_count_m=60.0, seeds=seeds)
     return H1Orchestrator(matrix=matrix, ledger=ledger, runner=runner)
 
 
@@ -63,7 +63,9 @@ def test_run_logs_every_arm_seed_to_ledger(tmp_path: Path) -> None:
 
 
 def test_decision_is_positive_when_b_beats_c(tmp_path: Path) -> None:
-    orch = _orch(tmp_path, _runner_b_beats_c)
+    # A gating verdict requires >= MIN_GATING_SEEDS (acceptance M-seeds), so the
+    # orchestrator path is exercised at the real minimum seed count.
+    orch = _orch(tmp_path, _runner_b_beats_c, seeds=tuple(range(10)))
     orch.run()
     decision = orch.decide()
     assert decision.go is True
@@ -71,7 +73,7 @@ def test_decision_is_positive_when_b_beats_c(tmp_path: Path) -> None:
 
 
 def test_decision_is_null_on_tie(tmp_path: Path) -> None:
-    orch = _orch(tmp_path, _runner_tie)
+    orch = _orch(tmp_path, _runner_tie, seeds=tuple(range(10)))
     orch.run()
     decision = orch.decide()
     assert decision.go is False
