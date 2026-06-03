@@ -1,0 +1,49 @@
+{
+  "schema": "strict-small-arms-v1",
+  "tokenizer": "data/tokenizer/strict_small/spm.model",
+  "dose_token_budget": 1498229,
+  "english_base": {
+    "path": "data/corpora/strict_small/english_base.txt",
+    "tokens": 13757590,
+    "sha256": "96423a0abbfa67348e025fcd30f8eb2c757023faab7efbb48c6b958dd70b7546"
+  },
+  "arms": {
+    "A": {
+      "path": "data/corpora/strict_small/arms/dose_A.txt",
+      "sequences": 100293,
+      "words": 999906,
+      "tokens": 1498229,
+      "sha256": "dc6a6dcca3c853d5607b16adcce502c8220d8354800c7fbba491b745c4eec4e2",
+      "dose_type": "english",
+      "total_arm_tokens": 15255819
+    },
+    "B": {
+      "path": "data/corpora/strict_small/arms/dose_B.txt",
+      "sequences": 265253,
+      "words": 695006,
+      "tokens": 1498224,
+      "sha256": "34dedd21069b2a6a82befc71a6cc06337f3f99691c49f6371f22a2aee6839f1b",
+      "dose_type": "paninian",
+      "total_arm_tokens": 15255814
+    },
+    "C": {
+      "path": "data/corpora/strict_small/arms/dose_C.txt",
+      "sequences": 41008,
+      "words": 1498220,
+      "tokens": 1498220,
+      "sha256": "bd22bd248a4a1590a870c31e6e6a3b7ec6ee7bdc7017432245d2be9213c1cd19",
+      "dose_type": "dyck",
+      "total_arm_tokens": 15255810
+    },
+    "D": {
+      "path": "data/corpora/strict_small/arms/dose_D.txt",
+      "sequences": 20581,
+      "words": 67218,
+      "tokens": 1498163,
+      "sha256": "8800c3d61aba6edb03d34a3d681b0f9e716cbd4ec44e0fe8a63e43c9f09493ff",
+      "dose_type": "paribhasha",
+      "total_arm_tokens": 15255753
+    }
+  },
+  "fairness": "All doses trimmed to dose_token_budget (T = arm-A English-dose tokens). Shared english_base is stage-2 for every arm. Arms differ only in dose type. Leakage: English dose is the held-out 10% disjoint from the 9M base; priors are synthetic and disjoint from all English."
+}
