@@ -1,21 +1,37 @@
-"""Recompute Dyck control match vs sentence-level Saṃsādhanī diversity targets.
+"""Re-match the Dyck control to **real Vidyut-realized** sentence-level statistics.
 
-Writes ``docs/data/dyck-match-report.md`` and ``docs/data/dyck-match-result.json``.
-Uses ``docs/data/vidyut-fixture-stats.json`` when present (U2); otherwise falls
-back to ``docs/data/phase2-samsadhani-diversity.json`` and flags pending U2 integration.
+This is the no-shortcut, no-proxy harness (workstream ``dyck-control`` / ADR-0025,
+ADR-0033). Targets are computed *directly* from a realized Sanskrit corpus JSONL
+(the ``text`` field of every line), not from a cached Saṃsādhanī stats blob. The
+default corpus is ``data/fixtures/paninian_v1.jsonl`` produced by the
+``vidyut-realize`` workstream (``VidyutFrameRealizer``).
+
+It grid-searches :class:`DyckConfig` to minimise the DEFAULT_KEYS distance to the
+realized targets, runs the hard equivalence gate, pins the Hu et al. replication
+config (ADR-0025) for reference, and writes:
+
+* ``configs/data/dyck-matched.yaml``      -- the matched config (training consumes this)
+* ``docs/data/dyck-match-result.json``    -- machine-readable result
+* ``docs/data/dyck-match-report.md``      -- human-readable report
 
     uv run python scripts/dyck_recompute_match.py
+    uv run python scripts/dyck_recompute_match.py --realized-corpus data/fixtures/paninian_v1.jsonl
 """
 
 from __future__ import annotations
 
+import argparse
+import hashlib
 import json
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 
 from psalm.domain.data.diversity import summarize
 from psalm.domain.data.dyck import DyckConfig, generate_corpus, hu_replication_config
 from psalm.domain.data.matching import (
+    DEFAULT_KEYS,
+    assert_statistically_equivalent,
     byte_length_distance,
     byte_length_histogram,
     match_dyck,
@@ -24,116 +40,172 @@ from psalm.domain.data.matching import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "docs" / "data"
-VIDYUT_FIXTURE = DATA / "vidyut-fixture-stats.json"
-SAMSADHANI = DATA / "phase2-samsadhani-diversity.json"
+CONFIGS = ROOT / "configs" / "data"
+DEFAULT_CORPUS = ROOT / "data" / "fixtures" / "paninian_v1.jsonl"
 REPORT = DATA / "dyck-match-report.md"
 RESULT_JSON = DATA / "dyck-match-result.json"
 
-# Grid for H1 surface-stat matching (Phase 1 style); Hu replication config reported separately.
-_CANDIDATES = [
-    DyckConfig(bracket_types=2, max_depth=4, n_shuffles=1, min_len=8, max_len=64),
-    DyckConfig(bracket_types=3, max_depth=6, n_shuffles=2, min_len=8, max_len=128),
-    DyckConfig(bracket_types=4, max_depth=8, n_shuffles=2, min_len=12, max_len=160),
-    DyckConfig(bracket_types=5, max_depth=8, n_shuffles=3, min_len=16, max_len=192),
-    DyckConfig(bracket_types=8, max_depth=10, n_shuffles=3, min_len=16, max_len=256),
-]
+# Hard equivalence threshold on DEFAULT_KEYS (Euclidean over TTR + bi/tri-gram entropy).
+MAX_DEFAULT_DISTANCE = 0.05
+
+# Grid for surface-stat matching. Brackets the realized-corpus optimum (high
+# bracket_types -> low TTR matching the controlled Sanskrit lexicon; entropy
+# tracked via depth/length) plus coarse neighbours so the search is honest.
+_CANDIDATES: tuple[DyckConfig, ...] = tuple(
+    DyckConfig(bracket_types=bt, max_depth=md, n_shuffles=ns, min_len=8, max_len=ml)
+    for bt in (8, 16, 24, 35)
+    for md in (8, 12, 16)
+    for ns in (1, 2)
+    for ml in (96, 128, 192)
+)
 
 
-def _load_targets() -> tuple[dict[str, float], str, bool]:
-    pending_u2 = False
-    if VIDYUT_FIXTURE.is_file():
-        raw = json.loads(VIDYUT_FIXTURE.read_text(encoding="utf-8"))
-        if "samsadhani_sentences" in raw:
-            block = raw["samsadhani_sentences"]
-            source = f"{VIDYUT_FIXTURE.relative_to(ROOT)}#samsadhani_sentences"
-        else:
-            # U2 fixture stats published; Dyck DEFAULT_KEYS still track live Saṃsādhanī
-            # until sentence-level parity with the fixture export is demonstrated.
-            pending_u2 = True
-            block = json.loads(SAMSADHANI.read_text(encoding="utf-8"))["samsadhani_sentences"]
-            source = (
-                f"{SAMSADHANI.relative_to(ROOT)}#samsadhani_sentences "
-                f"(U2 {VIDYUT_FIXTURE.name} present; fixture-vs-live TTR reconciliation pending)"
-            )
-    else:
-        pending_u2 = True
-        raw = json.loads(SAMSADHANI.read_text(encoding="utf-8"))
-        source = str(SAMSADHANI.relative_to(ROOT))
-        block = raw["samsadhani_sentences"]
-    ttr = block.get("word_type_token_ratio", block.get("type_token_ratio"))
-    if ttr is None:
-        raise KeyError("baseline block missing word_type_token_ratio / type_token_ratio")
-    targets = {
-        "type_token_ratio": float(ttr),
-        "bigram_entropy": float(block["bigram_entropy"]),
-        "trigram_entropy": float(block["trigram_entropy"]),
+def _read_realized_texts(path: Path) -> list[str]:
+    """Return the realized surface ``text`` of every line in a corpus JSONL."""
+    texts: list[str] = []
+    with path.open(encoding="utf-8") as handle:
+        for raw in handle:
+            raw = raw.strip()
+            if not raw:
+                continue
+            obj = json.loads(raw)
+            text = obj.get("text")
+            if not isinstance(text, str) or not text:
+                raise ValueError(f"line missing non-empty 'text': {raw[:80]!r}")
+            texts.append(text)
+    if not texts:
+        raise ValueError(f"no realized sentences in {path}")
+    return texts
+
+
+def _targets_from_corpus(texts: Iterable[str]) -> dict[str, float]:
+    stats = summarize(list(texts))
+    return {k: float(stats[k]) for k in DEFAULT_KEYS}
+
+
+def _cfg_dict(cfg: DyckConfig) -> dict[str, int]:
+    return {
+        "bracket_types": cfg.bracket_types,
+        "max_depth": cfg.max_depth,
+        "n_shuffles": cfg.n_shuffles,
+        "min_len": cfg.min_len,
+        "max_len": cfg.max_len,
     }
-    return targets, source, pending_u2
+
+
+def _config_hash(cfg: DyckConfig, targets: dict[str, float]) -> str:
+    """Stable short hash over the matched config + the targets it was fit to."""
+    blob = json.dumps(
+        {"config": _cfg_dict(cfg), "targets": targets}, sort_keys=True, separators=(",", ":")
+    )
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:12]
+
+
+def _write_matched_yaml(cfg: DyckConfig, *, distance: float, source: str, digest: str) -> Path:
+    CONFIGS.mkdir(parents=True, exist_ok=True)
+    path = CONFIGS / f"dyck_matched_{digest}.yaml"
+    lines = [
+        "# Dyck control config matched to REAL Vidyut-realized sentence stats.",
+        "# Generated by scripts/dyck_recompute_match.py (ADR-0025/0033); do not hand-edit.",
+        f"# matched_distance (DEFAULT_KEYS): {distance:.6f} <= {MAX_DEFAULT_DISTANCE}",
+        f"# target_source: {source}",
+        f"# config_hash: {digest}",
+        "dyck:",
+        f"  bracket_types: {cfg.bracket_types}",
+        f"  max_depth: {cfg.max_depth}",
+        f"  n_shuffles: {cfg.n_shuffles}",
+        f"  min_len: {cfg.min_len}",
+        f"  max_len: {cfg.max_len}",
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
 
 
 def main() -> None:
-    targets, source, pending_u2 = _load_targets()
-    n, seed = 200, 0
-    matched = match_dyck(targets, _CANDIDATES, n=n, seed=seed)
-    matched_corpus = generate_corpus(n, matched.config, seed=seed)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--realized-corpus",
+        type=Path,
+        default=DEFAULT_CORPUS,
+        help="JSONL of realized sentences; targets computed from each line's 'text'.",
+    )
+    parser.add_argument("--n", type=int, default=400, help="dyck sequences per candidate")
+    parser.add_argument("--seed", type=int, default=0)
+    args = parser.parse_args()
+
+    corpus_path: Path = args.realized_corpus
+    if not corpus_path.is_file():
+        raise SystemExit(
+            f"realized corpus not found: {corpus_path}\n"
+            "Pull it from the vidyut-realize workstream, e.g.:\n"
+            "  git checkout workstream/vidyut-realize -- data/fixtures/paninian_v1.jsonl"
+        )
+    texts = _read_realized_texts(corpus_path)
+    targets = _targets_from_corpus(texts)
+    real_hist = byte_length_histogram(texts, bins=16)
+    source = f"{corpus_path.relative_to(ROOT)} (n={len(texts)} realized sentences)"
+
+    matched = match_dyck(targets, _CANDIDATES, n=args.n, seed=args.seed)
+    matched_corpus = generate_corpus(args.n, matched.config, args.seed)
     matched_hist = byte_length_histogram(matched_corpus, bins=16)
+    # Gate on DEFAULT_KEYS only (acceptance D-match-eps). Byte-length histogram is
+    # reported for transparency but is *not* a gate: Dyck uses atomic single-byte
+    # symbols while Sanskrit uses multi-byte words, so their whitespace-token byte
+    # lengths are non-comparable by construction. The shared tokenizer (set in the
+    # measurement workstream) is where post-tokenization length parity is enforced.
+    equivalence = assert_statistically_equivalent(
+        matched.stats,
+        targets,
+        max_default_distance=MAX_DEFAULT_DISTANCE,
+    )
+    real_vs_matched_byte_l1 = byte_length_distance(matched_hist, real_hist)
 
     hu_cfg = hu_replication_config()
-    hu_corpus = generate_corpus(n, hu_cfg, seed=seed)
-    hu_stats = summarize(hu_corpus)
-    hu_hist = byte_length_histogram(hu_corpus, bins=16)
+    hu_stats = summarize(generate_corpus(args.n, hu_cfg, args.seed))
     hu_dist = stat_distance(hu_stats, targets)
-    hu_byte = byte_length_distance(hu_hist, matched_hist)
 
+    digest = _config_hash(matched.config, targets)
     payload = {
         "generated_at": datetime.now(UTC).isoformat(),
         "baseline_source": source,
-        "pending_u2_fixture": pending_u2,
+        "no_proxy": True,
+        "n_realized_sentences": len(texts),
+        "config_hash": digest,
         "targets": targets,
-        "matched_config": {
-            "bracket_types": matched.config.bracket_types,
-            "max_depth": matched.config.max_depth,
-            "n_shuffles": matched.config.n_shuffles,
-            "min_len": matched.config.min_len,
-            "max_len": matched.config.max_len,
-        },
+        "max_default_distance": MAX_DEFAULT_DISTANCE,
+        "matched_config": _cfg_dict(matched.config),
         "matched_distance": matched.distance,
         "matched_stats": matched.stats,
-        "hu_replication_config": {
-            "bracket_types": hu_cfg.bracket_types,
-            "max_depth": hu_cfg.max_depth,
-            "n_shuffles": hu_cfg.n_shuffles,
-            "min_len": hu_cfg.min_len,
-            "max_len": hu_cfg.max_len,
-        },
+        "matched_byte_hist_l1_vs_real": real_vs_matched_byte_l1,
+        "byte_hist_is_gated": False,
+        "equivalence_passed": equivalence.passed,
+        "hu_replication_config": _cfg_dict(hu_cfg),
         "hu_replication_distance": hu_dist,
         "hu_replication_stats": hu_stats,
-        "hu_vs_matched_byte_hist_l1": hu_byte,
     }
+    DATA.mkdir(parents=True, exist_ok=True)
     RESULT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-
-    pending_note = (
-        "**PENDING U2:** `vidyut-fixture-stats.json` is published but Dyck targets still "
-        "use live Saṃsādhanī sentence stats until fixture-vs-live diversity parity is "
-        "reconciled (fixture corpus TTR ≪ live).\n\n"
-        if pending_u2
-        else "**Baseline:** U2 `vidyut-fixture-stats.json#samsadhani_sentences`.\n\n"
+    matched_yaml = _write_matched_yaml(
+        matched.config, distance=matched.distance, source=source, digest=digest
     )
-    report = f"""# Dyck surface-stat match report
 
-{pending_note}Generated: `{payload["generated_at"]}`
+    verdict = "PASS" if equivalence.passed else "FAIL"
+    report = f"""# Dyck surface-stat match report (real Vidyut-realized targets)
+
+Generated: `{payload["generated_at"]}`
+
+**Targets computed directly from realized sentences (no proxy, no cached blob).**
+Source: `{source}`
 
 ## Targets (DEFAULT_KEYS)
 
 | Key | Value |
 |-----|-------|
-| type_token_ratio | {targets["type_token_ratio"]:.4f} |
-| bigram_entropy | {targets["bigram_entropy"]:.4f} |
-| trigram_entropy | {targets["trigram_entropy"]:.4f} |
+| type_token_ratio | {targets["type_token_ratio"]:.6f} |
+| bigram_entropy | {targets["bigram_entropy"]:.6f} |
+| trigram_entropy | {targets["trigram_entropy"]:.6f} |
 
-Source: `{source}`
-
-## Best grid match (H1 fairness)
+## Best grid match (H1 fairness) — gate {verdict}
 
 | Field | Value |
 |-------|-------|
@@ -142,34 +214,37 @@ Source: `{source}`
 | n_shuffles | {matched.config.n_shuffles} |
 | min_len | {matched.config.min_len} |
 | max_len | {matched.config.max_len} |
-| Euclidean distance (DEFAULT_KEYS) | {matched.distance:.6f} |
+| DEFAULT_KEYS distance | {matched.distance:.6f} |
+| threshold | {MAX_DEFAULT_DISTANCE} |
+| L1 byte-length hist vs real corpus (informational, not gated) | {real_vs_matched_byte_l1:.6f} |
 
 Matched corpus stats: `{json.dumps(matched.stats)}`
+
+Matched config written to `{matched_yaml.relative_to(ROOT)}` (config_hash `{digest}`).
 
 ## Hu et al. replication config (ADR-0025)
 
 Pinned `hu_replication_config()`: k={hu_cfg.bracket_types}, max_depth={hu_cfg.max_depth},
-n_shuffles={hu_cfg.n_shuffles}, max_len={hu_cfg.max_len}.
+n_shuffles={hu_cfg.n_shuffles}, max_len={hu_cfg.max_len} (reference; not the H1 match).
 
 | Metric | Value |
 |--------|-------|
 | Distance to targets (DEFAULT_KEYS) | {hu_dist:.6f} |
-| L1 byte-length hist vs matched corpus | {hu_byte:.6f} |
 
 Hu replication stats: `{json.dumps(hu_stats)}`
 
 ## Artifacts
 
 - Machine-readable: `docs/data/dyck-match-result.json`
+- Matched training config: `{matched_yaml.relative_to(ROOT)}`
 """
     REPORT.write_text(report, encoding="utf-8")
     print(f"Wrote {REPORT}")
     print(f"Wrote {RESULT_JSON}")
-    if pending_u2:
-        print(
-            "NOTE: pending_u2_fixture=true — fixture stats published; "
-            "Dyck targets still use live Saṃsādhanī until TTR parity."
-        )
+    print(f"Wrote {matched_yaml}")
+    print(f"match distance={matched.distance:.6f} threshold={MAX_DEFAULT_DISTANCE} -> {verdict}")
+    if not equivalence.passed:
+        raise SystemExit("equivalence gate FAILED: widen the grid or revisit targets")
 
 
 if __name__ == "__main__":
