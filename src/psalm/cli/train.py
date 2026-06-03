@@ -108,10 +108,11 @@ def elc_smoke(
         console.print(f"hf export: {hf_dir}")
 
     eval_model = build_babylm_smoke_model(
-        checkpoint=checkpoint, use_elc=True, vocab_size=vocab_size, device=device
+        checkpoint=checkpoint, vocab_size=vocab_size, device=device
     )
     result = run_smoke_eval(eval_model, output_path=eval_output)
     console.print(f"[bold]eval mode:[/bold] {result.mode.value}")
+    console.print(f"[bold]evidence:[/bold] {result.evidence}")
     console.print(f"[bold]aggregate PLL accuracy:[/bold] {result.aggregate_score:.4f}")
     for name, score in result.task_scores.items():
         console.print(f"  {name}: {score:.4f}")
