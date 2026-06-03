@@ -43,5 +43,9 @@ class ParibhashaSentenceSource:
                     "source": "paribhasha",
                     "schema_version": "paribhasha_aligned_v1",
                     "stratum": cfg.stratum.value,
+                    # The arm's training input is the lossless graph string
+                    # (ADR-0034 D2); serialize_line reads this, not ``text``.
+                    "paribhasha_string": rendered.ascii,
+                    "paribhasha_iast": rendered.iast,
                 },
             )

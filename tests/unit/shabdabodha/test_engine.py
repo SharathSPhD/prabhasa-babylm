@@ -9,12 +9,16 @@ from psalm.infrastructure.generators.paribhasha.relations import validate_graph
 from psalm.infrastructure.generators.paribhasha.shabdabodha import (
     RULE_KARMA_VISAYATA,
     RULE_KARW_SAMYOGATA,
+    RULE_SANKHYA_VISESANA,
+    SKIP_AKANKSA_AKARMAKA_KARMA,
+    SKIP_AKANKSA_NO_KARTA,
+    SKIP_YOGYATA_KARTA,
     ShabdabodhaSkip,
     ShabdabodhaSuccess,
     compile_shabdabodha,
     to_aligned_record,
 )
-from psalm.infrastructure.generators.paribhasha.types import SansaType
+from psalm.infrastructure.generators.paribhasha.types import PadarthaCategory, SansaType
 
 
 def _sentence(
@@ -98,3 +102,77 @@ class TestCompileShabdabodha:
             signature="gam1|viXiH|a|eka",
         )
         assert isinstance(compile_shabdabodha(s), ShabdabodhaSkip)
+
+
+class TestFaithfulSemantics:
+    def test_sankhya_visesana_encodes_number(self) -> None:
+        # The number (bahu) is absent from karaka_parse but must surface as a guṇa
+        # viśeṣaṇa (prakāratā) on the kartā — the information beyond the kāraka parse.
+        s = _sentence(
+            text="bAla.bahu.karwA Pala.eka.karma KAx1.viXiH",
+            parse=[("bAla", "karwA"), ("Pala", "karma")],
+            signature="KAx1|viXiH|bAla|bahu|Pala|eka",
+        )
+        out = compile_shabdabodha(s)
+        assert isinstance(out, ShabdabodhaSuccess)
+        assert RULE_SANKHYA_VISESANA in out.rules_applied
+        sankhya = [n for n in out.graph.nodes if n.label.startswith("saMKyA")]
+        assert {n.label for n in sankhya} == {"saMKyA_bahu", "saMKyA_eka"}
+        assert all(n.category is PadarthaCategory.GUNA for n in sankhya)
+
+    def test_guna_instrument_qualifies_karta_by_prakarata(self) -> None:
+        # "acts by knowledge": vidyā (guṇa) cannot contact the action, so it qualifies
+        # the kartā via prakāratā rather than being forced to DRAVYA.
+        s = _sentence(
+            text="nara.eka.karwA gfha.eka.karma vixyA.eka.karaNam KAx1.viXiH",
+            parse=[("nara", "karwA"), ("gfha", "karma"), ("vixyA", "karaNam")],
+            signature="KAx1|viXiH|nara|eka|gfha|karaNam|vixyA",
+        )
+        out = compile_shabdabodha(s)
+        assert isinstance(out, ShabdabodhaSuccess)
+        guna_fillers = [
+            n for n in out.graph.nodes
+            if n.category is PadarthaCategory.GUNA and not n.label.startswith("saMKyA")
+        ]
+        assert any(n.label == "vixyA" for n in guna_fillers)
+
+    def test_yogyata_skips_guna_karta(self) -> None:
+        s = _sentence(
+            text="vixyA.eka.karwA gfha.eka.karma KAx1.viXiH",
+            parse=[("vixyA", "karwA"), ("gfha", "karma")],
+            signature="KAx1|viXiH|vixyA|eka|gfha|eka",
+        )
+        out = compile_shabdabodha(s)
+        assert isinstance(out, ShabdabodhaSkip)
+        assert out.rule_id == SKIP_YOGYATA_KARTA
+
+    def test_akanksa_skips_akarmaka_with_karma(self) -> None:
+        s = _sentence(
+            text="nara.eka.karwA gfha.eka.karma vas1.varwamAnaH",
+            parse=[("nara", "karwA"), ("gfha", "karma")],
+            signature="vas1|varwamAnaH|nara|eka|gfha|eka",
+        )
+        out = compile_shabdabodha(s)
+        assert isinstance(out, ShabdabodhaSkip)
+        assert out.rule_id == SKIP_AKANKSA_AKARMAKA_KARMA
+
+    def test_akanksa_skips_missing_karta(self) -> None:
+        s = _sentence(
+            text="Pala.eka.karma KAx1.viXiH",
+            parse=[("Pala", "karma")],
+            signature="KAx1|viXiH|-|eka|Pala|eka",
+        )
+        out = compile_shabdabodha(s)
+        assert isinstance(out, ShabdabodhaSkip)
+        assert out.rule_id == SKIP_AKANKSA_NO_KARTA
+
+    def test_obliques_have_distinct_qualified_shapes(self) -> None:
+        s = _sentence(
+            text="nara.eka.karwA gfha.eka.apAxAnam vana.eka.aXikaraNam gam1.viXiH",
+            parse=[("nara", "karwA"), ("gfha", "apAxAnam"), ("vana", "aXikaraNam")],
+            signature="gam1|viXiH|nara|eka|-|apAxAnam|gfha|aXikaraNam|vana",
+        )
+        out = compile_shabdabodha(s)
+        assert isinstance(out, ShabdabodhaSuccess)
+        quals = {e.qualifier for e in out.graph.edges if e.sansa is SansaType.SAMYOGATA}
+        assert {"apAxAna", "aXikaraNa"} <= quals
