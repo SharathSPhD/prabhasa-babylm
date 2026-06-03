@@ -1,0 +1,66 @@
+{
+  "workstream_id": "dyck-control",
+  "branch": "workstream/dyck-control",
+  "adr": "ADR-0025",
+  "attempt": 1,
+  "depends_on": {
+    "vidyut-realize": {
+      "artifact": "data/fixtures/paninian_v1.jsonl",
+      "n_realized_sentences": 10000,
+      "resolved": true,
+      "note": "Real Vidyut-realized corpus pulled from workstream/vidyut-realize; targets computed directly from each line's surface text (no proxy, no cached Saṃsādhanī blob)."
+    }
+  },
+  "technical": {
+    "tests_pass": true,
+    "lint_clean": true,
+    "types_clean": true,
+    "standalone_suite": "34 passed (test_dyck, test_dyck_match_real, test_dyck_properties, test_matching)",
+    "coverage_dyck": 0.85,
+    "coverage_matching": 1.0,
+    "coverage_total": 0.8988,
+    "coverage_threshold": 0.8,
+    "no_torch_import": true
+  },
+  "acceptance": {
+    "D-bracket-valid": {
+      "check": "generated sequences are well-formed (balanced) brackets",
+      "value": 0,
+      "threshold": "10^5 sequences, 0 invalid",
+      "pass": true,
+      "note": "100000 sequences from the matched config (n_shuffles=1 -> pure Dyck); 0 invalid under is_shuffle_valid + is_balanced + depth bound."
+    },
+    "D-match-eps": {
+      "check": "best matched config within eps of REAL vidyut sentence-level targets on DEFAULT_KEYS",
+      "value": 0.009413502722335418,
+      "threshold": 0.05,
+      "higher_is_better": false,
+      "pass": true,
+      "note": "Targets TTR=0.011589, bigram_H=0.911361, trigram_H=0.986538 computed from 10k realized sentences. Matched config {bracket_types:35, max_depth:16, n_shuffles:1, min_len:8, max_len:96}. Reproduced within eps by an independent regeneration in test_dyck_match_real."
+    },
+    "D-hu-pin": {
+      "check": "hu_replication_config fields match ADR-0025 Hu pin (k cap per ASCII alphabet)",
+      "value": "k=35, max_depth=16, n_shuffles=35, min_len=2, max_len=2048",
+      "threshold": "pass",
+      "pass": true,
+      "note": "TestHuReplicationConfig pins all fields; reported separately from the H1 match (Hu distance to real targets = 0.0879)."
+    },
+    "D-standalone": {
+      "check": "worktree tests run standalone (no torch / Saṃsādhanī import), GPU-runnable",
+      "value": true,
+      "threshold": "pass",
+      "pass": true,
+      "note": "Domain modules import torch-free (asserted in TestStandalone); corpus generation is deterministic CPU/GPU-agnostic Python (RNG-seeded), runs identically on GB10."
+    }
+  },
+  "byte_length_note": "Whitespace-token byte-length L1 vs real corpus = 1.69 and is reported informational-only (byte_hist_is_gated=false): Dyck uses atomic single-byte symbols while Sanskrit uses multi-byte words, making this cross-tokenization comparison degenerate. Post-tokenization length parity is owned by the measurement workstream's shared tokenizer.",
+  "artifacts": [
+    "configs/data/dyck_matched_36d4c762e39a.yaml",
+    "docs/data/dyck-match-report.md",
+    "docs/data/dyck-match-result.json",
+    "scripts/dyck_recompute_match.py",
+    "tests/unit/test_dyck_match_real.py"
+  ],
+  "config_hash": "36d4c762e39a",
+  "gate": "GATE 2 (per-workstream standalone closure); awaiting human sign-off"
+}
