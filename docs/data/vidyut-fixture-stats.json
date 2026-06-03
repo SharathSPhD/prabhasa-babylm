@@ -1,8 +1,12 @@
 {
   "vidyut_fixture_corpus": {
     "schema_version": "vidyut-fixture-v1",
+    "surface_mode": "realized",
     "n_sentences": 10000,
     "distinct_sentences": 10000,
+    "gold_parse_fraction": 1.0,
+    "with_derivation_fraction": 1.0,
+    "sandhi_full_fraction": 0.0008,
     "seed": 0,
     "vidyut_version": "0.4.0",
     "diversity_gate_passed": false,
@@ -10,23 +14,9 @@
       "type_token_ratio"
     ],
     "n_sequences": 10000.0,
-    "type_token_ratio": 0.004316710212427581,
-    "bigram_entropy": 0.9083468055205783,
-    "trigram_entropy": 0.9708845931275779,
-    "pattern_coverage": 0.0
-  },
-  "vidyut_fixture_ci_sample": {
-    "schema_version": "vidyut-fixture-v1",
-    "n_sentences": 128,
-    "distinct_sentences": 128,
-    "seed": 0,
-    "vidyut_version": "0.4.0",
-    "diversity_gate_passed": true,
-    "diversity_gate_failures": [],
-    "n_sequences": 128.0,
-    "type_token_ratio": 0.27631578947368424,
-    "bigram_entropy": 0.987692356397652,
-    "trigram_entropy": 0.9978872583481124,
+    "type_token_ratio": 0.011589451586000632,
+    "bigram_entropy": 0.9113613506252133,
+    "trigram_entropy": 0.9865377427296925,
     "pattern_coverage": 0.0
   }
 }

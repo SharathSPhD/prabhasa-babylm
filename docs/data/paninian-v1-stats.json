@@ -1,0 +1,22 @@
+{
+  "vidyut_fixture_corpus": {
+    "schema_version": "vidyut-fixture-v1",
+    "surface_mode": "realized",
+    "n_sentences": 10000,
+    "distinct_sentences": 10000,
+    "gold_parse_fraction": 1.0,
+    "with_derivation_fraction": 1.0,
+    "sandhi_full_fraction": 0.0008,
+    "seed": 0,
+    "vidyut_version": "0.4.0",
+    "diversity_gate_passed": false,
+    "diversity_gate_failures": [
+      "type_token_ratio"
+    ],
+    "n_sequences": 10000.0,
+    "type_token_ratio": 0.011589451586000632,
+    "bigram_entropy": 0.9113613506252133,
+    "trigram_entropy": 0.9865377427296925,
+    "pattern_coverage": 0.0
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "workstream_id": "vidyut-realize",
+  "branch": "workstream/vidyut-realize",
+  "adr": "ADR-0033",
+  "attempt": 1,
+  "technical": {
+    "tests_pass": true,
+    "lint_clean": true,
+    "types_clean": true,
+    "full_suite": "419 passed, 3 skipped",
+    "coverage_total": 0.9048,
+    "coverage_module_vidyut_realizer": 0.90,
+    "coverage_threshold": 0.80
+  },
+  "acceptance": {
+    "V-realize-accept": {
+      "check": "realization acceptance on n>=1000 enumerated frames; gold karaka on full 10k export",
+      "value": 1.0,
+      "threshold": 0.98,
+      "higher_is_better": true,
+      "pass": true,
+      "note": "Verified lexicon realizes every enumerated frame; success fraction test asserts >=0.98 on 1000 frames; 10k export gold_parse_fraction=1.0."
+    },
+    "V-gold-karaka": {
+      "check": "every exported AnnotatedSentence has karaka_parse covering all content words",
+      "value": 1.0,
+      "threshold": 1.0,
+      "pass": true
+    },
+    "V-transitivity": {
+      "check": "akarmaka dhatu never paired with karma; violations on enumerated fixture",
+      "value": 0,
+      "threshold": 0,
+      "pass": true,
+      "note": "0 violations across 3000 enumerated frames; realizer guard returns None on any akarmaka+karma frame."
+    },
+    "V-sandhi-honest": {
+      "check": "sandhi misses emitted as meta.sandhi=partial (space-separated); fabricated fusions",
+      "value": 0,
+      "threshold": 0,
+      "pass": true,
+      "note": "Only verified ach-sandhi (savarna-dirgha/guna/vrddhi/yan) applied; all other junctions are padapatha boundaries."
+    },
+    "V-fixture-size": {
+      "check": "data/fixtures/paninian_v1.jsonl lines with gold karaka",
+      "value": 10000,
+      "threshold": 10000,
+      "pass": true,
+      "sha256": "407b21aefe6ac3e0ad69c4b65c7ada6f12789d8603190275f80959be88f98348"
+    },
+    "V-gb10": {
+      "check": ">=100 realizer sentences natively on GB10 (no mock, aarch64)",
+      "value": 200,
+      "threshold": 100,
+      "pass": true,
+      "evidence": "docs/infra/gb10-validation-2026-06.md (host spark-5208, NVIDIA GB10, vidyut 0.4.0)"
+    }
+  },
+  "integrity": {
+    "tarka_memo": "docs/contracts/workstream-vidyut-tarka-memo.md",
+    "no_samsadhani_dependency": true,
+    "no_mock_surface_in_reported_path": true,
+    "comparison_fairness_verified": true
+  },
+  "artifacts": {
+    "committed_to_branch": true,
+    "merged_to_main": false,
+    "fixture": "data/fixtures/paninian_v1.jsonl (+ .sha256)",
+    "stats": "docs/data/paninian-v1-stats.json",
+    "code": [
+      "src/psalm/infrastructure/generators/vidyut_realizer.py",
+      "src/psalm/domain/data/karaka_frames.py (AKARMAKA_DHATUS)",
+      "src/psalm/domain/data/fixture_corpus.py (stream_realized_corpus)",
+      "scripts/export_vidyut_fixtures.py (--realize)",
+      "infra/dgx_spark/smoke.py (check_vidyut_realizer)"
+    ]
+  },
+  "memory": {
+    "ledger_updated": true,
+    "adr_cited": "ADR-0033",
+    "fixture_manifest": "data/fixtures/paninian_v1.sha256"
+  },
+  "human_interpretation_signoff": false,
+  "gate": "GATE 2 — pending human sign-off"
+}
