@@ -28,11 +28,20 @@ from psalm.infrastructure.generators.paribhasha.types import (
 RULE_DHATU_KRIYA: Final = "VYU-001-dhatu-kriya"
 RULE_KARW_SAMYOGATA: Final = "VYU-002-karwA-samyogata"
 RULE_KARMA_VISAYATA: Final = "VYU-003-karma-visayata"
-RULE_KARANAM_PRAKARATA: Final = "VYU-004-karaNam-prakarata"
-RULE_ADHIKARANAM_PRAKARATA: Final = "VYU-005-adhikaraNa-prakarata"
-RULE_APADANA_PRAKARATA: Final = "VYU-006-apadana-prakarata"
-RULE_SAMPRADANA_PRAKARATA: Final = "VYU-007-sampradana-prakarata"
-RULE_AVACCHEDAKA_SCOPE: Final = "VYU-008-avacchedaka-scope"
+RULE_KARANAM: Final = "VYU-004-karaNam"
+RULE_ADHIKARANAM: Final = "VYU-005-aXikaraNam-samyogata"
+RULE_APADANA: Final = "VYU-006-apAxAnam-samyogata"
+RULE_SAMPRADANA: Final = "VYU-007-sampraxAnam-samyogata"
+RULE_SANKHYA_VISESANA: Final = "VYU-008-saMKyA-visesana"
+RULE_PADARTHA_GUNA: Final = "VYU-009-padartha-guna"
+
+# Comprehension-gate skip ids (ākāṅkṣā / yogyatā): emitted, never fabricated past.
+SKIP_AKANKSA_NO_KARTA: Final = "VYU-G01-akanksa-karta-missing"
+SKIP_AKANKSA_AKARMAKA_KARMA: Final = "VYU-G02-akanksa-akarmaka-with-karma"
+SKIP_YOGYATA_KARTA: Final = "VYU-Y01-yogyata-karta-not-dravya"
+SKIP_YOGYATA_KARMA: Final = "VYU-Y02-yogyata-karma-not-dravya"
+SKIP_YOGYATA_OBLIQUE: Final = "VYU-Y03-yogyata-oblique-unfit"
+SKIP_YOGYATA_LOCUS: Final = "VYU-Y04-yogyata-locus-not-dravya"
 
 SUPPORTED_KARAKAS: frozenset[str] = frozenset(
     {
@@ -44,6 +53,45 @@ SUPPORTED_KARAKAS: frozenset[str] = frozenset(
         "sampraxAnam",
     }
 )
+
+# Strictly intransitive (akarmaka) dhātus — an ākāṅkṣā gate rejects a karma on these.
+# Mirrors the vidyut-realize inventory (kept local; that module is a sibling workstream).
+AKARMAKA_DHATUS: frozenset[str] = frozenset({"BU1", "sWA1", "vas1"})
+
+# Padārtha (sapta-padārtha) assignment by stem (SLP1). Substances/persons/places are
+# dravya; cognition/quality stems are guṇa. Unknown stems default to DRAVYA (logged via
+# the ledger when a non-default would have applied is *not* fabricated). This is the
+# ADR-0034 D3.1 replacement for "all nominals → DRAVYA".
+PADARTHA_LEXICON: dict[str, PadarthaCategory] = {
+    "Pala": PadarthaCategory.DRAVYA,
+    "aSva": PadarthaCategory.DRAVYA,
+    "bAla": PadarthaCategory.DRAVYA,
+    "gfha": PadarthaCategory.DRAVYA,
+    "guru": PadarthaCategory.DRAVYA,
+    "jala": PadarthaCategory.DRAVYA,
+    "kanyA": PadarthaCategory.DRAVYA,
+    "nara": PadarthaCategory.DRAVYA,
+    "naxI": PadarthaCategory.DRAVYA,
+    "puswaka": PadarthaCategory.DRAVYA,
+    "rAma": PadarthaCategory.DRAVYA,
+    "siwA": PadarthaCategory.DRAVYA,
+    "vana": PadarthaCategory.DRAVYA,
+    "vixyA": PadarthaCategory.GUNA,  # vidyā = knowledge (guṇa / cognition)
+}
+
+
+def padartha_of(stem: str) -> PadarthaCategory:
+    """Map a nominal stem to its sapta-padārtha category (ADR-0034 D3.1)."""
+    return PADARTHA_LEXICON.get(stem, PadarthaCategory.DRAVYA)
+
+
+class _GateFailure(Exception):
+    """Raised inside graph construction when an ākāṅkṣā/yogyatā gate rejects a frame."""
+
+    def __init__(self, reason: str, rule_id: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+        self.rule_id = rule_id
 
 ALIGNED_SCHEMA_VERSION: Final = "paribhasha_aligned_v1"
 PIPELINE_SOURCE: Final = "shabdabodha-vyutpattivada"
@@ -93,7 +141,7 @@ def validate_aligned_record(record: dict[str, Any]) -> None:
 
 
 def compile_shabdabodha(sentence: AnnotatedSentence) -> ShabdabodhaOutcome:
-    """Apply Vyutpattivāda rules to one annotated sentence."""
+    """Apply Vyutpattivāda rules to one annotated sentence (ADR-0034 D3)."""
     if not sentence.karaka_parse:
         return ShabdabodhaSkip("empty karaka_parse", "VYU-000-empty-parse")
 
@@ -109,24 +157,24 @@ def compile_shabdabodha(sentence: AnnotatedSentence) -> ShabdabodhaOutcome:
     if not dhatu:
         return ShabdabodhaSkip("no verbal root (dhātu) in frame", "VYU-000-missing-dhatu")
 
-    applicable: list[str] = [RULE_DHATU_KRIYA, RULE_KARW_SAMYOGATA]
-    if "karma" in roles:
-        applicable.append(RULE_KARMA_VISAYATA)
-    if "karaNam" in roles:
-        applicable.append(RULE_KARANAM_PRAKARATA)
-    if "aXikaraNam" in roles:
-        applicable.append(RULE_ADHIKARANAM_PRAKARATA)
-    if "apAxAnam" in roles:
-        applicable.append(RULE_APADANA_PRAKARATA)
-    if "sampraxAnam" in roles:
-        applicable.append(RULE_SAMPRADANA_PRAKARATA)
-    if "karwA" in roles:
-        applicable.append(RULE_AVACCHEDAKA_SCOPE)
+    # ākāṅkṣā (expectancy) gates on the input frame.
+    if "karwA" not in roles:
+        return ShabdabodhaSkip("kriyā lacks a kartā (ākāṅkṣā)", SKIP_AKANKSA_NO_KARTA)
+    if dhatu in AKARMAKA_DHATUS and "karma" in roles:
+        return ShabdabodhaSkip(
+            f"akarmaka dhātu {dhatu!r} cannot take a karma (ākāṅkṣā)",
+            SKIP_AKANKSA_AKARMAKA_KARMA,
+        )
+
+    numbers = _parse_numbers(sentence.text)
+    applicable = _applicable_rules(roles, numbers)
 
     try:
-        graph, applied = _build_graph(dhatu, roles)
+        graph, applied = _build_graph(dhatu, roles, numbers)
         validate_graph(graph)
         rendered = render_graph(graph)
+    except _GateFailure as gate:
+        return ShabdabodhaSkip(gate.reason, gate.rule_id)
     except (TypeConstraintError, ValueError) as exc:
         return ShabdabodhaSkip(str(exc), "VYU-000-validation")
 
@@ -136,6 +184,25 @@ def compile_shabdabodha(sentence: AnnotatedSentence) -> ShabdabodhaOutcome:
         rules_applied=tuple(applied),
         rules_applicable=tuple(applicable),
     )
+
+
+def _applicable_rules(roles: dict[str, str], numbers: dict[str, str]) -> list[str]:
+    applicable: list[str] = [RULE_DHATU_KRIYA, RULE_KARW_SAMYOGATA]
+    if "karma" in roles:
+        applicable.append(RULE_KARMA_VISAYATA)
+    if "karaNam" in roles:
+        applicable.append(RULE_KARANAM)
+    if "aXikaraNam" in roles:
+        applicable.append(RULE_ADHIKARANAM)
+    if "apAxAnam" in roles:
+        applicable.append(RULE_APADANA)
+    if "sampraxAnam" in roles:
+        applicable.append(RULE_SAMPRADANA)
+    if any(numbers.get(r) for r in roles):
+        applicable.append(RULE_SANKHYA_VISESANA)
+    if any(padartha_of(stem) is PadarthaCategory.GUNA for stem in roles.values()):
+        applicable.append(RULE_PADARTHA_GUNA)
+    return applicable
 
 
 def measure_coverage(sentences: list[AnnotatedSentence]) -> dict[str, Any]:
@@ -197,34 +264,63 @@ def _extract_dhatu(sentence: AnnotatedSentence) -> str | None:
     return None
 
 
+def _parse_numbers(text: str) -> dict[str, str]:
+    """Recover the saṃkhyā (vacana) of each kāraka word from the surface form.
+
+    Surface nominals are ``stem.vacana.role`` (e.g. ``bAla.bahu.karwA``); the verb is
+    ``dhatu.lakara`` (two parts). The number is *not* present in ``karaka_parse``, so
+    carrying it into the graph adds genuine information beyond the kāraka labelling.
+    """
+    numbers: dict[str, str] = {}
+    for token in text.split():
+        parts = token.split(".")
+        if len(parts) == 3:
+            _stem, vacana, role = parts
+            if vacana:
+                numbers[role] = vacana
+    return numbers
+
+
 def _dravya(stem: str) -> GraphNode:
-    nid = f"dr_{stem}"
-    return GraphNode(id=nid, category=PadarthaCategory.DRAVYA, label=stem)
+    return GraphNode(id=f"dr_{stem}", category=PadarthaCategory.DRAVYA, label=stem)
 
 
-def _guna(stem: str, tag: str) -> GraphNode:
-    nid = f"gu_{stem}_{tag}"
-    return GraphNode(id=nid, category=PadarthaCategory.GUNA, label=f"{stem}_{tag}")
+def _guna_filler(stem: str) -> GraphNode:
+    return GraphNode(id=f"gu_{stem}", category=PadarthaCategory.GUNA, label=stem)
 
 
-def _visesa(stem: str) -> GraphNode:
-    nid = f"vi_{stem}"
-    return GraphNode(id=nid, category=PadarthaCategory.VISESA, label=f"{stem}_visesa")
+def _sankhya(vacana: str, owner_id: str) -> GraphNode:
+    """A saṃkhyā (number) guṇa node qualifying its substratum ``owner_id``."""
+    return GraphNode(
+        id=f"sk_{vacana}_{owner_id}",
+        category=PadarthaCategory.GUNA,
+        label=f"saMKyA_{vacana}",
+    )
 
 
 def _kriya(dhatu: str) -> GraphNode:
-    nid = f"kr_{dhatu}"
-    return GraphNode(id=nid, category=PadarthaCategory.KRIYA, label=dhatu)
+    return GraphNode(id=f"kr_{dhatu}", category=PadarthaCategory.KRIYA, label=dhatu)
 
 
 def _build_graph(
     dhatu: str,
     roles: dict[str, str],
+    numbers: dict[str, str],
 ) -> tuple[ShabdabodhaGraph, list[str]]:
+    """Construct a type-valid Śabdabodha graph with padārtha-aware topology.
+
+    Topology (ADR-0034 D3.3): the kriyā is the hub; kartā and obliques relate by
+    saṃyoga (obliques carry a kāraka qualifier so each has a distinct typed shape),
+    the karma is the kriyā's viṣaya, a guṇa instrument qualifies the kartā by
+    prakāratā, and every nominal's saṃkhyā is a guṇa viśeṣaṇa (prakāratā) — the latter
+    encoding number, which the kāraka parse omits.
+    """
     nodes: list[GraphNode] = []
     edges: list[GraphEdge] = []
     applied: list[str] = []
     index: dict[str, GraphNode] = {}
+    # (role, node) of every substantival filler that can bear a saṃkhyā viśeṣaṇa.
+    qualifiable: list[tuple[str, GraphNode]] = []
 
     def add(node: GraphNode) -> GraphNode:
         if node.id not in index:
@@ -232,70 +328,83 @@ def _build_graph(
             index[node.id] = node
         return index[node.id]
 
+    emitted_guna_filler = False
+
     kriya = add(_kriya(dhatu))
     applied.append(RULE_DHATU_KRIYA)
 
-    karw_stem = roles.get("karwA")
-    if karw_stem:
-        karw = add(_dravya(karw_stem))
-        edges.append(GraphEdge(kriya.id, karw.id, sansa=SansaType.SAMYOGATA))
-        applied.append(RULE_KARW_SAMYOGATA)
+    # kartā — yogyatā: agency requires a substance.
+    karta_stem = roles["karwA"]
+    if padartha_of(karta_stem) is not PadarthaCategory.DRAVYA:
+        raise _GateFailure(
+            f"kartā {karta_stem!r} is not a dravya (yogyatā)", SKIP_YOGYATA_KARTA
+        )
+    karta = add(_dravya(karta_stem))
+    edges.append(GraphEdge(kriya.id, karta.id, sansa=SansaType.SAMYOGATA))
+    applied.append(RULE_KARW_SAMYOGATA)
+    qualifiable.append(("karwA", karta))
 
+    # karma — viṣayatā; yogyatā: a viṣaya-object here must be a dravya.
     karma_stem = roles.get("karma")
-    karma_node: GraphNode | None = None
     if karma_stem:
-        karma_node = add(_dravya(karma_stem))
-        edges.append(GraphEdge(kriya.id, karma_node.id, sansa=SansaType.VISAYATA))
+        if padartha_of(karma_stem) is not PadarthaCategory.DRAVYA:
+            raise _GateFailure(
+                f"karma {karma_stem!r} is a guṇa; this action verb cannot take it "
+                "as a viṣaya (yogyatā)",
+                SKIP_YOGYATA_KARMA,
+            )
+        karma = add(_dravya(karma_stem))
+        edges.append(GraphEdge(kriya.id, karma.id, sansa=SansaType.VISAYATA))
         applied.append(RULE_KARMA_VISAYATA)
+        qualifiable.append(("karma", karma))
 
-    def prakarata_oblique(
-        role: str,
-        rule_id: str,
-        tag: str,
-        *,
-        qualify: GraphNode,
-    ) -> None:
-        stem = roles[role]
-        g = add(_guna(stem, tag))
-        edges.append(GraphEdge(g.id, qualify.id, sansa=SansaType.PRAKARATA))
-        applied.append(rule_id)
-
+    # karaṇa — instrument. A dravya instrument contacts the action; a guṇa instrument
+    # (e.g. "by knowledge") qualifies the kartā by prakāratā.
     if "karaNam" in roles:
-        target: GraphNode | None = karma_node
-        if target is None and karw_stem:
-            target = index.get(f"dr_{karw_stem}") or add(_dravya(karw_stem))
-        if target is None:
-            raise ValueError("karaNam without kartā or karma anchor")
-        prakarata_oblique("karaNam", RULE_KARANAM_PRAKARATA, "kara", qualify=target)
+        kstem = roles["karaNam"]
+        if padartha_of(kstem) is PadarthaCategory.DRAVYA:
+            kn = add(_dravya(kstem))
+            edges.append(
+                GraphEdge(kriya.id, kn.id, sansa=SansaType.SAMYOGATA, qualifier="karaNa")
+            )
+            qualifiable.append(("karaNam", kn))
+        else:
+            g = add(_guna_filler(kstem))
+            edges.append(GraphEdge(g.id, karta.id, sansa=SansaType.PRAKARATA))
+            emitted_guna_filler = True
+        applied.append(RULE_KARANAM)
 
-    for role, rule_id, tag in (
-        ("aXikaraNam", RULE_ADHIKARANAM_PRAKARATA, "adhi"),
-        ("apAxAnam", RULE_APADANA_PRAKARATA, "apa"),
-        ("sampraxAnam", RULE_SAMPRADANA_PRAKARATA, "sampra"),
+    # adhikaraṇa (locus), apādāna (source), sampradāna (goal): distinct qualified
+    # saṃyoga shapes on the kriyā; all require a dravya relatum (yogyatā).
+    for role, rule_id, qual, skip_id in (
+        ("aXikaraNam", RULE_ADHIKARANAM, "aXikaraNa", SKIP_YOGYATA_LOCUS),
+        ("apAxAnam", RULE_APADANA, "apAxAna", SKIP_YOGYATA_OBLIQUE),
+        ("sampraxAnam", RULE_SAMPRADANA, "sampraxAna", SKIP_YOGYATA_OBLIQUE),
     ):
-        if role in roles:
-            obl = add(_dravya(roles[role]))
-            prakarata_oblique(role, rule_id, tag, qualify=obl)
+        if role not in roles:
+            continue
+        stem = roles[role]
+        if padartha_of(stem) is not PadarthaCategory.DRAVYA:
+            raise _GateFailure(f"{role} {stem!r} is not a dravya (yogyatā)", skip_id)
+        obl = add(_dravya(stem))
+        edges.append(GraphEdge(kriya.id, obl.id, sansa=SansaType.SAMYOGATA, qualifier=qual))
+        applied.append(rule_id)
+        qualifiable.append((role, obl))
 
-    if karw_stem:
-        _attach_avacchedaka(karw_stem, kriya, nodes, edges, index, applied)
+    # saṃkhyā viśeṣaṇa: each filler's number is a guṇa qualifying it by prakāratā.
+    sankhya_applied = False
+    for role, node in qualifiable:
+        vacana = numbers.get(role)
+        if not vacana:
+            continue
+        sk = add(_sankhya(vacana, node.id))
+        edges.append(GraphEdge(sk.id, node.id, sansa=SansaType.PRAKARATA))
+        sankhya_applied = True
+    if sankhya_applied:
+        applied.append(RULE_SANKHYA_VISESANA)
+
+    if emitted_guna_filler:
+        applied.append(RULE_PADARTHA_GUNA)
 
     graph = ShabdabodhaGraph(nodes=nodes, edges=edges)
     return graph, applied
-
-
-def _attach_avacchedaka(
-    karw_stem: str,
-    kriya: GraphNode,
-    nodes: list[GraphNode],
-    edges: list[GraphEdge],
-    index: dict[str, GraphNode],
-    applied: list[str],
-) -> None:
-    """Scope the kartā-contact bundle via viśeṣa limiter on the kriyā anchor (step 4)."""
-    lim = _visesa(f"scope_{karw_stem}")
-    if lim.id not in index:
-        nodes.append(lim)
-        index[lim.id] = lim
-    edges.append(GraphEdge(lim.id, kriya.id, sansa=SansaType.AVACCHEDAKA))
-    applied.append(RULE_AVACCHEDAKA_SCOPE)

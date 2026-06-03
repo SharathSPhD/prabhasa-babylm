@@ -47,10 +47,41 @@ def test_ci_fixture_coverage_at_least_80_percent(ci_sentences: list[AnnotatedSen
 
 
 def test_every_ci_success_validates_against_schema(ci_sentences: list[AnnotatedSentence]) -> None:
+    # Faithful ākāṅkṣā/yogyatā gating (ADR-0034 D3.4) means some frames are *skipped*
+    # (e.g. a guṇa stem in kartā position). Every surviving success must still validate.
+    n_success = 0
     for s in ci_sentences:
         outcome = compile_shabdabodha(s)
-        assert isinstance(outcome, ShabdabodhaSuccess), f"expected success for {s.text!r}"
+        if not isinstance(outcome, ShabdabodhaSuccess):
+            continue
+        n_success += 1
         record = to_aligned_record(s, outcome)
         validate_aligned_record(record)
         assert record["paribhasha_string"]
         assert record["shabdabodha_graph"]["nodes"]
+    assert n_success >= 1
+
+
+def test_transitive_visayata_present_in_every_success(
+    ci_sentences: list[AnnotatedSentence],
+) -> None:
+    # ADR-0034 D1 / P-visaya-lossless: the karma object relation survives the
+    # linearization for 100% of transitive frames (regression for the dropped-edge bug).
+    for s in ci_sentences:
+        outcome = compile_shabdabodha(s)
+        if not isinstance(outcome, ShabdabodhaSuccess):
+            continue
+        if any(role == "karma" for _tok, role in s.karaka_parse):
+            assert "VISAYATA(" in outcome.rendered.ascii, f"VISAYATA dropped for {s.text!r}"
+
+
+def test_padartha_assignment_uses_multiple_categories(
+    ci_sentences: list[AnnotatedSentence],
+) -> None:
+    # ADR-0034 D3.1 / P-padartha: padārtha is morphology-derived, not all-DRAVYA.
+    categories: set[str] = set()
+    for s in ci_sentences:
+        outcome = compile_shabdabodha(s)
+        if isinstance(outcome, ShabdabodhaSuccess):
+            categories |= {n.category.value for n in outcome.graph.nodes}
+    assert len(categories) >= 3, categories
