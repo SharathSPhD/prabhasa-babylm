@@ -1,10 +1,10 @@
-"""BabyLM eval model factories (mock baseline vs ELC-PSALM PLL adapter)."""
+"""BabyLM eval model factories (ELC-PSALM PLL adapter; no mock baseline)."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from psalm.benchmarks.babylm_eval import MockUniformBaseline, PseudoLogLikelihoodModel
+from psalm.benchmarks.babylm_eval import PseudoLogLikelihoodModel
 from psalm.domain.model.elc_config import ElcPsalmConfig
 
 
@@ -28,26 +28,19 @@ def tiny_elc_config(*, vocab_size: int = 128) -> ElcPsalmConfig:
 
 def build_babylm_smoke_model(
     *,
-    mock: bool = False,
-    use_elc: bool = True,
     checkpoint: Path | None = None,
     seed: int = 0,
     vocab_size: int = 128,
     device: str = "cpu",
 ) -> PseudoLogLikelihoodModel:
-    """Select eval model: ELC PLL default; checkpoint when present; mock with ``--mock``."""
-    if mock:
-        return MockUniformBaseline(vocab_size=vocab_size, seed=seed)
-
+    """Build the ELC-PSALM PLL eval model: trained checkpoint when present, else
+    an untrained ELC-PSALM encoder (real PLL scoring, never a mock baseline)."""
     if checkpoint is not None and checkpoint.is_file():
         loaded = _load_elc_checkpoint(checkpoint, vocab_size=vocab_size, device=device)
         if loaded is not None:
             return loaded
 
-    if use_elc:
-        return _untrained_elc_evaluator(vocab_size=vocab_size, device=device, seed=seed)
-
-    return MockUniformBaseline(vocab_size=vocab_size, seed=seed)
+    return _untrained_elc_evaluator(vocab_size=vocab_size, device=device, seed=seed)
 
 
 def _untrained_elc_evaluator(

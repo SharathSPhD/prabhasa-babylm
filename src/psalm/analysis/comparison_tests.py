@@ -1,10 +1,14 @@
-"""Statistical validation of hypotheses.
+"""Statistical validation of hypotheses (paired, per-seed).
 
 The closure contract's EMPIRICAL layer requires go/no-go metrics to be computed
-correctly and compared fairly. Arm comparisons (e.g. Paninian vs Dyck) use
-distribution-free resampling so they hold under the small seed counts feasible
-on a single DGX Spark, and multiple-arm comparisons are corrected for family-wise
-error with Holm-Bonferroni.
+correctly and compared fairly. The H1/H1' arm contrasts (e.g. Pāṇinian B vs Dyck
+C) are **paired by seed**: the same seed trains both arms, so the unit of analysis
+is the per-seed difference ``d_i = t_i - c_i``. Comparisons therefore use a paired
+bootstrap on the differences and a paired (sign-flip) permutation test — NOT an
+independent two-sample resample, which inflates variance and is invalid for paired
+designs (ADR-0035; this replaces the prior ``_paired_or_independent_effect`` path).
+
+Multiple-arm families are corrected for family-wise error with Holm-Bonferroni.
 
 These functions depend only on numpy so the analysis layer stays importable
 without the heavy ML stack.
@@ -12,11 +16,16 @@ without the heavy ML stack.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 import numpy as np
 
 _RNG_DEFAULT_SEED = 12345
+
+# Gating contrasts must use at least this many seeds; smaller n is wiring-smoke
+# only and may never emit an evidence-grade verdict (acceptance M-seeds).
+MIN_GATING_SEEDS = 10
 
 
 @dataclass(frozen=True)
@@ -56,58 +65,84 @@ def mean_ci(
     return float(arr.mean()), lo, hi
 
 
-def permutation_test(
-    treatment: list[float] | np.ndarray,
-    control: list[float] | np.ndarray,
-    n_perm: int = 10_000,
-    seed: int = _RNG_DEFAULT_SEED,
-    higher_is_better: bool = True,
-) -> ComparisonResult:
-    """Two-sided permutation test on the difference of means.
+def paired_differences(
+    treatment: Sequence[float] | np.ndarray,
+    control: Sequence[float] | np.ndarray,
+) -> np.ndarray:
+    """Per-seed differences ``t_i - c_i`` for a paired contrast.
 
-    Distribution-free; appropriate for the small per-arm seed counts feasible on
-    a single GB10. The effect is ``treatment_mean - control_mean`` oriented so a
-    positive effect favours the treatment when ``higher_is_better``.
+    Requires equal-length, non-empty arms — the i-th entry of each must be the
+    same seed. Raises ``ValueError`` otherwise (fails closed rather than silently
+    pairing mismatched runs).
     """
     t = np.asarray(treatment, dtype=float)
     c = np.asarray(control, dtype=float)
     if t.size == 0 or c.size == 0:
         raise ValueError("both arms need at least one observation")
+    if t.size != c.size:
+        raise ValueError(
+            f"paired contrast requires equal-length arms (one seed per pair); "
+            f"got {t.size} vs {c.size}"
+        )
+    return np.asarray(t - c, dtype=float)
 
-    observed = float(t.mean() - c.mean())
-    pooled = np.concatenate([t, c])
-    n_t = t.size
+
+def paired_bootstrap(
+    differences: Sequence[float] | np.ndarray,
+    confidence: float = 0.95,
+    n_boot: int = 10_000,
+    seed: int = _RNG_DEFAULT_SEED,
+) -> tuple[float, float, float]:
+    """Bootstrap the mean of per-seed differences and its percentile CI.
+
+    Resamples the *differences* (one draw per seed), which is the correct paired
+    bootstrap: the pairing is preserved because each bootstrap index selects a
+    whole ``(t_i, c_i)`` pair via its difference. Returns ``(mean, ci_low, ci_high)``.
+    """
+    d = np.asarray(differences, dtype=float)
+    if d.size == 0:
+        raise ValueError("cannot bootstrap an empty difference sample")
     rng = np.random.default_rng(seed)
+    boot_means = rng.choice(d, size=(n_boot, d.size), replace=True).mean(axis=1)
+    alpha = 1.0 - confidence
+    lo = float(np.quantile(boot_means, alpha / 2))
+    hi = float(np.quantile(boot_means, 1 - alpha / 2))
+    return float(d.mean()), lo, hi
 
-    count = 0
-    for _ in range(n_perm):
-        rng.shuffle(pooled)
-        diff = pooled[:n_t].mean() - pooled[n_t:].mean()
-        if abs(diff) >= abs(observed):
-            count += 1
+
+def paired_permutation_test(
+    treatment: Sequence[float] | np.ndarray,
+    control: Sequence[float] | np.ndarray,
+    n_perm: int = 10_000,
+    seed: int = _RNG_DEFAULT_SEED,
+    higher_is_better: bool = True,
+) -> ComparisonResult:
+    """Two-sided **paired** permutation test on per-seed differences.
+
+    Under the null, each seed's difference is equally likely to have either sign,
+    so the exact randomization is a sign-flip of the per-seed differences (not a
+    pooled two-sample shuffle). The CI is a paired bootstrap on the same
+    differences. The effect is ``mean(t) - mean(c)`` oriented so a positive effect
+    favours the treatment when ``higher_is_better``.
+    """
+    d = paired_differences(treatment, control)
+    observed = float(d.mean())
+    rng = np.random.default_rng(seed)
+    signs = rng.choice(np.array([-1.0, 1.0]), size=(n_perm, d.size))
+    perm_means = (signs * d).mean(axis=1)
+    count = int(np.sum(np.abs(perm_means) >= abs(observed) - 1e-12))
     p_value = (count + 1) / (n_perm + 1)
 
-    effect_samples = _paired_or_independent_effect(t, c, seed=seed)
-    ci_low, ci_high = effect_samples
+    _, ci_low, ci_high = paired_bootstrap(d, seed=seed + 1, n_boot=n_perm)
     oriented = observed if higher_is_better else -observed
     return ComparisonResult(
-        treatment_mean=float(t.mean()),
-        control_mean=float(c.mean()),
+        treatment_mean=float(np.asarray(treatment, dtype=float).mean()),
+        control_mean=float(np.asarray(control, dtype=float).mean()),
         effect=oriented,
         ci_low=ci_low,
         ci_high=ci_high,
         p_value=p_value,
     )
-
-
-def _paired_or_independent_effect(
-    t: np.ndarray, c: np.ndarray, n_boot: int = 10_000, seed: int = _RNG_DEFAULT_SEED
-) -> tuple[float, float]:
-    rng = np.random.default_rng(seed + 1)
-    boot = rng.choice(t, size=(n_boot, t.size), replace=True).mean(axis=1) - rng.choice(
-        c, size=(n_boot, c.size), replace=True
-    ).mean(axis=1)
-    return float(np.quantile(boot, 0.025)), float(np.quantile(boot, 0.975))
 
 
 def holm_bonferroni(p_values: dict[str, float], alpha: float = 0.05) -> dict[str, bool]:

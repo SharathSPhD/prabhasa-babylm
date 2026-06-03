@@ -12,9 +12,7 @@ See ``docs/decisions/0020-babylm-dual-track.md`` and ``docs/data/eval-train-stat
 from __future__ import annotations
 
 import json
-import math
 import os
-import random
 import subprocess
 from dataclasses import dataclass
 from enum import StrEnum
@@ -28,11 +26,19 @@ DEFAULT_EVAL_ROOT = Path("vendor/babylm-evaluation-pipeline-2025")
 
 
 class RunMode(StrEnum):
-    """Eval data path: built-in minimal pairs vs official pipeline layout detected."""
+    """Eval data path: built-in minimal pairs vs official pipeline layout detected.
+
+    There is no MOCK mode (ADR-0035: no mocks in the battery). The built-in
+    ``LOCAL`` smoke probes are always stamped ``evidence=False`` and can never emit
+    a verdict; only the official full-suite pipeline produces evidence-grade numbers.
+    """
 
     LOCAL = "local"
     OFFICIAL = "official"
-    MOCK = "mock"
+
+
+class NotEvidenceGradeError(RuntimeError):
+    """Raised when a smoke (evidence=False) result is used to form a verdict."""
 
 
 @runtime_checkable
@@ -60,6 +66,7 @@ class SmokeEvalResult:
     pipeline_root: Path | None = None
     notes: str = ""
     pipeline_installed: bool = False
+    evidence: bool = False  # built-in smoke probes are never evidence-grade
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -69,24 +76,26 @@ class SmokeEvalResult:
             "report_path": str(self.report_path) if self.report_path else None,
             "pipeline_root": str(self.pipeline_root) if self.pipeline_root else None,
             "pipeline_installed": self.pipeline_installed,
+            "evidence": self.evidence,
             "notes": self.notes,
             "pipeline_commit": BABYLM_EVAL_PIPELINE_COMMIT,
         }
 
 
-class MockUniformBaseline:
-    """Random log-uniform scores — wiring-only baseline when ``--mock`` is set."""
+def assert_evidence_grade(result: SmokeEvalResult) -> SmokeEvalResult:
+    """Return ``result`` if it is evidence-grade, else raise.
 
-    def __init__(self, vocab_size: int = 1000, seed: int = 0) -> None:
-        self._rng = random.Random(seed)
-        self._vocab_size = max(vocab_size, 2)
-
-    def pseudo_log_likelihood(self, text: str) -> float:
-        total = 0.0
-        for _ in text.split():
-            p = self._rng.random() / self._vocab_size
-            total += math.log(max(p, 1e-12))
-        return total
+    The single chokepoint that forbids a smoke venue from emitting a verdict
+    (acceptance M-no-mock). Built-in ``run_smoke_eval`` results are always
+    ``evidence=False``; only the official full-suite pipeline is evidence-grade.
+    """
+    if not result.evidence:
+        raise NotEvidenceGradeError(
+            "refusing to emit a verdict from a non-evidence smoke result "
+            f"(mode={result.mode.value}); run the official full suite via "
+            "invoke_official_zero_shot on the released BLiMP/EWoK shards."
+        )
+    return result
 
 
 def smoke_tasks() -> tuple[SmokeTask, ...]:
@@ -135,9 +144,13 @@ def run_smoke_eval(
     tasks: tuple[SmokeTask, ...] | None = None,
     output_path: Path | None = None,
     pipeline_root: Path | None = None,
-    force_mock_baseline: bool = False,
 ) -> SmokeEvalResult:
-    """Run fast zero-shot smoke eval with real PLL minimal-pair scoring."""
+    """Run a fast zero-shot **smoke** eval with real PLL minimal-pair scoring.
+
+    Always wiring-only: the result is stamped ``evidence=False`` regardless of mode
+    (built-in minimal pairs are not the official release). There is no mock path —
+    the model must be a real ``PseudoLogLikelihoodModel`` (ELC-PSALM PLL).
+    """
     root = pipeline_root or eval_root()
     installed = detect_pipeline_install(root)
     resolved_mode = mode
@@ -147,21 +160,15 @@ def run_smoke_eval(
     task_list = tasks or smoke_tasks()
     scores = run_pll_minimal_pair_eval(model, task_list)
 
-    if force_mock_baseline or resolved_mode is RunMode.MOCK:
+    if resolved_mode is RunMode.OFFICIAL:
         notes = (
-            "MOCK baseline model: scores are not from ELC-PSALM. "
-            "Use --elc (default) for real PLL minimal-pair accuracy."
-        )
-        resolved_mode = RunMode.MOCK
-    elif resolved_mode is RunMode.OFFICIAL:
-        notes = (
-            "Real PLL minimal-pair accuracy on built-in smoke tasks. "
+            "Real PLL minimal-pair accuracy on built-in smoke tasks (evidence=False). "
             "Official full-suite zero-shot: export HF checkpoint and call "
             "invoke_official_zero_shot (see docs/data/eval-train-status.md)."
         )
     else:
         notes = (
-            "Real PLL minimal-pair accuracy (local harness). "
+            "Real PLL minimal-pair accuracy, local smoke harness (evidence=False). "
             "Install official pipeline via scripts/setup_babylm_eval_pipeline.sh "
             "for invoke_official_zero_shot on BLiMP/EWoK releases."
         )
@@ -174,6 +181,7 @@ def run_smoke_eval(
         pipeline_root=root if installed else None,
         pipeline_installed=installed,
         notes=notes,
+        evidence=False,
     )
     if output_path is not None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -182,11 +190,19 @@ def run_smoke_eval(
     return result
 
 
+# Official evidence-grade venues. ELC-PSALM is a masked LM, so the backend is
+# always "mlm" (pseudo-log-likelihood), never causal log-prob (acceptance
+# M-official-venue). "blimp" + "blimp_supplement" together are the full BLiMP-arg
+# battery; "ewok" is the world-knowledge venue.
+OFFICIAL_TASKS: tuple[str, ...] = ("blimp", "blimp_supplement", "ewok")
+ELC_PSALM_BACKEND = "mlm"
+
+
 def invoke_official_zero_shot(
     *,
     model_path: str,
     task: str = "blimp",
-    backend: str = "mlm",
+    backend: str = ELC_PSALM_BACKEND,
     data_path: Path | None = None,
     output_dir: Path | None = None,
     pipeline_root: Path | None = None,
@@ -194,8 +210,18 @@ def invoke_official_zero_shot(
 ) -> subprocess.CompletedProcess[str]:
     """Run one official zero-shot task (requires HF model dir + psalm[ml] in pipeline env).
 
-    Raises FileNotFoundError if the pipeline is not installed.
+    ``task`` must be one of :data:`OFFICIAL_TASKS`. ``backend`` defaults to ``"mlm"``
+    (ELC-PSALM PLL); a causal backend is rejected because ELC-PSALM is a masked LM.
+    Raises ``FileNotFoundError`` if the pipeline is not installed and ``ValueError``
+    for an unknown task or non-MLM backend.
     """
+    if task not in OFFICIAL_TASKS:
+        raise ValueError(f"unknown official task {task!r}; expected one of {OFFICIAL_TASKS}")
+    if backend != ELC_PSALM_BACKEND:
+        raise ValueError(
+            f"ELC-PSALM is a masked LM; backend must be {ELC_PSALM_BACKEND!r} "
+            f"(PLL), got {backend!r} — causal log-prob is not a valid ELC-PSALM venue."
+        )
     root = pipeline_root or eval_root()
     if not detect_pipeline_install(root):
         raise FileNotFoundError(f"BabyLM pipeline missing at {root}")
@@ -226,3 +252,20 @@ def invoke_official_zero_shot(
         capture_output=True,
         text=True,
     )
+
+
+def invoke_official_battery(
+    *,
+    model_path: str,
+    tasks: tuple[str, ...] = OFFICIAL_TASKS,
+    **kwargs: object,
+) -> dict[str, subprocess.CompletedProcess[str]]:
+    """Run the full official evidence-grade battery (BLiMP-arg + EWoK) via MLM PLL.
+
+    Returns a map ``task -> CompletedProcess``. Each task is validated by
+    :func:`invoke_official_zero_shot`.
+    """
+    results: dict[str, subprocess.CompletedProcess[str]] = {}
+    for task in tasks:
+        results[task] = invoke_official_zero_shot(model_path=model_path, task=task, **kwargs)  # type: ignore[arg-type]
+    return results
