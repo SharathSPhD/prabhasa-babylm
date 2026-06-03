@@ -1,0 +1,85 @@
+{
+  "workstream_id": "paribhasha-core",
+  "branch": "workstream/paribhasha-core",
+  "adr": "ADR-0034",
+  "status": "standalone-closure-proposed",
+  "date": "2026-06-03",
+  "technical": {
+    "tests": "355 passed, 14 skipped (non-torch unit suite; cli/ml out of scope)",
+    "lint": "ruff clean",
+    "types": "mypy clean (12 source files)",
+    "coverage_changed_modules_pct": 92.73,
+    "coverage_threshold_pct": 80.0
+  },
+  "acceptance": {
+    "P-visaya-lossless": {
+      "threshold": "== 1.00",
+      "result": 1.0,
+      "evidence": "transitive_visayata_fraction=1.0 on 10^4 and 128 frames; round-trip tests on AVACCHEDAKA+VISAYATA+SAMYOGATA pass",
+      "pass": true
+    },
+    "P-info-parity": {
+      "threshold": ">> 0 (relabel => FAIL)",
+      "H_structure_given_role_multiset_bits": 3.1755,
+      "H_structure_given_full_parse_bits": 0.4439,
+      "note": "number (saMKyA) is absent from karaka_parse, so structure carries info even given the full lexicalized parse",
+      "pass": true
+    },
+    "P-template-count": {
+      "threshold": ">> 2",
+      "unique_templates": 499,
+      "pass": true
+    },
+    "P-serialize": {
+      "threshold": "pass",
+      "evidence": "serialize_line emits paribhasha_string for PARIBHASHA/SHABDABODHA_ALIGNED and raises on absence; proven by test_assembly_aligned_lines_are_paribhasha_strings_not_sanskrit + test_serialize_line_refuses_sanskrit_without_paribhasha_string",
+      "pass": true
+    },
+    "P-padartha": {
+      "threshold": ">= 3 categories used",
+      "padartha_categories_used": ["DRAVYA", "GUNA", "KRIYA"],
+      "pass": true
+    },
+    "P-coverage-ledger": {
+      "threshold": "published (M-level, no STOP)",
+      "skip_ledger_10k": {
+        "VYU-Y01-yogyata-karta-not-dravya": 760,
+        "VYU-Y02-yogyata-karma-not-dravya": 402,
+        "VYU-Y03-yogyata-oblique-unfit": 532,
+        "VYU-Y04-yogyata-locus-not-dravya": 226
+      },
+      "coverage_fraction_10k": 0.808,
+      "coverage_fraction_ci": 0.828,
+      "pass": true
+    }
+  },
+  "artifacts": [
+    "src/psalm/infrastructure/generators/paribhasha/renderer.py (lossless flat form)",
+    "src/psalm/infrastructure/generators/paribhasha/shabdabodha.py (padartha + sankhya + akanksa/yogyata)",
+    "src/psalm/application/data/assembly.py (serialize_line=paribhasha_string)",
+    "src/psalm/infrastructure/generators/{jsonl_source,shabdabodha_aligned_source,paribhasha_source}.py",
+    "scripts/measure_paribhasha_parity.py",
+    "data/fixtures/shabdabodha-aligned-ci.jsonl (regenerated, lossless)",
+    "docs/data/paribhasha-parity-ledger.json",
+    "docs/data/shabdabodha-export-stats.json",
+    "docs/contracts/workstream-paribhasha-tarka-memo.md"
+  ],
+  "integrity": {
+    "relabel_risk": "addressed (H>0 vs both role grammar and full parse)",
+    "object_role_survives": true,
+    "no_mock": true,
+    "no_synthetic_avacchedaka_boilerplate": true,
+    "honest_skips": true
+  },
+  "memory": {
+    "adr": "ADR-0034",
+    "supersedes_defects": [
+      "renderer dropped VISAYATA on 88/128 transitive strings",
+      "serialize_line trained on Sanskrit surface",
+      "all nominals forced to DRAVYA; synthetic scope_{karta} AVACCHEDAKA"
+    ]
+  },
+  "out_of_scope": ["dyck", "measurement harness", "GPU H1' battery execution", "torch/matrix"],
+  "binding_gate_note": "ADR-0035 D6 information-parity gate is re-run by the measurement/audit workstream on the frozen export before any GPU training; this report is the standalone (GATE 2) proxy.",
+  "sign_off": "pending human GATE 2"
+}

@@ -28,8 +28,12 @@ class CacheNotFoundError(RuntimeError):
 class JsonlSentenceSource:
     """Reads cached annotated sentences from a JSONL file as a generator port."""
 
-    def __init__(self, path: str | Path) -> None:
+    def __init__(self, path: str | Path, *, extra_meta_keys: tuple[str, ...] = ()) -> None:
         self.path = Path(path)
+        # Top-level JSONL keys to fold into ``meta`` when present (e.g.
+        # ``paribhasha_string`` for the aligned-pair schema). Empty by default so
+        # generic caches are unaffected.
+        self._extra_meta_keys = tuple(extra_meta_keys)
 
     def _load(self) -> list[AnnotatedSentence]:
         if not self.path.exists():
@@ -45,13 +49,17 @@ class JsonlSentenceSource:
                     continue
                 obj = json.loads(line)
                 parse = tuple((t, r) for t, r in obj.get("karaka_parse", []))
+                meta = dict(obj.get("meta", {}))
+                for key in self._extra_meta_keys:
+                    if key in obj:
+                        meta.setdefault(key, obj[key])
                 out.append(
                     AnnotatedSentence(
                         text=obj["text"],
                         language=obj.get("language", "sa"),
                         karaka_parse=parse,
                         derivation=tuple(obj.get("derivation", ())),
-                        meta=dict(obj.get("meta", {})),
+                        meta=meta,
                     )
                 )
         return out

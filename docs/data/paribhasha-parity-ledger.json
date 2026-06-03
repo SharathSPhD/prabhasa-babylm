@@ -1,0 +1,35 @@
+{
+  "schema_version": "paribhasha-parity-v1",
+  "n_frames": 10000,
+  "seed": 0,
+  "n_valid_graphs": 8080,
+  "coverage_fraction": 0.808,
+  "skip_ledger": {
+    "VYU-Y04-yogyata-locus-not-dravya": 226,
+    "VYU-Y03-yogyata-oblique-unfit": 532,
+    "VYU-Y01-yogyata-karta-not-dravya": 760,
+    "VYU-Y02-yogyata-karma-not-dravya": 402
+  },
+  "unique_templates": 499,
+  "H_structure_given_role_multiset_bits": 3.1755,
+  "H_structure_given_full_parse_bits": 0.4439,
+  "padartha_categories_used": [
+    "DRAVYA",
+    "GUNA",
+    "KRIYA"
+  ],
+  "padartha_node_counts": {
+    "KRIYA": 8080,
+    "DRAVYA": 22604,
+    "GUNA": 24442
+  },
+  "transitive_frames": 4669,
+  "transitive_visayata_fraction": 1.0,
+  "gates": {
+    "P_visaya_lossless": true,
+    "P_info_parity_role_grammar": true,
+    "P_info_parity_full_parse": true,
+    "P_template_count_gt_2": true,
+    "P_padartha_ge_3_categories": true
+  }
+}

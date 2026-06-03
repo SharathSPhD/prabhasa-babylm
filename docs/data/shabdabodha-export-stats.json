@@ -2,10 +2,14 @@
   "schema_version": "shabdabodha-export-v1",
   "input": "data/fixtures/vidyut-fixtures-ci.jsonl",
   "output": "data/fixtures/shabdabodha-aligned-ci.jsonl",
-  "n_aligned_rows": 128,
+  "n_aligned_rows": 106,
   "n_sentences": 128,
-  "n_valid_graphs": 128,
-  "coverage_fraction": 1.0,
-  "skip_reasons": {},
+  "n_valid_graphs": 106,
+  "coverage_fraction": 0.828125,
+  "skip_reasons": {
+    "VYU-Y01-yogyata-karta-not-dravya": 14,
+    "VYU-Y02-yogyata-karma-not-dravya": 3,
+    "VYU-Y04-yogyata-locus-not-dravya": 5
+  },
   "pipeline_source": "shabdabodha-vyutpattivada"
 }
