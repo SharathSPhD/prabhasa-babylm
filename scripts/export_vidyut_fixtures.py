@@ -29,6 +29,7 @@ from psalm.application.data.ports import AnnotatedSentence
 from psalm.domain.data.diversity import summarize
 from psalm.domain.data.diversity_gate import validate_diversity_gate
 from psalm.domain.data.fixture_corpus import (
+    stream_expanded_label_corpus,
     stream_expanded_realized_corpus,
     stream_fixture_corpus,
     stream_realized_corpus,
@@ -46,8 +47,12 @@ def _serialize(s: AnnotatedSentence) -> dict[str, object]:
 
 
 def _stream(
-    n: int, *, seed: int, realize: bool, lexicon: str | None = None
+    n: int, *, seed: int, realize: bool, lexicon: str | None = None, label: bool = False
 ) -> list[AnnotatedSentence]:
+    if lexicon and label:
+        # Dot-separated label frames (stem.num.role) for the Paribhāṣā arm's
+        # shabdabodha input — no Vidyut realization, no frame dropping.
+        return list(stream_expanded_label_corpus(n, seed=seed, lexicon_path=lexicon))
     if lexicon:
         return list(stream_expanded_realized_corpus(n, seed=seed, lexicon_path=lexicon))
     if realize:
@@ -95,6 +100,12 @@ def main() -> None:
         help="Path to expanded generator_lexicon.json (ADR-0036); enables the "
         "frequency-grounded sampler that lifts the 74,760-frame ceiling.",
     )
+    ap.add_argument(
+        "--label",
+        action="store_true",
+        help="With --lexicon, emit dot-separated label frames (stem.num.role) for "
+        "the Paribhāṣā shabdabodha input instead of realized Sanskrit.",
+    )
     ap.add_argument("--out", default="data/cache/vidyut-fixtures.jsonl")
     ap.add_argument("--ci-out", default="data/fixtures/vidyut-realized-ci.jsonl")
     ap.add_argument("--stats-out", default="docs/data/vidyut-fixture-stats.json")
@@ -131,13 +142,19 @@ def main() -> None:
 
     if args.ci_sample > 0:
         ci_sentences = _stream(
-            args.ci_sample, seed=args.seed, realize=args.realize, lexicon=args.lexicon
+            args.ci_sample,
+            seed=args.seed,
+            realize=args.realize,
+            lexicon=args.lexicon,
+            label=args.label,
         )
         _write_jsonl(pathlib.Path(args.ci_out), ci_sentences)
         stats = _stats_block(ci_sentences, "vidyut_fixture_ci_sample")
         out = pathlib.Path(args.ci_out)
     else:
-        sentences = _stream(args.n, seed=args.seed, realize=args.realize, lexicon=args.lexicon)
+        sentences = _stream(
+            args.n, seed=args.seed, realize=args.realize, lexicon=args.lexicon, label=args.label
+        )
         _write_jsonl(pathlib.Path(args.out), sentences)
         stats = _stats_block(sentences, "vidyut_fixture_corpus")
         out = pathlib.Path(args.out)
