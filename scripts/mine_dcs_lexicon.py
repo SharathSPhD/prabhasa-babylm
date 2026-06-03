@@ -53,18 +53,71 @@ def _gender(feats: str) -> str | None:
     return None
 
 
+def _has_accusative(feats: str) -> bool:
+    return "Case=Acc" in feats
+
+
+def _process_sentence(
+    tokens: list[tuple[str, str, str]],
+    *,
+    noun_freq: Counter[str],
+    noun_gender: dict[str, Counter[str]],
+    verb_freq: Counter[str],
+    verb_single: Counter[str],
+    verb_single_acc: Counter[str],
+) -> None:
+    """Accumulate freq + transitivity evidence from one sentence's (lemma,upos,feats)."""
+    verbs: list[str] = []
+    has_acc = False
+    for slp1, upos, feats in tokens:
+        if upos == "NOUN":
+            noun_freq[slp1] += 1
+            lg = _gender(feats)
+            if lg:
+                noun_gender[slp1][lg] += 1
+            if _has_accusative(feats):
+                has_acc = True
+        elif upos == "VERB":
+            verb_freq[slp1] += 1
+            verbs.append(slp1)
+        elif _has_accusative(feats):  # accusative may surface on PRON/ADJ/NUM too
+            has_acc = True
+    # Clean transitivity attribution: only single-verb sentences (the Acc, if any,
+    # belongs unambiguously to that verb).
+    if len(verbs) == 1:
+        v = verbs[0]
+        verb_single[v] += 1
+        if has_acc:
+            verb_single_acc[v] += 1
+
+
 def mine(dcs_dir: Path) -> dict[str, object]:
     noun_freq: Counter[str] = Counter()
     noun_gender: dict[str, Counter[str]] = defaultdict(Counter)
     verb_freq: Counter[str] = Counter()
+    verb_single: Counter[str] = Counter()
+    verb_single_acc: Counter[str] = Counter()
 
     files = sorted(dcs_dir.rglob("*.conllu"))
     for i, path in enumerate(files):
         if i % 2000 == 0:
             print(f"  ... {i}/{len(files)} files", flush=True)
+        sent: list[tuple[str, str, str]] = []
         with path.open(encoding="utf-8") as fh:
             for line in fh:
-                if not line or line[0] in "#\n":
+                if line.startswith("#"):
+                    continue
+                if line == "\n" or not line.strip():
+                    if sent:
+                        _process_sentence(
+                            sent,
+                            noun_freq=noun_freq,
+                            noun_gender=noun_gender,
+                            verb_freq=verb_freq,
+                            verb_single=verb_single,
+                            verb_single_acc=verb_single_acc,
+                        )
+                        sent = []
                     continue
                 cols = line.rstrip("\n").split("\t")
                 if len(cols) < 6:
@@ -75,13 +128,16 @@ def mine(dcs_dir: Path) -> dict[str, object]:
                 slp1 = _to_slp1(lemma)
                 if not slp1 or not slp1.isascii():
                     continue
-                if upos == "NOUN":
-                    noun_freq[slp1] += 1
-                    lg = _gender(feats)
-                    if lg:
-                        noun_gender[slp1][lg] += 1
-                elif upos == "VERB":
-                    verb_freq[slp1] += 1
+                sent.append((slp1, upos, feats))
+        if sent:
+            _process_sentence(
+                sent,
+                noun_freq=noun_freq,
+                noun_gender=noun_gender,
+                verb_freq=verb_freq,
+                verb_single=verb_single,
+                verb_single_acc=verb_single_acc,
+            )
 
     noun_stems = [
         {
@@ -91,9 +147,21 @@ def mine(dcs_dir: Path) -> dict[str, object]:
         }
         for stem, freq in noun_freq.most_common()
     ]
-    verb_lemmas = [{"slp1": v, "freq": f} for v, f in verb_freq.most_common()]
+    verb_lemmas = [
+        {
+            "slp1": v,
+            "freq": f,
+            "single_sent": verb_single[v],
+            "single_sent_acc": verb_single_acc[v],
+            # transitivity score: P(accusative present | this is the only verb)
+            "trans_score": round(verb_single_acc[v] / verb_single[v], 4)
+            if verb_single[v]
+            else 0.0,
+        }
+        for v, f in verb_freq.most_common()
+    ]
     return {
-        "schema": "dcs-lexicon-v1",
+        "schema": "dcs-lexicon-v2",
         "n_files": len(files),
         "noun_stems": noun_stems,
         "verb_lemmas": verb_lemmas,

@@ -26,27 +26,45 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 from pathlib import Path
 
 import vidyut.kosha as kosha_mod
 import vidyut.prakriya as P
 
-# Hand-verified transitive dhātus (SLP1 normalised root) that may license a karma.
-# Bootstrapped from the original verified realizer lexicon (ADR-0033); intransitive
-# (akarmaka) roots are excluded so the transitivity guard stays sound.
-_VERIFIED_TRANSITIVE = {"gam", "paW", "KAd", "dfS", "kf", "vad", "dA"}
+# DCS transitivity gate: a dhātu may license a karma only if its attested
+# single-verb sentences contain an accusative at least this often, with enough
+# evidence to trust the estimate. Tuned to match linguistic reality (bhū/as ~0.07
+# intransitive; gam/dṛś/vad/khād 0.58–0.88 transitive).
+_TRANS_SCORE_MIN = 0.40
+_TRANS_EVIDENCE_MIN = 20
 
-#: Vidyut anubandha / accent marks to strip when normalising an upadeśa to a root.
-_ANUBANDHA = re.compile(r"[\\~^0-9iIuUfFeEoO\u0300-\u036f]+$")
+#: it-prefix markers (ṭu/ḍu/ñi etc.) that begin some upadeśas.
+_IT_PREFIXES = ("qu", "wu", "qa", "wa", "Yi")
 
 
-def _normalise_root(aupadeshika: str) -> str:
-    """Strip trailing it-markers/accents to approximate the bare SLP1 root."""
-    s = aupadeshika.replace("\\", "").replace("~", "").replace("^", "")
-    # drop a trailing it-vowel marker (e.g. "paWa~" -> "paW", "vada~" -> "vad")
-    s = re.sub(r"[aiufx]$", "", s)
-    return s
+def _match_dcs_root(aupadeshika: str, dcs_verbs: dict[str, dict]) -> dict | None:
+    """Resolve an upadeśa to its attested DCS verb entry, or ``None``.
+
+    Uses the DCS clean-root verb set as the validator: strip accents/it-prefixes,
+    then return the longest trailing-trimmed candidate that is actually attested
+    in DCS. Under-matching is the *safe* direction — an unmatched dhātu defaults to
+    intransitive and simply never licenses a karma.
+    """
+    base = aupadeshika.replace("\\", "").replace("^", "").replace("/", "")
+    for pre in _IT_PREFIXES:
+        if base.startswith(pre):
+            base = base[len(pre) :]
+            break
+    base = base.rstrip("~")
+    best: dict | None = None
+    for k in range(4):  # trim up to 3 trailing it/marker chars
+        cand = base[: len(base) - k] if k else base
+        cand = cand.rstrip("~")
+        if cand and cand in dcs_verbs:
+            entry = dcs_verbs[cand]
+            if best is None or len(cand) > len(best["slp1"]):
+                best = entry
+    return best
 
 
 def _kosha_basic_stems(data_dir: Path) -> dict[str, set[str]]:
@@ -92,7 +110,7 @@ def build(dcs_path: Path, data_dir: Path, max_stems: int) -> dict[str, object]:
         if len(stems) >= max_stems:
             break
 
-    verb_freq = {v["slp1"]: v["freq"] for v in dcs["verb_lemmas"]}
+    dcs_verbs = {v["slp1"]: v for v in dcs["verb_lemmas"]}
     entries = P.Data(str(data_dir / "prakriya")).load_dhatu_entries()
     dhatus: list[dict[str, object]] = []
     seen: set[tuple[str, str]] = set()
@@ -103,13 +121,20 @@ def build(dcs_path: Path, data_dir: Path, max_stems: int) -> dict[str, object]:
         if key in seen:
             continue
         seen.add(key)
-        root = _normalise_root(aup)
+        matched = _match_dcs_root(aup, dcs_verbs)
+        freq = matched["freq"] if matched else 0
+        transitive = bool(
+            matched
+            and matched["trans_score"] >= _TRANS_SCORE_MIN
+            and matched["single_sent"] >= _TRANS_EVIDENCE_MIN
+        )
         dhatus.append(
             {
                 "aupadeshika": aup,
                 "gana": gana,
-                "freq": verb_freq.get(root, 0),
-                "transitive": root in _VERIFIED_TRANSITIVE,
+                "freq": freq,
+                "transitive": transitive,
+                "dcs_root": matched["slp1"] if matched else None,
             }
         )
 
