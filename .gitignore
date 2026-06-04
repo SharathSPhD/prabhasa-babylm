@@ -75,3 +75,6 @@ paper/*.synctex.gz
 # OS
 .DS_Store
 ._*
+
+paper/*.fls
+paper/*.fdb_latexmk
