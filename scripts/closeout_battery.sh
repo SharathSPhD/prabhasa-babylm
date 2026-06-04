@@ -58,6 +58,21 @@ done
 echo "[closeout] H1 analysis"
 "$PY" scripts/analyze_h1.py >"$LOG/analyze_h1.log" 2>&1 || echo "[closeout] analyze_h1 had non-zero exit"
 
+# Leaderboard submission model: train with ADR-0038 levers at max budget, then eval.
+# Off the ablation path; only runs if not already present. Set TRAIN_SUBMISSION=0 to skip.
+if [ "${TRAIN_SUBMISSION:-1}" = "1" ] && [ ! -f "data/checkpoints/submission/elc.pt" ]; then
+  echo "[closeout] TRAIN submission model (Muon + decaying mask + progressive seq-len)"
+  "$PY" scripts/train_submission_model.py --require-cuda \
+    --dose-arms A B C D --english-epochs "${SUBMISSION_EPOCHS:-40}" \
+    >"$LOG/train_submission.log" 2>&1 || echo "[closeout] submission train FAILED"
+  if [ -f "data/checkpoints/submission/elc.pt" ]; then
+    "$PY" scripts/official_eval.py --ckpt data/checkpoints/submission/elc.pt \
+      --name submission >"$LOG/official_submission.log" 2>&1 || true
+    "$PY" scripts/eval_finetune.py --ckpt data/checkpoints/submission/elc.pt \
+      --name submission >"$LOG/glue_submission.log" 2>&1 || true
+  fi
+fi
+
 echo "[closeout] refresh paper figures + recompile"
 "$PY" paper/figures/make_figures.py >"$LOG/paper_figures.log" 2>&1 || true
 ( cd paper && latexmk -pdf -interaction=nonstopmode psalm.tex ) >"$LOG/paper_compile.log" 2>&1 || \
