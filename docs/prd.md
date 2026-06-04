@@ -112,6 +112,8 @@ Single GB10 (aarch64, sm_121). **U1 gate blocks GPU work** until stack verified
 | U3 | Dyck match recompute + Hu et al. ACL'25 ADR + arm-H alignment | 1 |
 | U4 | Paribhāṣā typed generator (strata 1–3) | 1 |
 | U6 | BabyLM eval pipeline + manifest + joint tokenizer | 1 |
+| U8 | Full official eval suite (Text-Average) + mandatory (Super)GLUE fine-tuning + AutoModel/MaskedLM export — ADR-0037 | 2 |
+| U9 | Leaderboard submission track + loss-parity-gated speedups (ablation preserved) — ADR-0038 | 3 |
 | U5 | Śabdabodha full Vyutpattivāda pipeline | 2 (after U2+U4) |
 | U7 | ELC-PSALM backbone (depends U6 tokenizer, U1 stack) | 2 |
 
@@ -126,6 +128,8 @@ Single GB10 (aarch64, sm_121). **U1 gate blocks GPU work** until stack verified
 | GB10 build failure | ADR waiver path; vanilla attention proxy only |
 | Arm ID collision | ADR-0021 namespaces |
 | BabyLM manifest error | U6 checker blocks submission |
+| Incomplete evaluation (missing GLUE / Text-Average tasks) | U8 requires the full official suite before a submission is valid — ADR-0037 |
+| Leaderboard levers confounding H1 | Levers live only on the submission track; arms A–D frozen — ADR-0038 |
 
 ## Out of scope
 

@@ -143,14 +143,30 @@ per ADR-0019 with per-rule failure logging. U5 Wave 2.
 
 | Suite | Track | Role |
 |---|---|---|
-| Official BabyLM pipeline | Competition | BLiMP, GLUE, EWoK, compositional (U6) |
+| Official BabyLM zero-shot (full) | Competition | BLiMP, BLiMP-supplement, EWoK (full), Entity Tracking, WUG adj-nom, WUG past-tense, COMPS (U6) |
+| Official BabyLM reading | Competition | Surprisal predictions; leaderboard human-RT correlation |
+| Official (Super)GLUE fine-tuning | Competition (mandatory) | BoolQ, MultiRC, RTE, WSC, MRPC, QQP, MNLI |
 | COGS / SCAN | Research secondary | Historical H1 venue; not go/no-go |
 | Sanskrit competence | Research | Morphology, sandhi, kāraka |
 | EWoK + BLiMP (argument-structure subsets) | H1′ primary candidates | Paribhāṣā vs Dyck |
 | Śabdabodha graph consistency | H1′ / L2 | Parse ↔ graph round-trip metrics |
 | H2 Nyāya / H3 kernel | Phase 4–5 | Per phase YAML |
 
+The leaderboard ranks by **Text Average** (macro mean over the zero-shot accuracy tasks)
+plus the mandatory (Super)GLUE column. All competition numbers come from the vendored
+official pipeline only (ADR-0037). Drivers: `scripts/official_eval.py` (zero-shot + reading)
+and `scripts/eval_finetune.py` ((Super)GLUE). HF export must register `AutoModel` (base,
+`last_hidden_state`) **and** `AutoModelForMaskedLM` in `auto_map` (ADR-0037).
+
 Pseudo-log-likelihood output required for BabyLM classifier models (ELC-PSALM).
+
+### 7.1 Tracks: H1 ablation vs leaderboard submission (ADR-0038)
+
+- **H1 ablation track** (arms A–D, ADR-0036): FROZEN, budget-matched, no leaderboard levers.
+- **Leaderboard submission track**: a separate best-effort model that may adopt optional,
+  ablation-orthogonal levers (adaptive/decaying masking, frequency-informed masking, Muon,
+  progressive seq-len, 50:50 causal:masked, sub-token embeddings) and loss-parity-gated
+  training speedups, trained at max budget and reported through the full official suite.
 
 ## 8. Pre-registered go/no-go registry
 
@@ -161,7 +177,7 @@ Pseudo-log-likelihood output required for BabyLM classifier models (ELC-PSALM).
 | H2 synergy | ADR-0006 | Open |
 | H3 fluency cost | Phase 5 prereg | Open |
 | C-S2 efficiency | Crystallization charter | N ≥ 3 at Milestone 2 |
-| BabyLM submission | Competition checklist | Manifest + official eval pass |
+| BabyLM submission | Competition checklist | Manifest + full official suite (Text-Average + mandatory GLUE) pass — ADR-0037/0038 |
 
 Changing thresholds → superseding ADR.
 

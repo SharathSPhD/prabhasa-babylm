@@ -6,6 +6,7 @@ let later phases build on earlier findings.
 
 | Layer | Where | Purpose | Lifetime |
 |---|---|---|---|
+| Orchestrator state | `docs/memory/ORCHESTRATOR-STATE.md` | Canonical worktree map, done/pending, checkpoints, coordination protocol | Updated at every milestone |
 | Always-on guidance | `CLAUDE.md` / `AGENTS.md` | Rules every agent must follow | Whole program |
 | Semantic code memory | `.serena/memories/` (Serena MCP) | Code structure, where things live | Whole program |
 | Decision log (ADRs) | `docs/decisions/` | Why a choice was made, alternatives | Whole program |
@@ -44,3 +45,11 @@ uv sync --extra memory
 A `ChromaKnowledgeStore` adapter implementing the same interface lives behind the
 `memory` extra so callers do not change. Until embeddings are needed, SQLite is
 the source of truth and is fully test-covered.
+
+## Keeping memory current
+
+Run `python scripts/seed_memory_state.py` (CPU-only, idempotent) to (re)populate the
+experiment ledger (`outputs/experiment-ledger.sqlite`) and knowledge store
+(`outputs/knowledge-store.sqlite`) with the current program state. The narrative,
+worktree map, and done/pending matrix live in `ORCHESTRATOR-STATE.md`, which the
+orchestrator updates at every milestone.
