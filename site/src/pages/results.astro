@@ -1,0 +1,79 @@
+---
+import Base from "../layouts/Base.astro";
+const base = import.meta.env.BASE_URL;
+---
+
+<Base title="PSALM — Results">
+  <section>
+    <h2>What we can say so far</h2>
+    <p class="note">
+      The full battery runs three seeds per arm on a single accelerator and takes
+      roughly two and a half days. The numbers below are the first completed seed;
+      this page is regenerated with three-seed means, confidence intervals, and the
+      full Text-Average suite the moment the battery closes. Single-seed gaps of a
+      few tenths of a point are within run-to-run noise and carry no claim.
+    </p>
+  </section>
+
+  <section>
+    <h2>BLiMP by dose arm (seed 0)</h2>
+    <p>
+      On English syntactic minimal pairs, scored by pseudo-log-likelihood, the four
+      token-matched arms sit within a six-tenths-of-a-point band. The English-dose
+      control leads, and no structural dose separates from the matched Dyck control —
+      the same shape we saw at proxy scale, now under a fixed public budget.
+    </p>
+    <table>
+      <thead><tr><th>Arm</th><th>Dose</th><th>BLiMP-PLL (seed 0)</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>English (control)</td><td>0.6415</td></tr>
+        <tr><td>B</td><td>Pāṇinian</td><td>0.6354</td></tr>
+        <tr><td>C</td><td>Dyck (control)</td><td>0.6385</td></tr>
+        <tr><td>D</td><td>Paribhāṣā</td><td>0.6377</td></tr>
+      </tbody>
+    </table>
+    <figure>
+      <img src={`${base}/figures/fig_blimp_by_arm.png`} alt="BLiMP-PLL accuracy by dose arm" />
+      <figcaption>BLiMP-PLL accuracy by dose arm (seed 0). Error bars and the remaining seeds are filled at close-out.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>A side observation: the easiest dose to fit</h2>
+    <p>
+      The Paribhāṣā dose reaches a much lower stage-one training loss than the other
+      arms, because a typed semantic graph language is far lower in entropy than
+      natural text. That ease of fitting does not translate into a downstream
+      advantage on BLiMP — a useful reminder that loss on the prior and competence
+      on the target are different things.
+    </p>
+    <figure>
+      <img src={`${base}/figures/fig_doseloss_by_arm.png`} alt="Stage-one best loss by dose arm" />
+      <figcaption>Best stage-one training loss by dose arm (seed 0).</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>The proxy-scale precedent</h2>
+    <p>
+      Before the from-scratch battery, an earlier proxy study on a compositional
+      argument-role venue reached a clean controlled negative: the Pāṇinian prior
+      conferred no measurable advantage over a surface-matched Dyck control on
+      either final accuracy or sample efficiency. We read that as venue saturation —
+      the unprimed baseline already composes — rather than a universal verdict, which
+      is exactly why the question is being re-asked here on the official suite.
+    </p>
+  </section>
+
+  <section>
+    <h2>Coming at close-out</h2>
+    <p>
+      Three-seed BLiMP with bootstrap intervals and Holm–Bonferroni-corrected paired
+      contrasts; the full Text-Average suite including EWoK, entity tracking, the WUG
+      morphology probes, and COMPS; reading-time surprisal predictions; the
+      (Super)GLUE average from the official fine-tuner; and the leaderboard-submission
+      model's operating points. The same verified findings feed both this page and the
+      paper, so what you see here is never a projection.
+    </p>
+  </section>
+</Base>

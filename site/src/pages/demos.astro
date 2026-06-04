@@ -1,0 +1,53 @@
+---
+import Base from "../layouts/Base.astro";
+const repo = "https://github.com/SharathSPhD/PSALM";
+const colab = "https://colab.research.google.com/github/SharathSPhD/PSALM/blob/main/notebooks";
+---
+
+<Base title="PSALM — Demos">
+  <section>
+    <h2>Run it yourself</h2>
+    <p>
+      Each notebook opens directly in Google Colab from the repository and runs end
+      to end on a free GPU. They load the published model from Hugging Face, so there
+      is nothing to train and nothing to download by hand.
+    </p>
+  </section>
+
+  <section>
+    <h2>Notebooks</h2>
+    <div class="cards">
+      <div class="card">
+        <span class="badge">colab</span>
+        <h3>Minimal-pair scoring</h3>
+        <p>Load an ELC-PSALM arm and score BLiMP-style minimal pairs by
+        pseudo-log-likelihood — watch the model prefer the grammatical sentence.</p>
+        <p><a href={`${colab}/01_minimal_pairs.ipynb`}>Open in Colab →</a></p>
+      </div>
+      <div class="card">
+        <span class="badge">colab</span>
+        <h3>Śabdabodha pipeline</h3>
+        <p>Turn a Sanskrit sentence into its typed Navya-Nyāya semantic graph and
+        linearized Paribhāṣā string, the same dose that feeds arm D.</p>
+        <p><a href={`${colab}/02_shabdabodha_pipeline.ipynb`}>Open in Colab →</a></p>
+      </div>
+      <div class="card">
+        <span class="badge">colab</span>
+        <h3>Reproduce a result</h3>
+        <p>Re-run the official zero-shot read-off on a published checkpoint and
+        reproduce a number from the results page.</p>
+        <p><a href={`${colab}/03_reproduce_eval.ipynb`}>Open in Colab →</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>From the command line</h2>
+    <p>
+      Everything the notebooks do is also a one-line script in the
+      <a href={repo}>repository</a>: corpus assembly, tokenizer training, the
+      two-stage curriculum, the official evaluation suite, and the leaderboard
+      submission trainer. The README links each notebook with an open-in-Colab badge.
+    </p>
+  </section>
+</Base>
