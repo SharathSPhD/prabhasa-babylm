@@ -46,11 +46,19 @@ completion, merge, push).
 ## LIVE runs (do not interrupt)
 
 - H1 battery: `scripts/run_strict_small_battery.py --arms ABCD --seeds 0,1,2`
-  - Orchestrator PID 1022788; recipe: dose 4 ep, English 30 ep, batch 256, seq 128,
-    peak LR 1e-3, dropout 0.1, MLM prob 0.3, full BLiMP scoring (`--per-paradigm 0`).
-  - Progress as of 2026-06-04: arm A seed 0 (reused recipe_v2), arm B seed 0 done,
-    **arm C seed 0 training** (~58 GB GPU). Seed-major order; resumable.
+  - recipe: dose 4 ep, English 30 ep, batch 256, seq 128, peak LR 1e-3, dropout 0.1,
+    MLM prob 0.3, full BLiMP scoring. ~408 min train + ~20 min BLiMP per trained run.
+  - Progress as of 2026-06-04 21:14: **seed 0 complete for all four arms**
+    (A reused; B/C/D trained). BLiMP-PLL A=0.6415, B=0.6354, C=0.6385, D=0.6377;
+    stage-1 best_loss D=0.90 (vs ~1.4 others). **Run 5/12 = arm A seed 1 training.**
+  - Remaining: 8 trained runs (seeds 1-2) ≈ 57h; ETA ≈ 2026-06-07.
   - Out dir: `data/checkpoints/strict_small/`.
+
+- Detached close-out watcher: `scripts/await_battery_and_closeout.sh` (nohup, survives
+  this session). Polls every 10 min; when the battery finishes and the GPU frees it runs
+  `scripts/closeout_battery.sh` = battery-wide official eval + (Super)GLUE on every
+  checkpoint, H1 analysis, leaderboard submission-model train+eval, paper-figure refresh
+  + recompile, memory reseed, project-record rebuild. Log: `logs/closeout/`.
 
 ## Done / pending matrix
 
@@ -80,28 +88,43 @@ Done (this plan, 2026-06-04 milestone):
   deferred until the battery completes.
 - `scripts/build_project_record.py` -> `docs/reports/PSALM-project-record-<ISO8601>.html`.
 
-Pending:
-- Post-battery: full battery-wide H1 analysis (paired bootstrap/permutation + Holm–Bonferroni)
-  + official Text-Average suite + (Super)GLUE on all arm checkpoints (GPU; deferred to avoid
-  contending with the live battery).
-- FF-merge worktrees to integration; verify remote and push at the milestone.
-- Leaderboard submission model with parity-gated speedups + optional levers (ADR-0038).
+Done (dissemination + leaderboard milestone, 2026-06-04 21:xx):
+- Closure promise `docs/contracts/leaderboard-closure-promise-2026-06.md`; detached
+  watcher + close-out automation (eval/GLUE/analysis/submission/paper/record).
+- Consolidation report copied to `docs/research/` + reconciliation note (Gaps 1-7 closed).
+- ADR-0038 levers as isolated module `leaderboard_levers.py` (Muon, decaying +
+  freq-informed masking, progressive seq-len) + `scripts/train_submission_model.py`;
+  7 CPU unit tests pass; ablation path untouched.
+- Paper extended: BabyLM Strict-Small section, 2 TikZ flowcharts, real seed-0 tables +
+  figures, 10 verified BibTeX entries; compiles to 6pp (0 bibtex warnings).
+- Astro site expanded to 5 multi-stakeholder pages (overview/method/results/models/demos);
+  builds clean via `pages.yml`.
+- 3 Colab notebooks + open-in-Colab badges in README.
+- HF uploader `scripts/upload_hf_collection.py` (model+dataset cards; dry-run validated;
+  `--push` to upload under `qbz506`).
+
+Pending (GPU-deferred, automated by the watcher):
+- Battery-wide official Text-Average suite + (Super)GLUE on all arm checkpoints; full H1
+  analysis (paired bootstrap/permutation + Holm–Bonferroni).
+- Leaderboard submission-model train (Muon + levers, 40 EN epochs) + full eval.
+- Inject final numbers into paper/site/HF; FF-merge worktrees; push; final closure sign-off.
 
 ## Checkpoint inventory (`data/checkpoints/`)
 
 - `recipe_v2/arm_A_seed_0/` — tuned recipe; steps 12777, tokens 4.19e8, best_loss 1.432,
   BLiMP-PLL 0.6415 (`blimp_full.json`). Reused as battery arm A seed 0.
-- `strict_small/arm_A_seed_0/` — battery arm A (points to recipe_v2 ckpt).
-- `strict_small/arm_B_seed_0/` — battery arm B seed 0; BLiMP-PLL 0.6354.
-- `strict_small/arm_C_seed_0/` — IN PROGRESS.
+- `strict_small/arm_A_seed_0/` — battery arm A (points to recipe_v2 ckpt); BLiMP-PLL 0.6415.
+- `strict_small/arm_B_seed_0/` — arm B seed 0; BLiMP-PLL 0.6354.
+- `strict_small/arm_C_seed_0/` — arm C seed 0; BLiMP-PLL 0.6385.
+- `strict_small/arm_D_seed_0/` — arm D seed 0; BLiMP-PLL 0.6377; best_loss 0.90.
+- `strict_small/arm_{A,B,C,D}_seed_{1,2}/` — pending (battery in progress).
+- `submission/` — leaderboard submission model (produced at close-out).
 - `probe_full/`, `timing/`, `smoke/`, `smoke2/` — earlier probes/benchmarks (non-canonical).
 
-## Uncommitted work needing a commit (orchestration debt)
+## Commit state
 
-Modified: `src/psalm/infrastructure/ml/{elc_psalm.py,elc_trainer.py,hf_export.py}`,
-`tests/unit/test_elc_psalm.py`.
-Untracked: `scripts/{analyze_h1.py,bench_elc_throughput.py,eval_blimp_pll.py,export_hf_model.py,official_eval.py,run_babylm_strict_small.py,run_strict_small_battery.py}`,
-`data/hf_export/`, `logs/`.
-
-Action: commit at the next safe milestone (does not affect the running battery process,
-which already holds its code in memory).
+All orchestration work is committed on `integration/data-engine-v2` (levers, closure
+automation, reconciliation, paper, site, notebooks, HF uploader). The running battery
+holds its code in memory; new modules are additive and isolated from the ablation path,
+so seed-1/2 subprocesses are unaffected. Worktree FF-merges + final push happen at the
+post-battery close-out milestone.
