@@ -1,0 +1,16 @@
+battery: 12 runs = arms ['A', 'B', 'C', 'D'] x seeds [0, 1, 2] (seed-major)
+[1/12] arm A seed 0: checkpoint exists, skip train
+[1/12] arm A seed 0: blimp exists, skip eval
+[2/12] arm B seed 0: TRAIN
+[2/12] arm B seed 0: trained in 408.4min
+[2/12] arm B seed 0: EVAL BLiMP
+[2/12] arm B seed 0: BLiMP=0.6354 (20.3min)
+[3/12] arm C seed 0: TRAIN
+[3/12] arm C seed 0: trained in 408.7min
+[3/12] arm C seed 0: EVAL BLiMP
+[3/12] arm C seed 0: BLiMP=0.6385 (20.4min)
+[4/12] arm D seed 0: TRAIN
+[4/12] arm D seed 0: trained in 408.5min
+[4/12] arm D seed 0: EVAL BLiMP
+[4/12] arm D seed 0: BLiMP=0.6377 (20.3min)
+[5/12] arm A seed 1: TRAIN
