@@ -43,17 +43,23 @@ import Base from "../layouts/Base.astro";
   <section>
     <h2>Results</h2>
     <p>
-      Results, figures, and tables are published here as each phase closes. This
-      site is generated from the same findings that feed the paper, so the numbers
-      shown are always the verified, signed-off ones — never projections.
+      Results, figures, and tables are published as each phase closes, generated
+      from the same findings that feed the paper, so the numbers shown are always
+      the verified ones — never projections. The current cut shows four
+      token-matched dose arms within a narrow band on BLiMP, consistent with a
+      controlled negative; see the <a href={`${import.meta.env.BASE_URL}/results/`}>results</a>
+      page for the live table and the <a href={`${import.meta.env.BASE_URL}/method/`}>method</a>
+      for how the test is constructed.
     </p>
   </section>
 
   <section>
     <h2>Try it</h2>
     <p>
-      Run-from-GitHub Colab notebooks and Hugging Face Space demos will be linked
-      here so anyone can reproduce a result or talk to a model directly.
+      Run-from-GitHub <a href={`${import.meta.env.BASE_URL}/demos/`}>Colab notebooks</a>
+      open directly on a free GPU and load the published
+      <a href={`${import.meta.env.BASE_URL}/models/`}>models and data</a>, so anyone
+      can reproduce a result or run the Śabdabodha pipeline on a Sanskrit sentence.
     </p>
   </section>
 </Base>

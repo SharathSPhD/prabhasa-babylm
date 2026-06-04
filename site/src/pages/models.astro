@@ -1,0 +1,76 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="PSALM — Models & Data">
+  <section>
+    <h2>The collection</h2>
+    <p>
+      Everything the project produces — trained checkpoints, the tokenizer, the
+      synthetic structural corpora, and the corpus manifests that make the budget
+      auditable — is published openly under the
+      <a href="https://huggingface.co/qbz506">qbz506</a> namespace on Hugging Face,
+      under the MIT license for code and the source licenses for each corpus.
+    </p>
+  </section>
+
+  <section>
+    <h2>Models</h2>
+    <div class="cards">
+      <div class="card">
+        <span class="badge">model</span>
+        <h3>ELC-PSALM-S (ablation arms)</h3>
+        <p>The four token-matched dose arms (English, Pāṇinian, Dyck, Paribhāṣā),
+        each exported in Hugging Face format with both a masked-LM head and a base
+        encoder so the official fine-tuner can load them directly.</p>
+      </div>
+      <div class="card">
+        <span class="badge">model</span>
+        <h3>ELC-PSALM-S (submission)</h3>
+        <p>The leaderboard-track model trained with the data-efficiency levers, kept
+        separate from the ablation. Published once the GPU frees and the run
+        completes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Datasets</h2>
+    <div class="cards">
+      <div class="card">
+        <span class="badge">dataset</span>
+        <h3>Pāṇinian synthetic Sanskrit</h3>
+        <p>Generated forms with full sūtra-by-sūtra derivations and gold kāraka
+        structure from the Vidyut engine.</p>
+      </div>
+      <div class="card">
+        <span class="badge">dataset</span>
+        <h3>Paribhāṣā graphs</h3>
+        <p>Linearized Navya-Nyāya Śabdabodha graphs paired with their source
+        sentences, produced by the deterministic Vyutpattivāda pipeline.</p>
+      </div>
+      <div class="card">
+        <span class="badge">dataset</span>
+        <h3>k-Shuffle Dyck control</h3>
+        <p>A semantics-free hierarchical control matched to the Pāṇinian stream's
+        surface statistics.</p>
+      </div>
+      <div class="card">
+        <span class="badge">manifest</span>
+        <h3>Corpus manifests</h3>
+        <p>Per-source word and token counts with SHA-256 hashes and epoch exposure,
+        so the ten-million-word budget is fully auditable.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reproducing the budget</h2>
+    <p>
+      The Strict-Small arms are frozen in a machine-readable manifest: each dose is
+      trimmed to an identical token budget over a shared English base, with hashes
+      that let anyone confirm the exact bytes a model saw. The manifest is part of
+      the repository and is mirrored alongside the datasets.
+    </p>
+  </section>
+</Base>
