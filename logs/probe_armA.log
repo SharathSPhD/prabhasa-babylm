@@ -1,0 +1,27 @@
+CUDA: NVIDIA GB10 | torch 2.12.0+cu130
+arm A seed 0: dose_tok=1498229 base_tok=13757590 | stage1=182 stage2=4198 total=4380 warmup=262 | batch=256 seq=128 peak_lr=0.001
+  step 50/182 loss=6.7549 0.52 step/s eta=4.2min
+  step 100/182 loss=6.5185 0.53 step/s eta=2.6min
+  step 150/182 loss=6.0473 0.53 step/s eta=1.0min
+  step 382/4380 loss=6.3743 0.53 step/s eta=125.6min
+  step 582/4380 loss=6.0093 0.53 step/s eta=119.3min
+  step 782/4380 loss=6.9830 0.53 step/s eta=112.9min
+  step 982/4380 loss=4.9965 0.53 step/s eta=106.6min
+  step 1182/4380 loss=3.0315 0.53 step/s eta=100.2min
+  step 1382/4380 loss=4.7423 0.53 step/s eta=94.0min
+  step 1582/4380 loss=3.9830 0.53 step/s eta=87.7min
+  step 1782/4380 loss=5.3517 0.53 step/s eta=81.4min
+  step 1982/4380 loss=5.0291 0.53 step/s eta=75.1min
+  step 2182/4380 loss=5.8700 0.53 step/s eta=68.8min
+  step 2382/4380 loss=5.5950 0.53 step/s eta=62.6min
+  step 2582/4380 loss=3.2692 0.53 step/s eta=56.3min
+  step 2782/4380 loss=4.6280 0.53 step/s eta=50.0min
+  step 2982/4380 loss=2.9728 0.53 step/s eta=43.8min
+  step 3182/4380 loss=4.5822 0.53 step/s eta=37.5min
+  step 3382/4380 loss=3.8024 0.53 step/s eta=31.3min
+  step 3582/4380 loss=5.2000 0.53 step/s eta=25.0min
+  step 3782/4380 loss=4.6443 0.53 step/s eta=18.7min
+  step 3982/4380 loss=5.8660 0.53 step/s eta=12.5min
+  step 4182/4380 loss=5.5337 0.53 step/s eta=6.2min
+DONE arm A seed 0: steps=4380 tokens=143523840 final_loss=3.0912 best_loss=2.6468 wall=137.2min -> data/checkpoints/probe_full/arm_A_seed_0/elc.pt
+smoke PLL acc (4 pairs, NOT evidence): 0.250

@@ -1,0 +1,137 @@
+adjunct_island                             0.385  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 47936.00 examples/s]
+anaphor_gender_agreement                   0.345  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 455259.31 examples/s]
+anaphor_number_agreement                   0.560  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 479842.58 examples/s]
+animate_subject_passive                    0.510  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 408204.77 examples/s]
+animate_subject_trans                      0.680  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 473986.21 examples/s]
+causative                                  0.430  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 442437.13 examples/s]
+complex_NP_island                          0.565  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 400334.45 examples/s]
+coordinate_structure_constraint_complex_left_branch 0.680  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 343908.17 examples/s]
+coordinate_structure_constraint_object_extraction 0.595  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 483604.75 examples/s]
+determiner_noun_agreement_1                0.540  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 530521.63 examples/s]
+determiner_noun_agreement_2                0.515  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 364753.80 examples/s]
+determiner_noun_agreement_irregular_1      0.535  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 472331.53 examples/s]
+determiner_noun_agreement_irregular_2      0.545  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 453095.39 examples/s]
+determiner_noun_agreement_with_adj_2       0.510  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 512312.69 examples/s]
+determiner_noun_agreement_with_adj_irregular_1 0.570  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 491481.60 examples/s]
+determiner_noun_agreement_with_adj_irregular_2 0.565  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 454076.43 examples/s]
+determiner_noun_agreement_with_adjective_1 0.470  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 532069.52 examples/s]
+distractor_agreement_relational_noun       0.470  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 462743.16 examples/s]
+distractor_agreement_relative_clause       0.495  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 468009.82 examples/s]
+drop_argument                              0.665  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 454716.39 examples/s]
+ellipsis_n_bar_1                           0.475  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 420481.60 examples/s]
+ellipsis_n_bar_2                           0.235  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 539876.95 examples/s]
+existential_there_object_raising           0.670  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 558198.56 examples/s]
+existential_there_quantifiers_1            0.660  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 411448.30 examples/s]
+existential_there_quantifiers_2            0.500  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 517623.60 examples/s]
+existential_there_subject_raising          0.560  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 499500.30 examples/s]
+expletive_it_object_raising                0.610  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 490332.48 examples/s]
+inchoative                                 0.325  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 450419.24 examples/s]
+intransitive                               0.505  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 432402.47 examples/s]
+irregular_past_participle_adjectives       0.395  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 469004.14 examples/s]
+irregular_past_participle_verbs            0.770  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 454470.04 examples/s]
+irregular_plural_subject_verb_agreement_1  0.495  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 441552.16 examples/s]
+irregular_plural_subject_verb_agreement_2  0.530  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 350518.47 examples/s]
+left_branch_island_echo_question           0.880  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 462641.08 examples/s]
+left_branch_island_simple_question         0.650  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 458895.40 examples/s]
+matrix_question_npi_licensor_present       0.085  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 489359.93 examples/s]
+npi_present_1                              0.340  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 451729.03 examples/s]
+npi_present_2                              0.290  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 474361.46 examples/s]
+only_npi_licensor_present                  0.790  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 446345.00 examples/s]
+only_npi_scope                             0.385  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 399001.52 examples/s]
+passive_1                                  0.640  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 543092.58 examples/s]
+passive_2                                  0.700  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 457394.11 examples/s]
+principle_A_c_command                      0.475  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 342392.16 examples/s]
+principle_A_case_1                         1.000  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 405560.24 examples/s]
+principle_A_case_2                         0.360  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 461470.35 examples/s]
+principle_A_domain_1                       1.000  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 345124.99 examples/s]
+principle_A_domain_2                       0.545  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 474791.03 examples/s]
+principle_A_domain_3                       0.570  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 461165.92 examples/s]
+principle_A_reconstruction                 0.580  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 439332.15 examples/s]
+regular_plural_subject_verb_agreement_1    0.480  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 431512.76 examples/s]
+regular_plural_subject_verb_agreement_2    0.485  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 437316.65 examples/s]
+sentential_negation_npi_licensor_present   1.000  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 443325.65 examples/s]
+sentential_negation_npi_scope              0.445  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 442997.89 examples/s]
+sentential_subject_island                  0.490  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 435048.65 examples/s]
+superlative_quantifiers_1                  0.480  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 357875.77 examples/s]
+superlative_quantifiers_2                  0.630  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 428383.62 examples/s]
+tough_vs_raising_1                         0.390  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 462437.05 examples/s]
+tough_vs_raising_2                         0.690  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 451000.43 examples/s]
+transitive                                 0.550  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 470529.95 examples/s]
+wh_island                                  0.815  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 423538.73 examples/s]
+wh_questions_object_gap                    0.960  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 367921.40 examples/s]
+wh_questions_subject_gap                   0.955  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 477330.60 examples/s]
+wh_questions_subject_gap_long_distance     0.980  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 437499.11 examples/s]
+wh_vs_that_no_gap                          0.995  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 441319.87 examples/s]
+wh_vs_that_no_gap_long_distance            1.000  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 423154.16 examples/s]
+wh_vs_that_with_gap                        0.010  (n=200)
+Generating train split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1000/1000 [00:00<00:00, 372198.42 examples/s]
+wh_vs_that_with_gap_long_distance          0.000  (n=200)
+
+OVERALL BLiMP (PLL): 0.5672  over 13400 pairs
+per-field: {'syntax': 0.603, 'morphology': 0.515, 'syntax_semantics': 0.609, 'semantics': 0.531, 'syntax/semantics': 0.36}
+wrote data/checkpoints/probe_full/arm_A_seed_0/blimp_pll.json

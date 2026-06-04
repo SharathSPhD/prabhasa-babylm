@@ -1,0 +1,10 @@
+CUDA: NVIDIA GB10 | torch 2.12.0+cu130
+arm A seed 1: dose_tok=1498229 base_tok=13757590 | stage1=182 stage2=12595 total=12777 warmup=766 | batch=256 seq=128 peak_lr=0.001
+  step 50/182 loss=7.8727 ema=9.1612 lr=6.53e-05 0.51 step/s eta=4.3min
+  step 100/182 loss=5.9729 ema=7.8537 lr=1.31e-04 0.52 step/s eta=2.6min
+  step 150/182 loss=5.6078 ema=7.1356 lr=1.96e-04 0.52 step/s eta=1.0min
+  step 382/12777 loss=6.3901 ema=5.9906 lr=4.99e-04 0.52 step/s eta=396.0min
+  step 582/12777 loss=5.9249 ema=6.2832 lr=7.60e-04 0.52 step/s eta=389.8min
+  step 782/12777 loss=6.8614 ema=4.5663 lr=1.00e-03 0.52 step/s eta=383.4min
+  step 982/12777 loss=4.9429 ema=5.6142 lr=9.99e-04 0.52 step/s eta=377.0min
+  step 1182/12777 loss=2.9244 ema=4.0358 lr=9.97e-04 0.52 step/s eta=370.7min
