@@ -58,6 +58,11 @@ done
 echo "[closeout] H1 analysis"
 "$PY" scripts/analyze_h1.py >"$LOG/analyze_h1.log" 2>&1 || echo "[closeout] analyze_h1 had non-zero exit"
 
+echo "[closeout] refresh paper figures + recompile"
+"$PY" paper/figures/make_figures.py >"$LOG/paper_figures.log" 2>&1 || true
+( cd paper && latexmk -pdf -interaction=nonstopmode psalm.tex ) >"$LOG/paper_compile.log" 2>&1 || \
+  echo "[closeout] paper compile had non-zero exit"
+
 echo "[closeout] refresh memory + project record"
 "$PY" scripts/seed_memory_state.py >"$LOG/seed_memory.log" 2>&1 || true
 "$PY" scripts/build_project_record.py >"$LOG/project_record.log" 2>&1 || true

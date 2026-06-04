@@ -10,7 +10,24 @@
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{url}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
 \usepackage[hidelinks]{hyperref}
+% TinyTeX lacks the Courier (pcr) TFMs IEEEtran requests; use Computer Modern
+% Typewriter for \texttt/\url so the manuscript compiles on a minimal TeX Live.
+\renewcommand{\ttdefault}{cmtt}
+
+% Shared TikZ styles for the curriculum and pipeline diagrams.
+\tikzset{
+  stage/.style={rectangle, rounded corners=2pt, draw=black!70, fill=blue!6,
+    minimum height=8mm, minimum width=22mm, align=center, font=\small},
+  prior/.style={rectangle, rounded corners=2pt, draw=black!70, fill=green!8,
+    minimum height=8mm, minimum width=22mm, align=center, font=\small},
+  evalbox/.style={rectangle, rounded corners=2pt, draw=black!70, fill=orange!10,
+    minimum height=8mm, minimum width=22mm, align=center, font=\small},
+  flow/.style={-{Stealth[length=2mm]}, thick, draw=black!75},
+}
 
 \begin{document}
 
@@ -35,7 +52,14 @@ more sample-efficient to install on a grammar-structured base (H2); and that an
 epistemic constraint kernel enforces validity by construction at inference (H3).
 All experiments run on a single accelerator at fixed token budgets. We report
 results with explicit uncertainty and matched ablations, and we are deliberate
-about what the approach does not claim. % Results sentence is filled at closure.
+about what the approach does not claim. At proxy scale on a compositional
+argument-role venue the P\=a\d{n}inian prior confers no measurable advantage over
+a surface-matched control, a clean controlled negative that we interpret as venue
+saturation rather than universal absence of benefit; we then re-test the question
+from scratch under the BabyLM Strict-Small protocol with four token-matched dose
+arms evaluated on the official pseudo-log-likelihood suite, and we separate the
+budget-controlled scientific comparison from a leaderboard-submission track that
+layers data-efficiency mechanisms studied independently.
 \end{abstract}
 
 \section{Introduction}
@@ -174,6 +198,180 @@ supported by the calibration sweep, is that the downstream data alone is
 sufficient for argument-role composition at this scale---the baseline already
 composes---so the prior has little room to add value on this particular
 capability.
+
+\section{From-Scratch BabyLM Strict-Small Study}
+The proxy-scale negative motivated a clean re-test under a standard, externally
+defined protocol where the evaluation is not of our choosing and the budget is
+fixed by rule rather than by us. We adopt the BabyLM Strict-Small
+setting~\cite{warstadt2023babylm}, in which all text a model sees during
+pretraining counts against a ten-million-word budget regardless of language or
+source, and we rebuild the experiment from scratch so that the only quantity that
+varies between conditions is the \emph{type} of structural dose administered before
+a shared English pretraining phase. This design converts the prior-versus-control
+question into a within-budget, architecture-matched, seed-replicated comparison on
+the official pseudo-log-likelihood suite~\cite{salazar2020mlmscoring}, eliminating
+the venue-saturation confound that limited the proxy study.
+
+\subsection{Architecture and objective}
+The backbone is ELC-PSALM-S, a small bidirectional encoder in the ``every layer
+counts'' family~\cite{charpentier2023elcbert,samuel2023ltgbert} whose layer-routing
+combiner lets each layer read a learned mixture of all lower layers, an inductive
+bias that has proven strong in the data-limited regime. Following the observation
+that a single network can be trained jointly as a masked and a causal language
+model~\cite{charpentier2024gptbert,devlin2019bert}, training alternates a
+masked-language objective and a causal objective on a shared parameter set, which
+we found absorbs structural priors more readily than masked modelling alone.
+Minimal pairs are scored by the Salazar pseudo-log-likelihood, summing the
+log-probability of each token in turn under bidirectional context, so that BLiMP
+and its supplement, EWoK, entity tracking, the WUG morphology probes, and COMPS are
+all read off the same model without task-specific heads; the (Super)GLUE tasks are
+read with a lightweight classifier fine-tune over the frozen-then-adapted encoder.
+
+\subsection{Token-matched dose arms}
+Four arms share a single English pretraining corpus and differ only in the
+stage-one dose, which is trimmed to an identical token budget
+$T \approx 1.498\,\mathrm{M}$ so that every arm sees the same number of stage-two
+English steps and the same total compute. Arm~A doses on held-out English and is
+the control that isolates the effect of \emph{any} non-English structural prior;
+arm~B doses on P\=a\d{n}inian synthetic Sanskrit with gold k\=araka structure;
+arm~C doses on $k$-Shuffle Dyck, a semantics-free hierarchical control that matches
+arm~B's bracketing depth without grammatical content~\cite{papadimitriou2020music};
+and arm~D doses on linearised Navya-Ny\=aya Paribh\=a\d{s}\=a graphs produced by the
+\'Sabdabodha pipeline. The token-matched construction (Table~\ref{tab:arms})
+guarantees that the surface budget, not the dose, is held fixed; the arms differ in
+how many words and sequences that budget buys, because a Dyck bracket stream and a
+deeply nested Paribh\=a\d{s}\=a graph have very different token-per-word ratios.
+Figure~\ref{fig:curriculum} renders the two-stage curriculum and the read-off
+evaluation suite, and Figure~\ref{fig:shabdabodha} renders the deterministic
+sentence-to-graph pipeline that supplies arm~D's dose.
+
+\begin{table}[t]
+\centering
+\caption{Token-matched dose arms for the BabyLM Strict-Small battery. Every dose is
+trimmed to the same token budget $T$; the shared English base contributes
+$13.76\,\mathrm{M}$ tokens to every arm's stage two. Counts are frozen with
+per-source SHA-256 in the corpus manifest.}
+\label{tab:arms}
+\begin{tabular}{llrrr}
+\toprule
+Arm & Dose type & Sequences & Words & Tokens \\
+\midrule
+A & English (control) & $100{,}293$ & $999{,}906$ & $1{,}498{,}229$ \\
+B & P\=a\d{n}inian & $265{,}253$ & $695{,}006$ & $1{,}498{,}224$ \\
+C & Dyck ($k$-shuffle) & $41{,}008$ & $1{,}498{,}220$ & $1{,}498{,}220$ \\
+D & Paribh\=a\d{s}\=a & $20{,}581$ & $67{,}218$ & $1{,}498{,}163$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[node distance=6mm and 9mm]
+  \node[prior] (dose) {Stage 1 dose\\$T{\approx}1.5\mathrm{M}$ tok\\(A/B/C/D)};
+  \node[stage, right=of dose] (eng) {Stage 2\\English base\\$13.76\mathrm{M}$ tok};
+  \node[stage, right=of eng] (model) {ELC-PSALM-S\\MLM\,$+$\,CLM};
+  \node[evalbox, right=of model] (eval) {Official suite\\PLL read-off};
+  \draw[flow] (dose) -- (eng);
+  \draw[flow] (eng) -- (model);
+  \draw[flow] (model) -- (eval);
+  \begin{scope}[on background layer]
+    \node[draw=black!30, dashed, rounded corners, fit=(dose)(eng),
+      label=below:{one continuous warmup\,$+$\,cosine schedule}] {};
+  \end{scope}
+\end{tikzpicture}
+\caption{Two-stage token-matched curriculum. Arms share stage two and the optimiser
+trajectory; only the stage-one dose type differs, so any between-arm difference is
+attributable to dose content under a fixed budget.}
+\label{fig:curriculum}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[node distance=5mm and 7mm]
+  \node[stage] (sent) {Sanskrit\\sentence};
+  \node[stage, right=of sent] (vidyut) {Vidyut\\k\=araka parse};
+  \node[stage, right=of vidyut] (vyut) {Vyutpattiv\=ada\\rule engine};
+  \node[stage, right=of vyut] (graph) {\'Sabdabodha\\graph};
+  \node[prior, right=of graph] (str) {Paribh\=a\d{s}\=a\\string (dose D)};
+  \draw[flow] (sent) -- (vidyut);
+  \draw[flow] (vidyut) -- (vyut);
+  \draw[flow] (vyut) -- (graph);
+  \draw[flow] (graph) -- (str);
+\end{tikzpicture}
+\caption{The \'Sabdabodha pipeline. Every generated Sanskrit sentence maps
+deterministically, with no human annotation, to a typed semantic graph and its
+linearised string, which supplies arm~D's structural dose.}
+\label{fig:shabdabodha}
+\end{figure}
+
+\subsection{Preliminary single-seed result}
+Table~\ref{tab:ss-blimp} and Figure~\ref{fig:blimp} report the first completed seed
+of the battery on BLiMP under pseudo-log-likelihood scoring. At this single seed the
+four arms fall within a $0.6\,\mathrm{point}$ band: the English-dose control leads at
+$0.6415$, the Dyck and Paribh\=a\d{s}\=a doses follow at $0.6385$ and $0.6377$, and
+the P\=a\d{n}inian dose trails at $0.6354$. The pattern is consistent with the proxy
+study---no structural dose separates from the matched controls on syntactic minimal
+pairs---and we explicitly withhold any inferential claim until all three seeds and
+the full Text-Average suite, including EWoK and the morphology probes, are complete;
+single-seed differences of this magnitude are within run-to-run noise. A second,
+orthogonal observation is that the Paribh\=a\d{s}\=a dose reaches a markedly lower
+stage-one training loss ($0.90$ against $\approx 1.4$ for the other arms,
+Figure~\ref{fig:doseloss}), reflecting the lower entropy of its typed graph language
+rather than any downstream advantage. The complete three-seed table with bootstrap
+confidence intervals and Holm--Bonferroni-corrected paired contrasts is produced by
+the automated close-out once the battery finishes and replaces this preliminary cut.
+
+\begin{table}[t]
+\centering
+\caption{BabyLM Strict-Small BLiMP accuracy under pseudo-log-likelihood scoring,
+first completed seed (seed~0). Single-seed values; uncertainty and the full suite are
+reported at battery close-out.}
+\label{tab:ss-blimp}
+\begin{tabular}{lc}
+\toprule
+Arm & BLiMP-PLL (seed 0) \\
+\midrule
+A (English control) & $0.6415$ \\
+B (P\=a\d{n}inian) & $0.6354$ \\
+C (Dyck control) & $0.6385$ \\
+D (Paribh\=a\d{s}\=a) & $0.6377$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.66\linewidth]{figures/fig_blimp_by_arm.pdf}
+\caption{BLiMP-PLL accuracy by dose arm (seed~0; error bars and additional seeds are
+filled at close-out). The dashed line marks chance.}
+\label{fig:blimp}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.66\linewidth]{figures/fig_doseloss_by_arm.pdf}
+\caption{Best stage-one training loss by dose arm (seed~0). The Paribh\=a\d{s}\=a
+dose is the lowest-entropy stream and is fit most easily, which does not translate
+into a downstream BLiMP advantage.}
+\label{fig:doseloss}
+\end{figure}
+
+\subsection{Leaderboard-submission track}
+A scientific within-budget comparison and a competitive leaderboard entry have
+different objectives, and conflating them would let submission-only tuning
+contaminate the controlled contrast. We therefore separate a submission track that
+is free to layer data-efficiency mechanisms that the ablation arms deliberately omit:
+a decaying and frequency-informed masking schedule that begins dense and rare-token
+biased before relaxing toward the end of training; a progressive sequence-length
+schedule that spends early compute on short contexts; and the Muon
+optimiser~\cite{jordan2024muon}, which orthogonalises the momentum of hidden weight
+matrices by a Newton--Schulz iteration while the embeddings, normalisation
+parameters, and output head retain decoupled-weight-decay
+AdamW~\cite{loshchilov2019adamw}. These mechanisms are implemented behind a separate
+trainer and are never applied to arms A through D, so the ablation remains a fair
+test of dose content while the submission model targets the published Strict-Small
+operating points on BLiMP, (Super)GLUE~\cite{wang2019glue,wang2019superglue}, and
+EWoK~\cite{ivanova2024ewok}.
 
 \section{Discussion}
 The H1 negative is scoped, not universal: it concerns argument-role composition at
