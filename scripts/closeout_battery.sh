@@ -78,8 +78,26 @@ echo "[closeout] refresh paper figures + recompile"
 ( cd paper && latexmk -pdf -interaction=nonstopmode psalm.tex ) >"$LOG/paper_compile.log" 2>&1 || \
   echo "[closeout] paper compile had non-zero exit"
 
+echo "[closeout] export site results JSON + refresh site figures"
+"$PY" scripts/export_site_results.py >"$LOG/site_results.log" 2>&1 || true
+if command -v pdftoppm >/dev/null 2>&1; then
+  for f in fig_blimp_by_arm fig_doseloss_by_arm fig_textavg_by_arm; do
+    [ -f "paper/figures/$f.pdf" ] && pdftoppm -png -r 150 "paper/figures/$f.pdf" "site/public/figures/$f" >/dev/null 2>&1 && \
+      mv -f "site/public/figures/$f-1.png" "site/public/figures/$f.png" 2>/dev/null || true
+  done
+fi
+
 echo "[closeout] refresh memory + project record"
 "$PY" scripts/seed_memory_state.py >"$LOG/seed_memory.log" 2>&1 || true
 "$PY" scripts/build_project_record.py >"$LOG/project_record.log" 2>&1 || true
+
+# Publish the HF collection only when a token is present (never fails the close-out).
+if [ -n "${HF_TOKEN:-}" ] || [ "${PUSH_HF:-0}" = "1" ]; then
+  echo "[closeout] push HF collection"
+  "$PY" scripts/upload_hf_collection.py --push --include-submission \
+    >"$LOG/hf_upload.log" 2>&1 || echo "[closeout] HF upload had non-zero exit"
+else
+  echo "[closeout] HF push skipped (set HF_TOKEN or PUSH_HF=1 to enable)"
+fi
 
 echo "[closeout] done $(date -Is)"
