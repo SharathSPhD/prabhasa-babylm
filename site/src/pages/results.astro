@@ -1,6 +1,10 @@
 ---
 import Base from "../layouts/Base.astro";
+import results from "../data/results.json";
 const base = import.meta.env.BASE_URL;
+const fmt = (v: number) => v.toFixed(4);
+const seeds = Math.max(0, ...results.arms.map((a) => results.blimp_pll?.[a.arm]?.n ?? 0));
+const seedLabel = seeds <= 1 ? `seed ${seeds === 1 ? "0" : "—"}` : `${seeds} seeds`;
 ---
 
 <Base title="PSALM — Results">
@@ -24,12 +28,16 @@ const base = import.meta.env.BASE_URL;
       the same shape we saw at proxy scale, now under a fixed public budget.
     </p>
     <table>
-      <thead><tr><th>Arm</th><th>Dose</th><th>BLiMP-PLL (seed 0)</th></tr></thead>
+      <thead><tr><th>Arm</th><th>Dose</th><th>BLiMP-PLL ({seedLabel})</th>{results.text_average && Object.keys(results.text_average).length > 0 && <th>Text Avg</th>}</tr></thead>
       <tbody>
-        <tr><td>A</td><td>English (control)</td><td>0.6415</td></tr>
-        <tr><td>B</td><td>Pāṇinian</td><td>0.6354</td></tr>
-        <tr><td>C</td><td>Dyck (control)</td><td>0.6385</td></tr>
-        <tr><td>D</td><td>Paribhāṣā</td><td>0.6377</td></tr>
+        {results.arms.map((a) => (
+          <tr>
+            <td>{a.arm}</td>
+            <td>{a.dose}</td>
+            <td>{results.blimp_pll?.[a.arm] ? `${fmt(results.blimp_pll[a.arm].mean)}${results.blimp_pll[a.arm].n > 1 ? ` ± ${fmt(results.blimp_pll[a.arm].std)}` : ""}` : "—"}</td>
+            {results.text_average && Object.keys(results.text_average).length > 0 && <td>{results.text_average?.[a.arm] ? fmt(results.text_average[a.arm].mean) : "—"}</td>}
+          </tr>
+        ))}
       </tbody>
     </table>
     <figure>
