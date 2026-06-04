@@ -79,6 +79,17 @@ For GPU work on the DGX Spark, build the container:
 docker build -t psalm:dev .
 ```
 
+## Run the demos in Colab
+
+Each notebook opens directly in Google Colab from this repository and loads the
+published model from the Hub — nothing to train, nothing to download by hand.
+
+| Notebook | What it does | Open |
+|---|---|---|
+| Minimal-pair scoring | Score BLiMP-style pairs by pseudo-log-likelihood | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SharathSPhD/PSALM/blob/main/notebooks/01_minimal_pairs.ipynb) |
+| Śabdabodha pipeline | Sentence → typed semantic graph → Paribhāṣā string | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SharathSPhD/PSALM/blob/main/notebooks/02_shabdabodha_pipeline.ipynb) |
+| Reproduce an eval | Re-run the official zero-shot suite on a checkpoint | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/SharathSPhD/PSALM/blob/main/notebooks/03_reproduce_eval.ipynb) |
+
 ## Repository layout
 
 ```
