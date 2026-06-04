@@ -48,8 +48,7 @@ def test_layer_routing_weights_shape_and_gradient_flow() -> None:
     assert router.route_logits.grad is not None
     assert router.route_logits.grad.shape == router.route_logits.shape
     # Layer 2 combines three prior states — weights are a valid simplex.
-    row = router.route_logits[2]
-    weights = torch.softmax(row.masked_fill(~router._mask[2], float("-inf"))[:3], dim=-1)
+    weights = torch.softmax(router.route_logits[2][:3], dim=-1)
     assert weights.shape == (3,)
     assert torch.isclose(weights.sum(), torch.tensor(1.0))
 

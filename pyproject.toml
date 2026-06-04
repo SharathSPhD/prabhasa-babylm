@@ -76,6 +76,13 @@ stats = [
 memory = [
     "chromadb>=0.5",
 ]
+# Accelerated fine-tuning for internal/dev iteration and ablation fine-tunes only.
+# Official (Super)GLUE leaderboard numbers come from the vendored evaluation pipeline,
+# not from unsloth. Install with `uv sync --extra finetune` when needed.
+finetune = [
+    "unsloth>=2024.8",
+    "nltk>=3.9",
+]
 dev = [
     "jsonschema>=4.26",
     "pytest>=8.0",

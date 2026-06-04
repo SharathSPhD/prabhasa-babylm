@@ -33,16 +33,16 @@ class LayerRouteCombiner(nn.Module):
     def __init__(self, n_layers: int) -> None:
         super().__init__()
         self.n_layers = n_layers
-        logits = torch.zeros(n_layers, n_layers)
-        mask = torch.tril(torch.ones(n_layers, n_layers, dtype=torch.bool))
-        self.register_buffer("_mask", mask, persistent=False)
-        self.route_logits = nn.Parameter(logits)
+        self.route_logits = nn.Parameter(torch.zeros(n_layers, n_layers))
 
     def combine(self, states: list[torch.Tensor], layer_idx: int) -> torch.Tensor:
-        """Weighted sum of ``states[0..layer_idx]`` (inclusive)."""
-        row = self.route_logits[layer_idx]
-        masked = row.masked_fill(~self._mask[layer_idx], float("-inf"))
-        weights = F.softmax(masked[: layer_idx + 1], dim=-1)
+        """Weighted sum of ``states[0..layer_idx]`` (inclusive).
+
+        Slicing ``[: layer_idx + 1]`` already enforces the lower-triangular
+        causal structure over layers, so no explicit mask buffer is needed
+        (a stored buffer is also fragile under HF meta-device loading).
+        """
+        weights = F.softmax(self.route_logits[layer_idx][: layer_idx + 1], dim=-1)
         stacked = torch.stack(states[: layer_idx + 1], dim=0)
         return (weights.view(-1, 1, 1, 1) * stacked).sum(dim=0)
 
@@ -69,6 +69,7 @@ class _SDPABlock(nn.Module):
         x: torch.Tensor,
         *,
         attn_mode: _AttnMode,
+        key_padding_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         b, t, d = x.shape
         h = self.ln1(x)
@@ -78,6 +79,13 @@ class _SDPABlock(nn.Module):
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
         attn_mask = _build_attn_mask(t, attn_mode, x.device)
+        if key_padding_mask is not None:
+            # key_padding_mask: (b, t) bool, True = real token. Build additive
+            # (b, 1, 1, t) bias that -inf's padded *key* positions, then fold in
+            # any causal bias. With an explicit mask we cannot use is_causal.
+            pad_bias = torch.zeros(b, 1, 1, t, device=x.device, dtype=q.dtype)
+            pad_bias.masked_fill_(~key_padding_mask[:, None, None, :], float("-inf"))
+            attn_mask = pad_bias if attn_mask is None else attn_mask.view(1, 1, t, t) + pad_bias
         dropout_p = self.cfg.dropout if self.training else 0.0
         a = F.scaled_dot_product_attention(
             q,
@@ -85,7 +93,7 @@ class _SDPABlock(nn.Module):
             v,
             attn_mask=attn_mask,
             dropout_p=dropout_p,
-            is_causal=attn_mode is _AttnMode.CAUSAL,
+            is_causal=attn_mode is _AttnMode.CAUSAL and key_padding_mask is None,
         )
         a = a.transpose(1, 2).reshape(b, t, d)
         x = x + self.out_proj(a)
@@ -128,11 +136,12 @@ class ElcPsalmEncoder(nn.Module):
         idx: torch.Tensor,
         *,
         attn_mode: _AttnMode = _AttnMode.BIDIRECTIONAL,
+        key_padding_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         states: list[torch.Tensor] = [self.embed(idx)]
         for layer_idx, block in enumerate(self.blocks):
             x = self.router.combine(states, layer_idx)
-            h = block(x, attn_mode=attn_mode)
+            h = block(x, attn_mode=attn_mode, key_padding_mask=key_padding_mask)
             states.append(h)
         return self.ln_f(states[-1])
 
@@ -264,23 +273,33 @@ def pseudo_log_likelihood_tokens(
     mask_id: int,
     device: str,
 ) -> float:
-    """Salazar-style PLL: mask each token in turn, sum log p(true token | rest)."""
+    """Salazar-style PLL: mask each token in turn, sum log p(true token | rest).
+
+    Vectorised: every scored position is masked in its own row of one ``(K, L)``
+    batch and the model runs once. Rows attend only within themselves (no cross-
+    row attention), so each row is identical to masking that single position —
+    mathematically equal to the per-position loop, just one forward instead of L.
+    Only the masked-position hidden states feed ``lm_head`` to avoid an
+    ``(K, L, V)`` logits blow-up.
+    """
     if len(token_ids) < 1:
         return 0.0
     window = token_ids[-model.cfg.max_seq_len :]
-    total = 0.0
+    positions = [p for p, tid in enumerate(window) if tid != mask_id]
+    if not positions:
+        return 0.0
     model.eval()
-    for pos in range(len(window)):
-        tid = window[pos]
-        if tid == mask_id:
-            continue
-        batch = torch.tensor([window], dtype=torch.long, device=device)
-        masked = batch.clone()
-        masked[0, pos] = mask_id
-        hidden = model.encode(masked, attn_mode=_AttnMode.BIDIRECTIONAL)
-        logits = model.lm_head(hidden)
-        logp = F.log_softmax(logits[0, pos], dim=-1)
-        total += float(logp[tid])
+    with torch.no_grad():
+        base = torch.tensor(window, dtype=torch.long, device=device)
+        k = len(positions)
+        rows = torch.arange(k, device=device)
+        pos_idx = torch.tensor(positions, dtype=torch.long, device=device)
+        batch = base.unsqueeze(0).repeat(k, 1)
+        batch[rows, pos_idx] = mask_id
+        hidden = model.encode(batch, attn_mode=_AttnMode.BIDIRECTIONAL)
+        gathered = hidden[rows, pos_idx]  # (K, H) — only masked positions
+        logp = F.log_softmax(model.lm_head(gathered), dim=-1)  # (K, V)
+        total = float(logp[rows, base[pos_idx]].sum())
     return total
 
 

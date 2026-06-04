@@ -18,11 +18,12 @@ try:
     import torch
     from torch import nn
     from transformers import PretrainedConfig, PreTrainedModel
-    from transformers.modeling_outputs import MaskedLMOutput
+    from transformers.modeling_outputs import BaseModelOutput, MaskedLMOutput
 except ImportError:  # pragma: no cover - optional without psalm[ml]
     PretrainedConfig = object  # type: ignore[misc, assignment]
     PreTrainedModel = object  # type: ignore[misc, assignment]
     MaskedLMOutput = object  # type: ignore[misc, assignment]
+    BaseModelOutput = object  # type: ignore[misc, assignment]
     torch = None  # type: ignore[assignment]
     nn = None  # type: ignore[assignment]
 
@@ -42,18 +43,40 @@ class ElcPsalmHFConfig(PretrainedConfig):
             self.elc = ElcPsalmConfig(
                 vocab_size=128, d_model=32, n_layers=2, n_heads=4
             ).model_dump()
+        # Flat fields the official pipeline / AutoConfig consumers read. The GLUE
+        # fine-tuner (evaluation_pipeline/finetune/classifier_model.py) reads
+        # ``hidden_size`` off AutoConfig to size its classification head.
+        self.hidden_size = int(self.elc["d_model"])
+        self.num_attention_heads = int(self.elc["n_heads"])
+        self.num_hidden_layers = int(self.elc["n_layers"])
+        self.vocab_size = int(self.elc["vocab_size"])
 
 
 class ElcPsalmForMaskedLM(PreTrainedModel):
     """Thin ``PreTrainedModel`` wrapper over :class:`ElcPsalmEncoder` for BabyLM MLM eval."""
 
     config_class = ElcPsalmHFConfig
+    _tied_weights_keys: dict[str, str] = {}
 
     def __init__(self, config: ElcPsalmHFConfig) -> None:
+        config.tie_word_embeddings = False
         super().__init__(config)
         elc = ElcPsalmConfig.model_validate(config.elc)
         self.encoder = ElcPsalmEncoder(elc)
         self.mask_token_id = elc.vocab_size - 1
+        self.post_init()
+
+    def get_input_embeddings(self) -> Any:
+        return self.encoder.tok
+
+    def set_input_embeddings(self, value: Any) -> None:
+        self.encoder.tok = value
+
+    def get_output_embeddings(self) -> Any:
+        return self.encoder.lm_head
+
+    def set_output_embeddings(self, value: Any) -> None:
+        self.encoder.lm_head = value
 
     def forward(
         self,
@@ -62,10 +85,17 @@ class ElcPsalmForMaskedLM(PreTrainedModel):
         labels: torch.Tensor | None = None,
         **kwargs: Any,
     ) -> MaskedLMOutput:
-        del attention_mask, kwargs
+        del kwargs
         if input_ids is None:
             raise ValueError("input_ids required")
-        hidden = self.encoder.encode(input_ids, attn_mode=_AttnMode.BIDIRECTIONAL)
+        key_padding_mask = None
+        if attention_mask is not None:
+            key_padding_mask = attention_mask.bool()
+        hidden = self.encoder.encode(
+            input_ids,
+            attn_mode=_AttnMode.BIDIRECTIONAL,
+            key_padding_mask=key_padding_mask,
+        )
         logits = self.encoder.lm_head(hidden)
         loss = None
         if labels is not None:
@@ -77,6 +107,52 @@ class ElcPsalmForMaskedLM(PreTrainedModel):
                 ignore_index=-100,
             )
         return MaskedLMOutput(loss=loss, logits=logits)
+
+
+class ElcPsalmModel(PreTrainedModel):
+    """Base ``AutoModel`` wrapper returning ``last_hidden_state``.
+
+    The official BabyLM (Super)GLUE fine-tuner loads the model via
+    ``AutoModel.from_pretrained(..., trust_remote_code=True)`` and attaches its own
+    classification head, reading ``last_hidden_state`` (CLS/token-0 pooling). This class
+    shares the exact ``encoder.*`` parameter layout of :class:`ElcPsalmForMaskedLM`, so a
+    single exported checkpoint loads into either wrapper.
+    """
+
+    config_class = ElcPsalmHFConfig
+    _tied_weights_keys: dict[str, str] = {}
+
+    def __init__(self, config: ElcPsalmHFConfig) -> None:
+        config.tie_word_embeddings = False
+        super().__init__(config)
+        elc = ElcPsalmConfig.model_validate(config.elc)
+        self.encoder = ElcPsalmEncoder(elc)
+        self.post_init()
+
+    def get_input_embeddings(self) -> Any:
+        return self.encoder.tok
+
+    def set_input_embeddings(self, value: Any) -> None:
+        self.encoder.tok = value
+
+    def forward(
+        self,
+        input_ids: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
+        **kwargs: Any,
+    ) -> BaseModelOutput:
+        del kwargs
+        if input_ids is None:
+            raise ValueError("input_ids required")
+        key_padding_mask = None
+        if attention_mask is not None:
+            key_padding_mask = attention_mask.bool()
+        hidden = self.encoder.encode(
+            input_ids,
+            attn_mode=_AttnMode.BIDIRECTIONAL,
+            key_padding_mask=key_padding_mask,
+        )
+        return BaseModelOutput(last_hidden_state=hidden)
 
 
 def export_elc_checkpoint_to_hf(
