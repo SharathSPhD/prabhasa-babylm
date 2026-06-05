@@ -48,6 +48,8 @@ def build_elc_encoder(
         overrides["dropout"] = dropout
     if mlm_probability is not None:
         overrides["mlm_probability"] = mlm_probability
+    if nhot_emb is not None:
+        overrides["nhot_embeddings"] = True  # type: ignore[assignment]
     if overrides:
         cfg = cfg.model_copy(update=overrides)
     if smoke:
@@ -164,14 +166,36 @@ def save_elc_checkpoint(
 
 
 def load_elc_checkpoint(path: Path, *, device: str = "cpu") -> tuple[ElcPsalmEncoder, int]:
-    """Load checkpoint written by :func:`save_elc_checkpoint`."""
-    # Config dict is not weights-only-safe; checkpoints are always our own format.
+    """Load checkpoint written by :func:`save_elc_checkpoint`.
+
+    Handles two historical state_dict formats for N-hot embeddings:
+    - New (single): only ``nhot_emb.*`` keys present.
+    - Old (double): both ``nhot_emb.*`` AND ``_nhot_emb.*`` keys present due to a
+      now-fixed double-registration bug.  The ``_nhot_emb.*`` keys are stripped.
+    """
     payload = torch.load(path, map_location=device, weights_only=False)
     if not isinstance(payload, dict) or "cfg" not in payload:
         raise ValueError(f"invalid ELC checkpoint: {path}")
     cfg = ElcPsalmConfig.model_validate(payload["cfg"])
-    model = ElcPsalmEncoder(cfg).to(device)
-    model.load_state_dict(payload["state_dict"])
+
+    sd: dict[str, Any] = payload["state_dict"]
+
+    # Normalise: strip the duplicate ``_nhot_emb.*`` entries if present alongside ``nhot_emb.*``.
+    if "_nhot_emb.nhot_matrix" in sd and "nhot_emb.nhot_matrix" in sd:
+        sd = {k: v for k, v in sd.items() if not k.startswith("_nhot_emb.")}
+
+    # Reconstruct N-hot embedding module from checkpoint tensors; also patch cfg flag
+    # so that downstream HF export produces a config with nhot_embeddings=True.
+    nhot_emb: nn.Module | None = None
+    if "nhot_emb.nhot_matrix" in sd:
+        from psalm.infrastructure.ml.nhot_embeddings import NhotEmbedding
+
+        nhot_emb = NhotEmbedding(sd["nhot_emb.nhot_matrix"].to(device), cfg.d_model)
+        if not cfg.nhot_embeddings:
+            cfg = cfg.model_copy(update={"nhot_embeddings": True})
+
+    model = ElcPsalmEncoder(cfg, nhot_emb=nhot_emb).to(device)
+    model.load_state_dict(sd)
     mask_id = int(payload.get("mask_id", cfg.vocab_size - 1))
     return model, mask_id
 

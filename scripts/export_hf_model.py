@@ -95,9 +95,10 @@ def main() -> None:
     model, mask_id = load_elc_checkpoint(Path(args.ckpt), device="cpu")
     hf_cfg = ElcPsalmHFConfig(elc=model.cfg)
     wrapper = ElcPsalmForMaskedLM(hf_cfg)
-    wrapper.encoder.load_state_dict(model.state_dict())
-    if wrapper.encoder.cfg.tie_embeddings:
-        wrapper.encoder.lm_head.weight = nn.Parameter(wrapper.encoder.tok.weight.detach().clone())
+    # Swap in the already-loaded encoder (N-hot weights included when present).
+    wrapper.encoder = model
+    if model.cfg.tie_embeddings:
+        model.lm_head.weight = nn.Parameter(model.tok.weight.detach().clone())
     wrapper.save_pretrained(out)
 
     # auto_map + flat fields the pipeline / Auto* may read.

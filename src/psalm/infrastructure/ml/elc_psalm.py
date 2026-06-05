@@ -117,7 +117,9 @@ class ElcPsalmEncoder(nn.Module):
         self.tok = nn.Embedding(cfg.vocab_size, cfg.d_model)
         self.pos = nn.Embedding(cfg.max_seq_len, cfg.d_model)
         self.drop = nn.Dropout(cfg.dropout)
-        self._nhot_emb = nhot_emb
+        # Store as private attribute without triggering PyTorch __setattr__ auto-registration;
+        # then register once under "nhot_emb" so state_dict has exactly one set of keys.
+        object.__setattr__(self, "_nhot_emb", nhot_emb)
         if nhot_emb is not None:
             self.register_module("nhot_emb", nhot_emb)
         self.router = LayerRouteCombiner(cfg.n_layers)
