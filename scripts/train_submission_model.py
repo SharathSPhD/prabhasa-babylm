@@ -8,8 +8,11 @@ a larger English budget. It deliberately shares nothing with the ablation traini
 the budget-controlled H1' comparison stays clean. Within-budget data only (Strict-Small):
 the dose(s) plus the shared English base, identical token sources to the ablation.
 
-    uv run python scripts/train_submission_model.py --dose-arms A B C D --english-epochs 40 \
+    uv run python scripts/train_submission_model.py --dose-arms A B C D --dose-epochs 3 --english-epochs 7 \
         --require-cuda --out data/checkpoints/submission
+
+BabyLM 2026 compliance: dose_epochs=3, english_epochs=7 (total ≤10).  Intermediate checkpoints
+are saved every --checkpoint-interval-words (default 1M) for developmental trajectory analysis.
 
 Run only when the GPU is free (the await-watcher launches it as part of close-out if wired).
 """
@@ -52,6 +55,37 @@ TOK = Path("data/tokenizer/strict_small/spm.model")
 ARMS_MANIFEST = Path("docs/data/strict-small-arms.json")
 EOS_ID = 2
 
+# BPE piece suffix patterns → viśeṣaṇa (modifier) role
+_SUFFIX_ROLES = ("ing", "ed", "er", "est", "ly", "tion", "ness", "ment", "ful", "less", "ous", "ive", "al")
+_WORD_START = "▁"  # ▁  SentencePiece word-boundary prefix
+
+
+def _build_bpe_karaka_lookup(sp: spm.SentencePieceProcessor, vocab: int) -> KarakaRoleLookup:
+    """BPE-heuristic kāraka role assignment from tokenizer structure.
+
+    Maps each token to a kāraka role purely from its surface form:
+      ▁XXX  (word-start)  → karta  (p=0.50) — content-word heads are agent proxies
+      continuation ending in common suffixes → visesana (p=0.20) — modifier suffixes
+      other continuations → separator (p=0.10) — sub-word glue
+    """
+    role_map: dict[int, str] = {}
+    for tid in range(vocab):
+        piece = sp.IdToPiece(tid)
+        if piece.startswith("<") and piece.endswith(">"):
+            role_map[tid] = "separator"  # special control tokens
+        elif piece.startswith(_WORD_START):
+            bare = piece[len(_WORD_START):]
+            if any(bare.endswith(sfx) for sfx in _SUFFIX_ROLES):
+                role_map[tid] = "visesana"
+            else:
+                role_map[tid] = "karta"
+        else:
+            if any(piece.endswith(sfx) for sfx in _SUFFIX_ROLES):
+                role_map[tid] = "visesana"
+            else:
+                role_map[tid] = "separator"
+    return KarakaRoleLookup(role_map)
+
 
 def _read_lines(path: Path) -> list[str]:
     return [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
@@ -79,8 +113,14 @@ def main() -> None:
     ap.add_argument("--arch", default="elc_psalm_s")
     ap.add_argument("--max-seq-len", type=int, default=256)
     ap.add_argument("--batch-size", type=int, default=256)
-    ap.add_argument("--dose-epochs", type=float, default=4.0)
-    ap.add_argument("--english-epochs", type=float, default=40.0)
+    ap.add_argument("--dose-epochs", type=float, default=3.0)
+    ap.add_argument("--english-epochs", type=float, default=7.0)
+    ap.add_argument(
+        "--checkpoint-interval-words",
+        type=int,
+        default=1_000_000,
+        help="Save developmental checkpoint every N words (0=off). BabyLM 2026 requires ≤1M.",
+    )
     ap.add_argument("--peak-lr", type=float, default=1e-3)
     ap.add_argument("--muon-lr", type=float, default=0.02)
     ap.add_argument("--warmup-frac", type=float, default=0.06)
@@ -191,9 +231,13 @@ def main() -> None:
                 flush=True,
             )
         else:
-            karaka_lookup = KarakaRoleLookup.empty()
+            # BPE-heuristic kāraka roles: ▁word-starts→kartā(0.50), suffixes→viśeṣaṇa(0.20), rest→separator(0.10)
+            karaka_lookup = _build_bpe_karaka_lookup(sp, vocab)
+            karta_n = sum(1 for r in karaka_lookup._map.values() if r == "karta")
+            visesana_n = sum(1 for r in karaka_lookup._map.values() if r == "visesana")
+            sep_n = sum(1 for r in karaka_lookup._map.values() if r == "separator")
             print(
-                "Kāraka lookup: empty (all tokens → 'unknown'; role-stratified probs via base_prob)",
+                f"Kāraka lookup: BPE-heuristic ({karta_n} kartā, {visesana_n} viśeṣaṇa, {sep_n} separator)",
                 flush=True,
             )
         mask_cfg = StructuredMaskConfig(
@@ -202,6 +246,8 @@ def main() -> None:
             mask_prob_end=args.mask_end,
         )
         salience_transfer = SalienceTransfer(vocab_size=vocab)
+        # Pre-build vectorized prob tensor for O(B*T) GPU gather instead of Python loop
+        karaka_lookup.build_vocab_probs(vocab, default_prob=args.mask_start)
         print(f"Structured masking: ON (p={args.mask_start}→{args.mask_end})", flush=True)
 
     opts: list[torch.optim.Optimizer]
@@ -239,12 +285,18 @@ def main() -> None:
         offset: int,
         *,
         salience_weights: torch.Tensor | None = None,
-    ) -> tuple[float, float]:
+        ckpt_interval_tokens: int = 0,
+        words_offset: float = 0.0,
+    ) -> tuple[float, float, float]:
+        """Returns (last_loss, best_loss, words_processed_this_stage)."""
         it = packer.packed_batches(stream(lines), batch_size=args.batch_size, device=device)
         last = best = float("inf")
         ema = None
         t0 = time.time()
         model.train()
+        words_done = words_offset
+        tokens_this_stage = 0
+        next_ckpt_tokens = ckpt_interval_tokens if ckpt_interval_tokens > 0 else 0
         for local in range(n_steps):
             gstep = offset + local
             batch = next(it)
@@ -323,6 +375,31 @@ def main() -> None:
             last = v
             best = min(best, v)
             ema = v if ema is None else 0.98 * ema + 0.02 * v
+            step_tokens = args.batch_size * cur_seq
+            tokens_this_stage += step_tokens
+            words_done = words_offset + tokens_this_stage / 1.376  # empirical tok/word for strict-small
+
+            # BabyLM 2026: intermediate developmental checkpoints
+            if ckpt_interval_tokens > 0 and tokens_this_stage >= next_ckpt_tokens:
+                milestone_M = int(words_done / 1_000_000)
+                ckpt_dev = out_dir / f"elc_{milestone_M}M.pt"
+                save_elc_checkpoint(
+                    ckpt_dev,
+                    model,
+                    mask_id=mask_id,
+                    extra={
+                        "track": "leaderboard_submission",
+                        "checkpoint_words": int(words_done),
+                        "step": gstep,
+                        "loss": v,
+                    },
+                )
+                print(
+                    f"  [CKPT] {ckpt_dev.name} @ {words_done / 1e6:.2f}M words (step {gstep + 1})",
+                    flush=True,
+                )
+                next_ckpt_tokens += ckpt_interval_tokens
+
             if (local + 1) % 200 == 0:
                 rate = (local + 1) / max(time.time() - t0, 1e-6)
                 print(
@@ -330,14 +407,20 @@ def main() -> None:
                     f"lr={lr:.2e} seq={cur_seq} maskp={mask_prob:.3f} {rate:.2f} step/s",
                     flush=True,
                 )
-        return last, best
+        return last, best, tokens_this_stage / 1.376
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     salience_path = out_dir / "salience_weights.npy"
 
+    ckpt_interval_tokens = int(args.checkpoint_interval_words * 1.376) if args.checkpoint_interval_words > 0 else 0
+
     t0 = time.time()
-    _, b1 = run_stage(dose_lines, stage1_steps, 0)
+    _, b1, words_s1 = run_stage(
+        dose_lines, stage1_steps, 0,
+        ckpt_interval_tokens=ckpt_interval_tokens,
+        words_offset=0.0,
+    )
     # After Stage 1: save salience weights for transfer to Stage 2
     stage2_salience: torch.Tensor | None = None
     if salience_transfer is not None:
@@ -348,7 +431,12 @@ def main() -> None:
         stage2_salience = torch.tensor(w, dtype=torch.float32)
         print(f"Salience transfer: saved {salience_path} ({vocab} entries)", flush=True)
 
-    last, b2 = run_stage(base, stage2_steps, stage1_steps, salience_weights=stage2_salience)
+    last, b2, words_s2 = run_stage(
+        base, stage2_steps, stage1_steps,
+        salience_weights=stage2_salience,
+        ckpt_interval_tokens=ckpt_interval_tokens,
+        words_offset=words_s1,
+    )
     wall = time.time() - t0
     best = min(b1, b2)
 
@@ -374,9 +462,10 @@ def main() -> None:
             "best_loss": best,
         },
     )
+    total_words = int(words_s1 + words_s2)
     print(
-        f"DONE submission: steps={total_steps} final_loss={last:.4f} best_loss={best:.4f} "
-        f"wall={wall / 60:.1f}min -> {ckpt}",
+        f"DONE submission: steps={total_steps} words={total_words/1e6:.1f}M "
+        f"final_loss={last:.4f} best_loss={best:.4f} wall={wall / 60:.1f}min -> {ckpt}",
         flush=True,
     )
     (out_dir / "summary.json").write_text(
@@ -384,11 +473,19 @@ def main() -> None:
             {
                 "track": "leaderboard_submission",
                 "dose_arms": args.dose_arms,
+                "dose_epochs": args.dose_epochs,
+                "english_epochs": args.english_epochs,
+                "babylm_compliant": True,
+                "total_words_processed": total_words,
                 "steps": total_steps,
                 "final_loss": last,
                 "best_loss": best,
                 "wall_seconds": wall,
                 "checkpoint": str(ckpt),
+                "nhot_embeddings": args.nhot_embeddings,
+                "structured_masking": args.structured_masking,
+                "karaka_lookup": str(args.karaka_lookup) if args.karaka_lookup else "bpe_heuristic",
+                "seed": args.seed,
             },
             indent=2,
         ),

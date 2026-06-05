@@ -14,6 +14,11 @@ Full synergy test (requires HF hub, baseline model):
     uv run python scripts/run_nyaya_synergy.py \\
         --psalm-ckpt data/checkpoints/strict_small/arm_A_seed_0/elc.pt \\
         --tasks rte mnli --nyaya-scaffold --batch-size 32
+
+With pramana data (requires /home/sharaths/projects/pramana/ cloned):
+    uv run python scripts/run_nyaya_synergy.py \\
+        --psalm-ckpt data/checkpoints/strict_small/arm_A_seed_0/elc.pt \\
+        --tasks rte --nyaya-scaffold --use-pramana-data
 """
 
 from __future__ import annotations
@@ -84,6 +89,17 @@ def main() -> None:
         default=42,
         help="Random seed (default: 42)",
     )
+    ap.add_argument(
+        "--use-pramana-data",
+        action="store_true",
+        default=False,
+        help="Include pramana Nyāya examples (75 examples from stage_0 + stage_1)",
+    )
+    ap.add_argument(
+        "--pramana-path",
+        default="/home/sharaths/projects/pramana",
+        help="Path to pramana repository (default: /home/sharaths/projects/pramana)",
+    )
     args = ap.parse_args()
 
     # Import here to avoid torch requirement when just showing help
@@ -123,6 +139,44 @@ def main() -> None:
     if args.nyaya_scaffold:
         cmd.append("--nyaya-scaffold")
 
+    # Prepare pramana data if requested
+    pramana_data = None
+    if args.use_pramana_data:
+        from psalm.infrastructure.data.pramana_loader import load_pramana_datasets
+
+        pramana_dir = Path(args.pramana_path)
+        stage_0 = pramana_dir / "data" / "training" / "stage_0.jsonl"
+        stage_1 = pramana_dir / "data" / "training" / "stage_1.jsonl"
+
+        if not stage_0.exists() or not stage_1.exists():
+            print(
+                f"[h2-synergy] ERROR: pramana files not found at {pramana_dir}",
+                flush=True,
+            )
+            print(f"[h2-synergy]   Expected: {stage_0}, {stage_1}", flush=True)
+            return
+
+        print("[h2-synergy] Loading pramana Nyāya examples...", flush=True)
+        try:
+            pramana_data = load_pramana_datasets(stage_0, stage_1)
+            print(
+                f"[h2-synergy] Loaded {len(pramana_data['combined'])} pramana examples",
+                flush=True,
+            )
+        except Exception as e:
+            print(f"[h2-synergy] ERROR loading pramana data: {e}", flush=True)
+            return
+
+        # Save pramana data to a JSONL file in results dir for eval_finetune to load
+        pramana_jsonl = results_dir / "pramana_nli_data.jsonl"
+        with open(pramana_jsonl, "w") as f:
+            for ex in pramana_data["combined"]:
+                f.write(json.dumps(ex) + "\n")
+        print(f"[h2-synergy] Pramana data saved to {pramana_jsonl}", flush=True)
+
+        # Pass pramana data file to eval_finetune.py
+        cmd.extend(["--pramana-nli-file", str(pramana_jsonl)])
+
     print("[h2-synergy] Running PSALM+Nyāya evaluation...", flush=True)
     print(f"[h2-synergy] Command: {' '.join(cmd)}", flush=True)
 
@@ -151,6 +205,8 @@ def main() -> None:
         "device": args.device,
         "seed": args.seed,
         "fast_mode": args.fast,
+        "use_pramana_data": args.use_pramana_data,
+        "pramana_examples": len(pramana_data["combined"]) if pramana_data else 0,
     }
 
     config_path = results_dir / "h2_synergy_config.json"
