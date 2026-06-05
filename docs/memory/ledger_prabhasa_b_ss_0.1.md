@@ -98,6 +98,27 @@ From the official babylm benchmark repo, gpt2 strict-small baseline:
 - **2026 note:** teacher-model feedback is now explicitly PERMITTED in Strict tracks to
   validate the (secondary) teacher-student path for later.
 
+## Attempt #5 RESULT (v0.3 English-only) — BLiMP 61.64 (dose is NEUTRAL)
+- 61.26 → 61.64 (+0.38). Dropping the Sanskrit dose is BLiMP-neutral → keep English-only
+  (compliance-clean) at zero cost; confirms H1 framing (mechanisms matter, dose doesn't).
+
+## 🔍 INVESTIGATION: the "64.55 regression" was a MIRAGE
+- `recipe_v2/arm_A` (BLiMP 64.55) trained **30 English epochs** (419M tokens) — **3× over the
+  2026 10-epoch cap**. NON-COMPLIANT; not a valid target. No regression — we compared our
+  legal 10-epoch run to an illegal 30-epoch one.
+- BUT recipe_v2 used **mlm_probability 0.30** (vs our 0.15) + seq 128. Combined with AMLM
+  (71.4, 10ep, decaying **0.40→0.15**): every strong run masks ~2× harder than our 0.15.
+  **Lowering to 0.15 was the error** — too few targets/seq on a 10M corpus.
+- Real target = 10-epoch-legal gpt2 baseline **65.08**. We're at 61.64 → +3.4 to go.
+
+## Round 5 → Attempt #6 = v0.4 (RUNNING) — RAISE THE MASKING
+- **Config delta vs v0.3:** masking `static 0.15 → cosine decaying 0.40→0.15` (AMLM's exact
+  winning 10-epoch schedule). Else identical (English-only, 10ep, lr 1e-3, freq 0.5, N-hot +
+  structured ON, seq 192). Run: `data/checkpoints/prabhasa_b_ss_v04_mask40/seed_0`.
+- **Pre-registered expectation:** +2–5pp (61.64 → 63–67), targeting the 65.08 baseline.
+- **Queued:** v0.5 = ablate structured(kāraka) masking — is the BPE-heuristic helping or
+  hurting? (recipe_v2 arm_A is the no-mechanism control; need to confirm mechanisms add value.)
+
 ## Correctness audit (parallel to Attempt #2) — ✅ NO CODE BUGS
 Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 (Muon/AdamW split), masking schedules, tokenizer-vocab parity, gradients.
