@@ -48,8 +48,12 @@ Examples:
     )
     ap.add_argument("--force", action="store_true", help="Overwrite existing .bin files")
     ap.add_argument("--vocab", type=int, default=20000, help="Expected tokenizer vocab size")
-    ap.add_argument("--data-dir", type=Path, default=Path("data/corpora/strict_small"),
-                    help="Data directory root")
+    ap.add_argument(
+        "--data-dir",
+        type=Path,
+        default=Path("data/corpora/strict_small"),
+        help="Data directory root",
+    )
     args = ap.parse_args()
 
     # Import tokenizer

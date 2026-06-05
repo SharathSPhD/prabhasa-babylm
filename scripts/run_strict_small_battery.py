@@ -71,15 +71,32 @@ def main() -> None:
             t0 = time.time()
             _run(
                 [
-                    PY, "-u", "scripts/run_babylm_strict_small.py",
-                    "--arm", arm, "--seed", str(seed), "--require-cuda",
-                    "--arch", args.arch, "--seq-len", str(args.seq_len),
-                    "--batch-size", str(args.batch_size),
-                    "--dose-epochs", str(args.dose_epochs),
-                    "--english-epochs", str(args.english_epochs),
-                    "--peak-lr", str(args.peak_lr),
-                    "--dropout", str(args.dropout), "--mlm-prob", str(args.mlm_prob),
-                    "--out", args.out,
+                    PY,
+                    "-u",
+                    "scripts/run_babylm_strict_small.py",
+                    "--arm",
+                    arm,
+                    "--seed",
+                    str(seed),
+                    "--require-cuda",
+                    "--arch",
+                    args.arch,
+                    "--seq-len",
+                    str(args.seq_len),
+                    "--batch-size",
+                    str(args.batch_size),
+                    "--dose-epochs",
+                    str(args.dose_epochs),
+                    "--english-epochs",
+                    str(args.english_epochs),
+                    "--peak-lr",
+                    str(args.peak_lr),
+                    "--dropout",
+                    str(args.dropout),
+                    "--mlm-prob",
+                    str(args.mlm_prob),
+                    "--out",
+                    args.out,
                 ],
                 logs / f"train_{arm}_{seed}.log",
             )
@@ -92,8 +109,13 @@ def main() -> None:
             t0 = time.time()
             _run(
                 [
-                    PY, "-u", "scripts/eval_blimp_pll.py",
-                    "--ckpt", str(ckpt), "--per-paradigm", str(args.per_paradigm),
+                    PY,
+                    "-u",
+                    "scripts/eval_blimp_pll.py",
+                    "--ckpt",
+                    str(ckpt),
+                    "--per-paradigm",
+                    str(args.per_paradigm),
                     "--require-cuda",
                 ],
                 logs / f"eval_{arm}_{seed}.log",
@@ -112,8 +134,11 @@ def main() -> None:
                     "overall_accuracy"
                 ]
     summary = {
-        "arms": arms, "seeds": seeds, "per_paradigm": args.per_paradigm,
-        "dose_epochs": args.dose_epochs, "english_epochs": args.english_epochs,
+        "arms": arms,
+        "seeds": seeds,
+        "per_paradigm": args.per_paradigm,
+        "dose_epochs": args.dose_epochs,
+        "english_epochs": args.english_epochs,
         "results": results,
     }
     sp = out / "battery_summary.json"

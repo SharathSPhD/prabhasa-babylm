@@ -154,9 +154,7 @@ def mine(dcs_dir: Path) -> dict[str, object]:
             "single_sent": verb_single[v],
             "single_sent_acc": verb_single_acc[v],
             # transitivity score: P(accusative present | this is the only verb)
-            "trans_score": round(verb_single_acc[v] / verb_single[v], 4)
-            if verb_single[v]
-            else 0.0,
+            "trans_score": round(verb_single_acc[v] / verb_single[v], 4) if verb_single[v] else 0.0,
         }
         for v, f in verb_freq.most_common()
     ]

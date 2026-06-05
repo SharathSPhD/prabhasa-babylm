@@ -19,16 +19,16 @@ if TYPE_CHECKING:
 
 # Morpheme type dimensions (these are the "hot" bits)
 MORPHEME_TYPES = [
-    "bpe_word_start",      # SentencePiece ▁ prefix (word-initial)
-    "bpe_continuation",    # continuation piece (no ▁)
-    "bpe_single",          # single-token word
-    "bpe_suffix_like",     # ends with common suffix (-ing, -ed, -er, -ly, -tion, -ness, etc.)
-    "bpe_prefix_like",     # starts with common prefix (un-, re-, pre-, dis-, etc.)
-    "vidyut_root",         # Sanskrit: dhātu root token
-    "vidyut_pratyaya",     # Sanskrit: affix/suffix
-    "vidyut_sandhi",       # Sanskrit: sandhi junction token
-    "vidyut_krit",         # Sanskrit: krit pratyaya (verbal derivatives)
-    "vidyut_taddhita",     # Sanskrit: taddhita pratyaya (nominal derivatives)
+    "bpe_word_start",  # SentencePiece ▁ prefix (word-initial)
+    "bpe_continuation",  # continuation piece (no ▁)
+    "bpe_single",  # single-token word
+    "bpe_suffix_like",  # ends with common suffix (-ing, -ed, -er, -ly, -tion, -ness, etc.)
+    "bpe_prefix_like",  # starts with common prefix (un-, re-, pre-, dis-, etc.)
+    "vidyut_root",  # Sanskrit: dhātu root token
+    "vidyut_pratyaya",  # Sanskrit: affix/suffix
+    "vidyut_sandhi",  # Sanskrit: sandhi junction token
+    "vidyut_krit",  # Sanskrit: krit pratyaya (verbal derivatives)
+    "vidyut_taddhita",  # Sanskrit: taddhita pratyaya (nominal derivatives)
 ]
 NHOT_DIM = len(MORPHEME_TYPES)  # = 10
 
@@ -85,12 +85,41 @@ def build_nhot_matrix(
 
     # Common English suffix and prefix patterns
     SUFFIX_PATTERNS = [
-        "ing", "ed", "er", "ly", "tion", "ness", "ment", "ize", "ise",
-        "ful", "less", "able", "ible", "ous", "ive", "al", "ism",
+        "ing",
+        "ed",
+        "er",
+        "ly",
+        "tion",
+        "ness",
+        "ment",
+        "ize",
+        "ise",
+        "ful",
+        "less",
+        "able",
+        "ible",
+        "ous",
+        "ive",
+        "al",
+        "ism",
     ]
     PREFIX_PATTERNS = [
-        "un", "re", "pre", "dis", "mis", "over", "under", "out", "sub",
-        "non", "anti", "inter", "fore", "trans", "super", "co",
+        "un",
+        "re",
+        "pre",
+        "dis",
+        "mis",
+        "over",
+        "under",
+        "out",
+        "sub",
+        "non",
+        "anti",
+        "inter",
+        "fore",
+        "trans",
+        "super",
+        "co",
     ]
 
     for vid in range(vocab_size):

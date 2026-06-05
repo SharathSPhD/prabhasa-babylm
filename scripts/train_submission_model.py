@@ -63,8 +63,12 @@ def _token_log_freq(lines: list[str], encode, vocab: int) -> torch.Tensor:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dose-arms", nargs="+", default=["A", "B", "C", "D"],
-                    help="dose corpora to concatenate for stage 1 (within-budget)")
+    ap.add_argument(
+        "--dose-arms",
+        nargs="+",
+        default=["A", "B", "C", "D"],
+        help="dose corpora to concatenate for stage 1 (within-budget)",
+    )
     ap.add_argument("--arch", default="elc_psalm_s")
     ap.add_argument("--max-seq-len", type=int, default=256)
     ap.add_argument("--batch-size", type=int, default=256)
@@ -123,19 +127,33 @@ def main() -> None:
         flush=True,
     )
 
-    seq_schedule = [(0.0, args.max_seq_len // 4), (0.4, args.max_seq_len // 2), (0.75, args.max_seq_len)]
+    seq_schedule = [
+        (0.0, args.max_seq_len // 4),
+        (0.4, args.max_seq_len // 2),
+        (0.75, args.max_seq_len),
+    ]
     log_freq = _token_log_freq(base + dose_lines, encode, vocab)
 
     model, cfg = build_elc_encoder(
-        args.arch, vocab_size=vocab, max_seq_len=args.max_seq_len,
-        dropout=args.dropout, mlm_probability=args.mask_start,
+        args.arch,
+        vocab_size=vocab,
+        max_seq_len=args.max_seq_len,
+        dropout=args.dropout,
+        mlm_probability=args.mask_start,
     )
     model = model.to(device)
     mask_id = cfg.vocab_size - 1
 
     if args.no_muon:
-        opts = [torch.optim.AdamW(model.parameters(), lr=args.peak_lr, weight_decay=0.01,
-                                  betas=(0.9, 0.95), fused=cuda_ok)]
+        opts = [
+            torch.optim.AdamW(
+                model.parameters(),
+                lr=args.peak_lr,
+                weight_decay=0.01,
+                betas=(0.9, 0.95),
+                fused=cuda_ok,
+            )
+        ]
     else:
         opts = build_submission_optimizers(
             model, muon_lr=args.muon_lr, adamw_lr=args.peak_lr, weight_decay=0.01
@@ -150,7 +168,9 @@ def main() -> None:
             yield from lines
 
     def lr_at(step: int) -> float:
-        return cosine_warmup_lr(step, peak_lr=args.peak_lr, warmup_steps=warmup, total_steps=total_steps)
+        return cosine_warmup_lr(
+            step, peak_lr=args.peak_lr, warmup_steps=warmup, total_steps=total_steps
+        )
 
     def run_stage(lines: list[str], n_steps: int, offset: int) -> tuple[float, float]:
         it = packer.packed_batches(stream(lines), batch_size=args.batch_size, device=device)
@@ -173,7 +193,11 @@ def main() -> None:
             for o in opts:
                 o.zero_grad(set_to_none=True)
             mask_prob = scheduled_mask_prob(
-                gstep, total_steps, p_start=args.mask_start, p_end=args.mask_end, kind=args.mask_kind
+                gstep,
+                total_steps,
+                p_start=args.mask_start,
+                p_end=args.mask_end,
+                kind=args.mask_kind,
             )
             ctx = torch.autocast(device_type="cuda", dtype=dtype) if autocast else _null()
             with ctx:
@@ -183,14 +207,20 @@ def main() -> None:
                 else:
                     if args.freq_alpha > 0:
                         masked, loss_mask = make_freq_informed_mlm_mask(
-                            batch, mask_id=mask_id, probability=mask_prob,
-                            token_log_freq=log_freq, alpha=args.freq_alpha, exclude={EOS_ID, mask_id},
+                            batch,
+                            mask_id=mask_id,
+                            probability=mask_prob,
+                            token_log_freq=log_freq,
+                            alpha=args.freq_alpha,
+                            exclude={EOS_ID, mask_id},
                         )
                     else:
                         masked, loss_mask = make_mlm_mask(
                             batch, mask_id=mask_id, probability=mask_prob, exclude={EOS_ID, mask_id}
                         )
-                    _, aux = model(masked, objective=HybridObjective.MLM, labels=batch, mlm_mask=loss_mask)
+                    _, aux = model(
+                        masked, objective=HybridObjective.MLM, labels=batch, mlm_mask=loss_mask
+                    )
                     loss = aux["loss"]
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             loss.backward()
@@ -202,8 +232,11 @@ def main() -> None:
             ema = v if ema is None else 0.98 * ema + 0.02 * v
             if (local + 1) % 200 == 0:
                 rate = (local + 1) / max(time.time() - t0, 1e-6)
-                print(f"  step {gstep + 1}/{total_steps} loss={v:.4f} ema={ema:.4f} "
-                      f"lr={lr:.2e} seq={cur_seq} maskp={mask_prob:.3f} {rate:.2f} step/s", flush=True)
+                print(
+                    f"  step {gstep + 1}/{total_steps} loss={v:.4f} ema={ema:.4f} "
+                    f"lr={lr:.2e} seq={cur_seq} maskp={mask_prob:.3f} {rate:.2f} step/s",
+                    flush=True,
+                )
         return last, best
 
     t0 = time.time()
@@ -215,20 +248,44 @@ def main() -> None:
     out_dir = Path(args.out)
     ckpt = out_dir / "elc.pt"
     save_elc_checkpoint(
-        ckpt, model, mask_id=mask_id,
+        ckpt,
+        model,
+        mask_id=mask_id,
         extra={
-            "track": "leaderboard_submission", "dose_arms": args.dose_arms, "arch": args.arch,
-            "tokenizer": str(TOK), "muon": not args.no_muon, "freq_alpha": args.freq_alpha,
-            "mask_start": args.mask_start, "mask_end": args.mask_end, "max_seq_len": args.max_seq_len,
-            "english_epochs": args.english_epochs, "final_loss": last, "best_loss": best,
+            "track": "leaderboard_submission",
+            "dose_arms": args.dose_arms,
+            "arch": args.arch,
+            "tokenizer": str(TOK),
+            "muon": not args.no_muon,
+            "freq_alpha": args.freq_alpha,
+            "mask_start": args.mask_start,
+            "mask_end": args.mask_end,
+            "max_seq_len": args.max_seq_len,
+            "english_epochs": args.english_epochs,
+            "final_loss": last,
+            "best_loss": best,
         },
     )
-    print(f"DONE submission: steps={total_steps} final_loss={last:.4f} best_loss={best:.4f} "
-          f"wall={wall / 60:.1f}min -> {ckpt}", flush=True)
-    (out_dir / "summary.json").write_text(json.dumps({
-        "track": "leaderboard_submission", "dose_arms": args.dose_arms, "steps": total_steps,
-        "final_loss": last, "best_loss": best, "wall_seconds": wall, "checkpoint": str(ckpt),
-    }, indent=2), encoding="utf-8")
+    print(
+        f"DONE submission: steps={total_steps} final_loss={last:.4f} best_loss={best:.4f} "
+        f"wall={wall / 60:.1f}min -> {ckpt}",
+        flush=True,
+    )
+    (out_dir / "summary.json").write_text(
+        json.dumps(
+            {
+                "track": "leaderboard_submission",
+                "dose_arms": args.dose_arms,
+                "steps": total_steps,
+                "final_loss": last,
+                "best_loss": best,
+                "wall_seconds": wall,
+                "checkpoint": str(ckpt),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
 
 
 class _null:

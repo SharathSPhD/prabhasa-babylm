@@ -65,7 +65,12 @@ def main() -> None:
             if args.compile:
                 model = torch.compile(model)  # type: ignore[assignment]
             tps = _bench(
-                model, batch=batch, seq=args.seq, vocab=args.vocab, steps=args.steps, mask_id=mask_id
+                model,
+                batch=batch,
+                seq=args.seq,
+                vocab=args.vocab,
+                steps=args.steps,
+                mask_id=mask_id,
             )
             free, total = torch.cuda.mem_get_info()
             tokens_epoch = 15_255_819

@@ -38,7 +38,20 @@ from psalm.infrastructure.generators.paribhasha.shabdabodha import (
 from psalm.infrastructure.generators.paribhasha.types import PadarthaCategory, ShabdabodhaGraph
 
 # Lexicon partitioned by padārtha (matches shabdabodha.PADARTHA_LEXICON).
-_DRAVYA = ("Pala", "aSva", "bAla", "gfha", "guru", "jala", "kanyA", "nara", "naxI", "puswaka", "rAma", "vana")
+_DRAVYA = (
+    "Pala",
+    "aSva",
+    "bAla",
+    "gfha",
+    "guru",
+    "jala",
+    "kanyA",
+    "nara",
+    "naxI",
+    "puswaka",
+    "rAma",
+    "vana",
+)
 _GUNA = ("vixyA",)
 _ALL_STEMS = _DRAVYA + _GUNA
 _VACANA = ("eka", "xvi", "bahu")

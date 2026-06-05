@@ -98,34 +98,62 @@ def main() -> None:
 
     precision = Precision.FP32 if device == "cpu" else Precision.BF16
     stage1_cfg = TrainConfig(
-        max_steps=stage1_steps, batch_size=args.batch_size, seq_len=args.seq_len,
-        lr=args.peak_lr, warmup_steps=warmup, precision=precision, device=device,
-        seed=args.seed, log_every=50,
+        max_steps=stage1_steps,
+        batch_size=args.batch_size,
+        seq_len=args.seq_len,
+        lr=args.peak_lr,
+        warmup_steps=warmup,
+        precision=precision,
+        device=device,
+        seed=args.seed,
+        log_every=50,
     )
     stage2_cfg = TrainConfig(
-        max_steps=stage2_steps, batch_size=args.batch_size, seq_len=args.seq_len,
-        lr=args.peak_lr, warmup_steps=warmup, precision=precision, device=device,
-        seed=args.seed, log_every=200,
+        max_steps=stage2_steps,
+        batch_size=args.batch_size,
+        seq_len=args.seq_len,
+        lr=args.peak_lr,
+        warmup_steps=warmup,
+        precision=precision,
+        device=device,
+        seed=args.seed,
+        log_every=200,
     )
 
     t0 = time.time()
     model, outcome, mask_id = train_elc_two_stage(
-        args.arch, stage1_cfg, stage2_cfg, lambda: dose, lambda: base,
-        encode=lambda s: sp.EncodeAsIds(s), vocab_size=vocab, eos_id=EOS_ID,
-        dropout=args.dropout, mlm_probability=args.mlm_prob,
+        args.arch,
+        stage1_cfg,
+        stage2_cfg,
+        lambda: dose,
+        lambda: base,
+        encode=lambda s: sp.EncodeAsIds(s),
+        vocab_size=vocab,
+        eos_id=EOS_ID,
+        dropout=args.dropout,
+        mlm_probability=args.mlm_prob,
     )
     wall = time.time() - t0
 
     out_dir = Path(args.out) / f"arm_{args.arm}_seed_{args.seed}"
     ckpt = out_dir / "elc.pt"
     save_elc_checkpoint(
-        ckpt, model, mask_id=mask_id,
+        ckpt,
+        model,
+        mask_id=mask_id,
         extra={
-            "arm": args.arm, "seed": args.seed, "arch": args.arch,
-            "tokenizer": str(TOK), "outcome": outcome.model_dump(),
-            "dose_epochs": args.dose_epochs, "english_epochs": args.english_epochs,
-            "batch_size": args.batch_size, "seq_len": args.seq_len, "peak_lr": args.peak_lr,
-            "dropout": args.dropout, "mlm_prob": args.mlm_prob,
+            "arm": args.arm,
+            "seed": args.seed,
+            "arch": args.arch,
+            "tokenizer": str(TOK),
+            "outcome": outcome.model_dump(),
+            "dose_epochs": args.dose_epochs,
+            "english_epochs": args.english_epochs,
+            "batch_size": args.batch_size,
+            "seq_len": args.seq_len,
+            "peak_lr": args.peak_lr,
+            "dropout": args.dropout,
+            "mlm_prob": args.mlm_prob,
         },
     )
     print(
@@ -136,11 +164,17 @@ def main() -> None:
     )
 
     summary: dict[str, object] = {
-        "arm": args.arm, "seed": args.seed, "arch": args.arch,
-        "steps": outcome.steps, "tokens_seen": outcome.tokens_seen,
-        "final_loss": outcome.final_loss, "best_loss": outcome.best_loss,
-        "wall_seconds": wall, "checkpoint": str(ckpt),
-        "dose_epochs": args.dose_epochs, "english_epochs": args.english_epochs,
+        "arm": args.arm,
+        "seed": args.seed,
+        "arch": args.arch,
+        "steps": outcome.steps,
+        "tokens_seen": outcome.tokens_seen,
+        "final_loss": outcome.final_loss,
+        "best_loss": outcome.best_loss,
+        "wall_seconds": wall,
+        "checkpoint": str(ckpt),
+        "dose_epochs": args.dose_epochs,
+        "english_epochs": args.english_epochs,
     }
     if args.smoke_eval:
         ev = ElcPsalmEvaluator(model, lambda s: sp.EncodeAsIds(s), mask_id=mask_id, device=device)

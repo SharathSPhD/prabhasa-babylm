@@ -11,11 +11,11 @@ import pytest
 torch = pytest.importorskip("torch")
 spm = pytest.importorskip("sentencepiece")
 
-import numpy as np
+import numpy as np  # noqa: E402
 
-from psalm.domain.model.elc_config import ElcPsalmConfig
-from psalm.infrastructure.ml.elc_psalm import ElcPsalmEncoder, make_mlm_mask
-from psalm.infrastructure.ml.nhot_embeddings import (
+from psalm.domain.model.elc_config import ElcPsalmConfig  # noqa: E402
+from psalm.infrastructure.ml.elc_psalm import ElcPsalmEncoder, make_mlm_mask  # noqa: E402
+from psalm.infrastructure.ml.nhot_embeddings import (  # noqa: E402
     NHOT_DIM,
     NhotEmbedding,
     build_nhot_matrix,
@@ -173,6 +173,6 @@ def test_nhot_embeddings_preserve_training_properties():
     loss.backward()
 
     # Check gradients
-    for name, param in encoder.named_parameters():
+    for _name, param in encoder.named_parameters():
         if param.requires_grad:
             assert param.grad is not None or param.shape == torch.Size([])

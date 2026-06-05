@@ -131,7 +131,8 @@ class TestFaithfulSemantics:
         out = compile_shabdabodha(s)
         assert isinstance(out, ShabdabodhaSuccess)
         guna_fillers = [
-            n for n in out.graph.nodes
+            n
+            for n in out.graph.nodes
             if n.category is PadarthaCategory.GUNA and not n.label.startswith("saMKyA")
         ]
         assert any(n.label == "vixyA" for n in guna_fillers)

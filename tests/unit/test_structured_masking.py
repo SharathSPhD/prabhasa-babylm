@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import tempfile
 from pathlib import Path
 
@@ -13,7 +12,7 @@ pytest.importorskip("torch")
 
 import torch
 
-from psalm.domain.model.elc_config import ElcPsalmConfig, HybridObjective
+from psalm.domain.model.elc_config import ElcPsalmConfig
 from psalm.infrastructure.ml.elc_psalm import ElcPsalmEncoder, hybrid_training_step
 from psalm.infrastructure.ml.structured_masking import (
     KARAKA_MASK_PROB,
@@ -121,8 +120,14 @@ def test_karaka_role_lookup_mask_probs_for_ids_all_known() -> None:
 
     assert probs.shape == (1, 4)
     expected = torch.tensor(
-        [[KARAKA_MASK_PROB["karta"], KARAKA_MASK_PROB["karma"],
-          KARAKA_MASK_PROB["karana"], KARAKA_MASK_PROB["apadana"]]],
+        [
+            [
+                KARAKA_MASK_PROB["karta"],
+                KARAKA_MASK_PROB["karma"],
+                KARAKA_MASK_PROB["karana"],
+                KARAKA_MASK_PROB["apadana"],
+            ]
+        ],
         dtype=torch.float32,
     )
     assert torch.allclose(probs, expected)
@@ -148,7 +153,7 @@ def test_karaka_role_lookup_mask_probs_for_ids_mixed() -> None:
 def test_karaka_role_lookup_from_npy_and_save() -> None:
     """KarakaRoleLookup should save and load from .npy files."""
     role_map = {1: "karta", 2: "karma", 5: "karana"}
-    lookup = KarakaRoleLookup(role_map)
+    KarakaRoleLookup(role_map)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         npy_path = Path(tmpdir) / "roles.npy"
@@ -324,9 +329,7 @@ def test_hybrid_training_step_backward_compatible() -> None:
     batch = torch.randint(1, cfg.vocab_size, (2, 12))
 
     # Call without structured masking parameters
-    loss = hybrid_training_step(
-        model, batch, mask_id=63, step=0, pad_id=0
-    )
+    loss = hybrid_training_step(model, batch, mask_id=63, step=0, pad_id=0)
 
     assert torch.isfinite(loss)
     assert loss.shape == torch.Size([])
@@ -363,7 +366,7 @@ def test_hybrid_training_step_with_structured_masking_enabled() -> None:
     batch = torch.randint(1, cfg.vocab_size, (2, 12))
 
     # Create a simple lookup with some mappings
-    role_map = {i: "karta" for i in range(10)}
+    role_map = dict.fromkeys(range(10), "karta")
     karaka_lookup = KarakaRoleLookup(role_map)
 
     mask_config = StructuredMaskConfig(enabled=True)

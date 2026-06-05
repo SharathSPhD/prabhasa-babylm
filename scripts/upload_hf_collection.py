@@ -128,20 +128,35 @@ def main() -> None:
     if args.include_submission:
         ckpts["submission"] = ROOT / "data/checkpoints/submission/elc.pt"
     for arm, ckpt in ckpts.items():
-        repo = f"{args.namespace}/psalm-arm-{arm.lower()}" if arm in ARM_DOSE else f"{args.namespace}/psalm-submission"
+        repo = (
+            f"{args.namespace}/psalm-arm-{arm.lower()}"
+            if arm in ARM_DOSE
+            else f"{args.namespace}/psalm-submission"
+        )
         if not ckpt.exists():
             print(f"[skip] {repo}: checkpoint not found ({ckpt})")
             continue
         with tempfile.TemporaryDirectory() as td:
             out = Path(td)
             print(f"[model] export {ckpt} -> {out}")
-            run([PY, "scripts/export_hf_model.py", "--ckpt", str(ckpt),
-                 "--tokenizer", str(TOK), "--out", str(out)])
+            run(
+                [
+                    PY,
+                    "scripts/export_hf_model.py",
+                    "--ckpt",
+                    str(ckpt),
+                    "--tokenizer",
+                    str(TOK),
+                    "--out",
+                    str(out),
+                ]
+            )
             # Ship the SentencePiece model alongside for the Colab reproduce notebook.
             if TOK.exists():
                 (out / "spm.model").write_bytes(TOK.read_bytes())
-            (out / "README.md").write_text(model_card(arm if arm in ARM_DOSE else "submission"),
-                                           encoding="utf-8")
+            (out / "README.md").write_text(
+                model_card(arm if arm in ARM_DOSE else "submission"), encoding="utf-8"
+            )
             staged.append((repo, "model"))
             if args.push and api is not None:
                 api.create_repo(repo, repo_type="model", exist_ok=True)
@@ -166,7 +181,9 @@ def main() -> None:
 
     print("\nPlan:" if not args.push else "\nUploaded:")
     for repo, kind in staged:
-        print(f"  - {kind}: https://huggingface.co/{'datasets/' if kind == 'dataset' else ''}{repo}")
+        print(
+            f"  - {kind}: https://huggingface.co/{'datasets/' if kind == 'dataset' else ''}{repo}"
+        )
     if not args.push:
         print("\n(dry run — re-run with --push after `huggingface-cli login` to upload)")
 
