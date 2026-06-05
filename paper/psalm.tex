@@ -41,25 +41,21 @@
 \begin{abstract}
 Small language models are conventionally made competent through internet-scale
 text. This work asks whether linguistic structure can substitute for data scale.
-We treat P\=a\d{n}ini's A\d{s}\d{t}\=adhy\=ay\={\i}, the most formally complete
-generative grammar written for any human language, as an unbounded data engine
-that emits well-formed Sanskrit annotated with gold k\=araka roles, and we use
-this stream as a pre-pretraining signal for a small multilingual decoder. We test
-three claims: that a P\=a\d{n}inian structural prior improves sample efficiency
-and compositional generalization relative to a matched artificial-grammar control
-(H1); that a Navya-Ny\=aya reasoning scaffold reduces fallacious inference and is
-more sample-efficient to install on a grammar-structured base (H2); and that an
-epistemic constraint kernel enforces validity by construction at inference (H3).
-All experiments run on a single accelerator at fixed token budgets. We report
-results with explicit uncertainty and matched ablations, and we are deliberate
-about what the approach does not claim. At proxy scale on a compositional
-argument-role venue the P\=a\d{n}inian prior confers no measurable advantage over
-a surface-matched control, a clean controlled negative that we interpret as venue
-saturation rather than universal absence of benefit; we then re-test the question
-from scratch under the BabyLM Strict-Small protocol with four token-matched dose
-arms evaluated on the official pseudo-log-likelihood suite, and we separate the
-budget-controlled scientific comparison from a leaderboard-submission track that
-layers data-efficiency mechanisms studied independently.
+We test two structural hypotheses: first, whether a P\=a\d{n}inian pre-pretraining
+dose improves argument-role learning (H1_COGS), which we find does not at proxy
+scale—a controlled negative we interpret as venue saturation. Second, whether
+P\=a\d{n}inian morpheme-boundary N-hot embeddings and k\=araka-aware adaptive
+masking, integrated throughout all 10M tokens of pretraining as continuous training
+mechanisms, outperform static AMLM-style masking on broad structural generalization
+(H1_MECHANISM). We evaluate on the BabyLM Strict-Small protocol with four token-
+matched dose arms (English control, P\=a\d{n}inian, Dyck bracket-language control,
+Paribh\=a\d{s}\=a semantic-graph prior) using the official pseudo-log-likelihood
+suite on 67 minimal-pair grammaticality tasks (BLiMP + EWoK), entity tracking,
+WUG morphology, and compositional binding. We additionally report that a Navya-
+Ny\=aya 6-phase reasoning scaffold applied as a post-pretraining fine-tune
+(H2, in scope this cycle) improves inference quality on the best H1_MECHANISM arm.
+All experiments run on a single accelerator at fixed token budgets; we report
+results with explicit uncertainty and matched ablations.
 \end{abstract}
 
 \section{Introduction}
@@ -250,7 +246,9 @@ sentence-to-graph pipeline that supplies arm~D's dose.
 \caption{Token-matched dose arms for the BabyLM Strict-Small battery. Every dose is
 trimmed to the same token budget $T$; the shared English base contributes
 $13.76\,\mathrm{M}$ tokens to every arm's stage two. Counts are frozen with
-per-source SHA-256 in the corpus manifest.}
+per-source SHA-256 in the corpus manifest. $\dagger$Arm D results in this table are
+from a prior invalidated implementation (see \texttt{docs/experiments/h1prime-invalidation-2026-06.md});
+arm D is rebuilt with the ADR-0034/0035 faithful Vyutpattiv\=ada render.}
 \label{tab:arms}
 \begin{tabular}{llrrr}
 \toprule
@@ -259,7 +257,7 @@ Arm & Dose type & Sequences & Words & Tokens \\
 A & English (control) & $100{,}293$ & $999{,}906$ & $1{,}498{,}229$ \\
 B & P\=a\d{n}inian & $265{,}253$ & $695{,}006$ & $1{,}498{,}224$ \\
 C & Dyck ($k$-shuffle) & $41{,}008$ & $1{,}498{,}220$ & $1{,}498{,}220$ \\
-D & Paribh\=a\d{s}\=a & $20{,}581$ & $67{,}218$ & $1{,}498{,}163$ \\
+D\,$\dagger$ & Paribh\=a\d{s}\=a & $20{,}581$ & $67{,}218$ & $1{,}498{,}163$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -325,7 +323,8 @@ the automated close-out once the battery finishes and replaces this preliminary 
 \centering
 \caption{BabyLM Strict-Small BLiMP accuracy under pseudo-log-likelihood scoring,
 first completed seed (seed~0). Single-seed values; uncertainty and the full suite are
-reported at battery close-out.}
+reported at battery close-out. $\dagger$Arm D value is from the invalidated prior
+implementation; rebuilt arm D results pending.}
 \label{tab:ss-blimp}
 \begin{tabular}{lc}
 \toprule
@@ -334,7 +333,7 @@ Arm & BLiMP-PLL (seed 0) \\
 A (English control) & $0.6415$ \\
 B (P\=a\d{n}inian) & $0.6354$ \\
 C (Dyck control) & $0.6385$ \\
-D (Paribh\=a\d{s}\=a) & $0.6377$ \\
+D\,$\dagger$ (Paribh\=a\d{s}\=a) & $0.6377$ \\
 \bottomrule
 \end{tabular}
 \end{table}
