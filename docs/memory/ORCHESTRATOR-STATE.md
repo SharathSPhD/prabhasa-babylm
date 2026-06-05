@@ -103,11 +103,35 @@ Done (dissemination + leaderboard milestone, 2026-06-04 21:xx):
 - HF uploader `scripts/upload_hf_collection.py` (model+dataset cards; dry-run validated;
   `--push` to upload under `qbz506`).
 
+Done (strategic pivot / spec reframe, 2026-06-05):
+- ADR-0039 (Pāṇinian-as-mechanism): dose→mechanism reframe; H1_COGS (null) frozen;
+  H1_MECHANISM (morpheme N-hot + kāraka masking throughout training) primary live
+  hypothesis; H2 (Nyāya fine-tune) in scope; H3 (epistemic) deferred.
+- CLAUDE.md updated: H1_COGS null documented; H1_MECHANISM hypothesis restated;
+  H2 fine-tuning scope clarified; closure contract + hard rules intact.
+- Paper abstract rewritten: removed H2/H3 "tested" claims; added mechanism framing;
+  clarified H1_COGS null + H1_MECHANISM live status.
+- Table footnotes: arm D marked invalidated (prior implementation); ADR-0034/0035
+  faithful rebuild in progress.
+- ORCHESTRATOR-STATE updated: pending work items listed (N-hot, masking, H2, HP search).
+
 Pending (GPU-deferred, automated by the watcher):
 - Battery-wide official Text-Average suite + (Super)GLUE on all arm checkpoints; full H1
   analysis (paired bootstrap/permutation + Holm–Bonferroni).
 - Leaderboard submission-model train (Muon + levers, 40 EN epochs) + full eval.
 - Inject final numbers into paper/site/HF; FF-merge worktrees; push; final closure sign-off.
+
+Pending (new workstreams, spec-reframe cycle):
+- **Feature/paninian-n-hot** (Vidyut N-hot morpheme embeddings): tokenizer N-hot mode
+  + embedding table hooks; integration with trainer; ablation arm configuration.
+- **Feature/kaaraka-masking** (Paribhāṣā-driven adaptive masking): masking probability
+  guidance from Paribhāṣā kāraka labels; integration with ELC trainer objective.
+- **Feature/h2-nyaya** (Nyāya fine-tuning scaffold): 6-phase Pañcāvayava scaffold;
+  5K HF dataset ingestion + HF demo card; fine-tune driver on best H1_MECHANISM arm.
+- **Feature/babylm-2026-eval** (Official leaderboard eval harness): full Text-Average
+  suite runner; (Super)GLUE fine-tune integration; submission portal integration.
+- **Feature/hyperparameter-search** (Mechanism lever sweep): grid/Bayesian search over
+  N-hot sparsity, masking probs, scheduler params; loss-parity + BLiMP correlation.
 
 ## Checkpoint inventory (`data/checkpoints/`)
 

@@ -23,15 +23,31 @@ validated H1 base.
 
 ## The hypotheses and their pre-registered thresholds
 
-- **H1 (Grammar Prior):** Pāṇinian pre-pretraining yields ≥20% token savings vs
-  a matched k-Shuffle Dyck control on compositional benchmarks, OR a ≥3-point
-  compositional-accuracy gain. (`go_no_go.token_savings_vs_dyck`, `...gain_points`)
-- **H2 (Nyāya Scaffold):** A 6-phase reasoning scaffold lowers fallacious-
-  inference rates. The novel claim is the **H1×H2 synergy test** — PSALM-base +
-  Nyāya vs a matched Generic-1B (TinyLlama) + Nyāya, measuring *sample
-  efficiency*. DeepSeek-R1-8B + Nyāya runs separately as the ceiling.
-- **H3 (Epistemic Constraint):** GBNF schema + Z3 vyāpti verifier + hetvābhāsa
-  filter enforce validity by construction; measure the fluency cost.
+- **H1_COGS (Dose, CLOSED-NULL):** Pāṇinian pre-pretraining dose yields ≥20% token
+  savings vs a matched k-Shuffle Dyck control on COGS argument-role discrimination,
+  OR a ≥3-point accuracy gain. Status: documented null at 100M proxy scale (venue
+  saturation); no 350M rescue planned. See ADR-0017.
+
+- **H1_MECHANISM (Pāṇinian mechanisms, primary live hypothesis):** Vidyut morpheme-
+  boundary N-hot embeddings + Paribhāṣā kāraka-aware adaptive masking, integrated
+  throughout all 10M tokens of English pretraining, outperform static AMLM-style
+  masking on the BabyLM Strict-Small official suite (BLiMP ≥70.0 for the final
+  submission model, ≥3 seeds, paired bootstrap, Holm–Bonferroni). Mechanisms
+  alter token-level masking probability on the basis of morpheme and role
+  boundaries; they are not dose-style pre-pretrain dumps. Arms A–D (dose type
+  ablation) remain frozen for paper-internal comparisons; mechanisms are deployed
+  separately in the leaderboard submission track (ADR-0038). See ADR-0039.
+
+- **H2 (Nyāya Scaffold, in scope this cycle):** A 6-phase Pañcāvayava fine-tuning
+  scaffold (5K examples) reduces fallacious-inference rates on the best H1_MECHANISM
+  arm (post-pretraining stage). The novel claim is the **H1_MECHANISM×H2 synergy
+  test** — PSALM-mechanism + Nyāya vs a matched Generic-1B baseline + Nyāya,
+  measuring sample efficiency on an inference-quality readout (TBD: BLiMP subset
+  or a small annotated corpus). DeepSeek-R1-8B + Nyāya runs separately as ceiling.
+
+- **H3 (Epistemic Constraint, OUT OF SCOPE):** GBNF schema + Z3 vyāpti verifier +
+  hetvābhāsa filter enforce validity by construction; deferred to a future phase
+  on a larger model or a Sanskrit-specific evaluation surface.
 
 Changing a pre-registered threshold requires an ADR in `docs/decisions/`.
 
