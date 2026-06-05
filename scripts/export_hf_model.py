@@ -164,7 +164,9 @@ def main() -> None:
     print(f"OK HF export -> {out}")
     print(f"  tokenizer id-identical to SP; mask_token_id={tok.mask_token_id}")
     print(f"  AutoModelForMaskedLM loads (trust_remote_code); logits {tuple(logits.shape)}")
-    print(f"  AutoModel base loads; hidden_size={auto_cfg.hidden_size}; last_hidden_state {tuple(hidden.shape)}")
+    print(
+        f"  AutoModel base loads; hidden_size={auto_cfg.hidden_size}; last_hidden_state {tuple(hidden.shape)}"
+    )
 
 
 if __name__ == "__main__":

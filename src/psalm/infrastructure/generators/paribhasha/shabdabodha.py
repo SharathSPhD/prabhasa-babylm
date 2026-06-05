@@ -93,6 +93,7 @@ class _GateFailure(Exception):
         self.reason = reason
         self.rule_id = rule_id
 
+
 ALIGNED_SCHEMA_VERSION: Final = "paribhasha_aligned_v1"
 PIPELINE_SOURCE: Final = "shabdabodha-vyutpattivada"
 
@@ -336,9 +337,7 @@ def _build_graph(
     # kartā — yogyatā: agency requires a substance.
     karta_stem = roles["karwA"]
     if padartha_of(karta_stem) is not PadarthaCategory.DRAVYA:
-        raise _GateFailure(
-            f"kartā {karta_stem!r} is not a dravya (yogyatā)", SKIP_YOGYATA_KARTA
-        )
+        raise _GateFailure(f"kartā {karta_stem!r} is not a dravya (yogyatā)", SKIP_YOGYATA_KARTA)
     karta = add(_dravya(karta_stem))
     edges.append(GraphEdge(kriya.id, karta.id, sansa=SansaType.SAMYOGATA))
     applied.append(RULE_KARW_SAMYOGATA)
@@ -364,9 +363,7 @@ def _build_graph(
         kstem = roles["karaNam"]
         if padartha_of(kstem) is PadarthaCategory.DRAVYA:
             kn = add(_dravya(kstem))
-            edges.append(
-                GraphEdge(kriya.id, kn.id, sansa=SansaType.SAMYOGATA, qualifier="karaNa")
-            )
+            edges.append(GraphEdge(kriya.id, kn.id, sansa=SansaType.SAMYOGATA, qualifier="karaNa"))
             qualifiable.append(("karaNam", kn))
         else:
             g = add(_guna_filler(kstem))

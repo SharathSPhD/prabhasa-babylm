@@ -47,8 +47,14 @@ ZERO_SHOT_TASKS = [
     ("comps", "evaluation_data/full_eval/comps", "comps", True),
     ("wug_past", "evaluation_data/full_eval/wug_past_tense", "wug_past_tense", False),
 ]
-TEXT_AVERAGE_LABELS = {"blimp", "blimp_supplement", "ewok", "entity_tracking",
-                       "wug_adj_nominalization", "comps"}
+TEXT_AVERAGE_LABELS = {
+    "blimp",
+    "blimp_supplement",
+    "ewok",
+    "entity_tracking",
+    "wug_adj_nominalization",
+    "comps",
+}
 
 
 def _avg_from_report(log_text: str) -> float | None:
@@ -65,18 +71,43 @@ def _ewok_data(pipeline: Path) -> tuple[str, str]:
     return ("ewok", "evaluation_data/fast_eval/ewok_fast")
 
 
-def _run_zero_shot(task: str, data_rel: str, label: str, hf_dir: Path,
-                   batch_size: int, logdir: Path, name: str, pipeline: Path) -> float | None:
+def _run_zero_shot(
+    task: str,
+    data_rel: str,
+    label: str,
+    hf_dir: Path,
+    batch_size: int,
+    logdir: Path,
+    name: str,
+    pipeline: Path,
+) -> float | None:
     log = logdir / f"{name}__{label}.log"
     print(f"[zero_shot] {task}:{label}", flush=True)
     with log.open("w", encoding="utf-8") as fh:
         subprocess.run(
-            [PY, "-m", "evaluation_pipeline.sentence_zero_shot.run",
-             "--model_path_or_name", str(hf_dir), "--backend", "mlm",
-             "--task", task, "--data_path", data_rel,
-             "--batch_size", str(batch_size), "--non_causal_batch_size", "64",
-             "--output_dir", "results"],
-            cwd=pipeline, stdout=fh, stderr=subprocess.STDOUT, check=True,
+            [
+                PY,
+                "-m",
+                "evaluation_pipeline.sentence_zero_shot.run",
+                "--model_path_or_name",
+                str(hf_dir),
+                "--backend",
+                "mlm",
+                "--task",
+                task,
+                "--data_path",
+                data_rel,
+                "--batch_size",
+                str(batch_size),
+                "--non_causal_batch_size",
+                "64",
+                "--output_dir",
+                "results",
+            ],
+            cwd=pipeline,
+            stdout=fh,
+            stderr=subprocess.STDOUT,
+            check=True,
         )
     avg = _avg_from_report(log.read_text(encoding="utf-8"))
     print(f"[zero_shot] {label}: {avg}", flush=True)
@@ -98,7 +129,7 @@ def _resolve_harness(version: str) -> Path:
                 "BabyLM 2026 harness not yet available. Falling back to 2025 pipeline. "
                 "To use 2026 when available, clone it to vendor/babylm-evaluation-pipeline-2026.",
                 UserWarning,
-                stacklevel=2
+                stacklevel=2,
             )
             print("[harness] 2026 not found; using 2025 fallback", flush=True)
             version = "2025"
@@ -125,11 +156,23 @@ def _run_reading(hf_dir: Path, logdir: Path, name: str, pipeline: Path) -> bool:
     print("[reading] surprisal predictions", flush=True)
     with log.open("w", encoding="utf-8") as fh:
         subprocess.run(
-            [PY, "-m", "evaluation_pipeline.reading.run",
-             "--model_path_or_name", str(hf_dir), "--backend", "mlm",
-             "--data_path", "evaluation_data/full_eval/reading/reading_data.csv",
-             "--output_dir", "results"],
-            cwd=pipeline, stdout=fh, stderr=subprocess.STDOUT, check=True,
+            [
+                PY,
+                "-m",
+                "evaluation_pipeline.reading.run",
+                "--model_path_or_name",
+                str(hf_dir),
+                "--backend",
+                "mlm",
+                "--data_path",
+                "evaluation_data/full_eval/reading/reading_data.csv",
+                "--output_dir",
+                "results",
+            ],
+            cwd=pipeline,
+            stdout=fh,
+            stderr=subprocess.STDOUT,
+            check=True,
         )
     return True
 
@@ -142,8 +185,12 @@ def main() -> None:
     ap.add_argument("--batch-size", type=int, default=16)
     ap.add_argument("--logdir", default="logs/official")
     ap.add_argument("--skip-reading", action="store_true")
-    ap.add_argument("--harness", choices=["2025", "2026"], default="2026",
-                    help="BabyLM evaluation harness version (default: 2026)")
+    ap.add_argument(
+        "--harness",
+        choices=["2025", "2026"],
+        default="2026",
+        help="BabyLM evaluation harness version (default: 2026)",
+    )
     args = ap.parse_args()
 
     # Select harness and resolve to pipeline path
@@ -156,9 +203,20 @@ def main() -> None:
     # 1) Export to HF (validates tokenizer id-parity + remote-code load).
     print(f"[export] {args.ckpt} -> {hf_dir}", flush=True)
     subprocess.run(
-        [PY, "scripts/export_hf_model.py", "--ckpt", args.ckpt,
-         "--tokenizer", args.tokenizer, "--out", str(hf_dir), "--model-name", args.name],
-        cwd=ROOT, check=True,
+        [
+            PY,
+            "scripts/export_hf_model.py",
+            "--ckpt",
+            args.ckpt,
+            "--tokenizer",
+            args.tokenizer,
+            "--out",
+            str(hf_dir),
+            "--model-name",
+            args.name,
+        ],
+        cwd=ROOT,
+        check=True,
     )
 
     # 2) Zero-shot suite (EWoK full if present, else fast).
@@ -188,8 +246,12 @@ def main() -> None:
         "text_average_components": sorted(TEXT_AVERAGE_LABELS),
         "notes": {
             "wug_past_tense": "lower is better; excluded from Text Average",
-            "reading": ("predictions saved; leaderboard score is human-RT correlation "
-                        "via official aggregator") if reading_ran else "not run",
+            "reading": (
+                "predictions saved; leaderboard score is human-RT correlation "
+                "via official aggregator"
+            )
+            if reading_ran
+            else "not run",
             "aoa": "reported separately; excluded from Text Average",
             "ewok_set": ewok_label,
         },

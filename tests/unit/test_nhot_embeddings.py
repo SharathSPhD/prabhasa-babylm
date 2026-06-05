@@ -27,15 +27,14 @@ from psalm.infrastructure.ml.nhot_embeddings import (
 def tiny_spm():
     """Return a minimal mock SentencePiece processor with ▁ marker support."""
     pytest.importorskip("sentencepiece")
-    import sentencepiece as spm
 
     with TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
         # Create a trivial SentencePiece model with 100 tokens
-        vocab_file = tmp / "vocab.txt"
+        tmp / "vocab.txt"
 
         # SentencePiece model file (minimal valid model)
-        model_file = tmp / "model.model"
+        tmp / "model.model"
 
         # For testing, we can use a pre-built model or train a minimal one
         # For simplicity, we'll mock the tokenizer interface
@@ -49,7 +48,7 @@ def tiny_spm():
                 self._pieces.extend([f"▁{chr(97 + i)}" for i in range(10)])  # 9-18: ▁a, ▁b, ..., ▁j
                 # Add continuation pieces (no ▁)
                 self._pieces.extend([f"ing{i}" for i in range(5)])  # 19-23
-                self._pieces.extend([f"ed{i}" for i in range(5)])   # 24-28
+                self._pieces.extend([f"ed{i}" for i in range(5)])  # 24-28
                 # Fill remaining with generic pieces
                 self._pieces.extend([f"piece{i}" for i in range(size - len(self._pieces))])
 
@@ -73,7 +72,7 @@ def tiny_spm():
 
 def test_nhot_dim_correct():
     """Test that NHOT_DIM matches the number of morpheme types."""
-    assert NHOT_DIM == len(MORPHEME_TYPES)
+    assert len(MORPHEME_TYPES) == NHOT_DIM
     assert NHOT_DIM == 10
 
 
@@ -105,7 +104,9 @@ def test_word_start_pieces_labeled(tiny_spm):
         if piece.startswith("▁"):
             is_word_start = matrix[vid, word_start_idx] > 0
             is_single = matrix[vid, single_idx] > 0
-            assert is_word_start or is_single, f"Piece {vid} ({piece}) should be marked word_start or single"
+            assert is_word_start or is_single, (
+                f"Piece {vid} ({piece}) should be marked word_start or single"
+            )
 
 
 def test_continuation_pieces_labeled(tiny_spm):
@@ -252,7 +253,7 @@ def test_nhot_matrix_coverage(tiny_spm):
     matrix = build_nhot_matrix(tiny_spm, vocab_size=vocab_size, vidyut_available=False)
 
     # Each token should have at least one morpheme type
-    per_token_coverage = (matrix.sum(axis=1) > 0)
+    per_token_coverage = matrix.sum(axis=1) > 0
     assert per_token_coverage.all(), (
         f"Some tokens have no morpheme type: {np.where(~per_token_coverage)[0]}"
     )
@@ -272,7 +273,7 @@ def test_morpheme_types_exist():
         "vidyut_krit",
         "vidyut_taddhita",
     ]
-    assert MORPHEME_TYPES == expected
+    assert expected == MORPHEME_TYPES
 
 
 def test_nhot_embedding_deterministic(tiny_spm):

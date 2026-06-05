@@ -79,9 +79,7 @@ def test_avacchedaka_flat_round_trip() -> None:
         ],
     )
     out = render_graph(g)
-    assert any(
-        e.sansa == SansaType.AVACCHEDAKA for e in parse_paribhasha_ascii(out.ascii).edges
-    )
+    assert any(e.sansa == SansaType.AVACCHEDAKA for e in parse_paribhasha_ascii(out.ascii).edges)
     assert parse_paribhasha_ascii(out.ascii).to_canonical_schema_dict() == (
         g.to_canonical_schema_dict()
     )

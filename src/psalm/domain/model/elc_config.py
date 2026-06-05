@@ -47,7 +47,9 @@ class ElcPsalmConfig(BaseModel):
     mup_base_d_model: int = Field(default=256, gt=0)
 
     # Vidyut-informed N-hot morpheme embeddings (Paninian structure).
-    nhot_embeddings: bool = Field(default=False, description="Enable N-hot morpheme embedding layer")
+    nhot_embeddings: bool = Field(
+        default=False, description="Enable N-hot morpheme embedding layer"
+    )
 
     @model_validator(mode="after")
     def _validate(self) -> ElcPsalmConfig:

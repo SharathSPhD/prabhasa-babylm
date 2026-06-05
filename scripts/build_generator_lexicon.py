@@ -112,9 +112,7 @@ def build(dcs_path: Path, data_dir: Path, max_stems: int) -> dict[str, object]:
         # keep only if the DCS-dominant liṅga is attested as a verified kośa liṅga
         if not any(_KOSHA_LINGA.get(k) == linga for k in kosha_lgs):
             # fall back to a verified liṅga the kośa does attest
-            verified_linga = next(
-                (_KOSHA_LINGA[k] for k in kosha_lgs if k in _KOSHA_LINGA), None
-            )
+            verified_linga = next((_KOSHA_LINGA[k] for k in kosha_lgs if k in _KOSHA_LINGA), None)
             if verified_linga is None:
                 continue
             linga = verified_linga

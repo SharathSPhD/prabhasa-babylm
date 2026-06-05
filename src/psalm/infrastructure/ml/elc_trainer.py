@@ -102,9 +102,7 @@ def build_optimizer(
             logger.warning("adamw_8bit unavailable (%s); falling back to fused AdamW", exc)
             kind = "adamw_fused"
     if kind == "adamw_fused" and on_cuda:
-        return torch.optim.AdamW(
-            params, lr=lr, weight_decay=weight_decay, betas=betas, fused=True
-        )
+        return torch.optim.AdamW(params, lr=lr, weight_decay=weight_decay, betas=betas, fused=True)
     if kind not in ("adamw", "adamw_fused"):
         logger.warning("unknown optimizer kind %r; using plain AdamW", kind)
     return torch.optim.AdamW(params, lr=lr, weight_decay=weight_decay, betas=betas)
@@ -272,8 +270,12 @@ def train_elc_two_stage(
         torch.cuda.manual_seed_all(stage1_cfg.seed)
     device = _resolve_device(stage1_cfg)
     model, cfg = build_elc_encoder(
-        architecture, vocab_size=vocab_size, max_seq_len=stage1_cfg.seq_len, smoke=smoke,
-        dropout=dropout, mlm_probability=mlm_probability,
+        architecture,
+        vocab_size=vocab_size,
+        max_seq_len=stage1_cfg.seq_len,
+        smoke=smoke,
+        dropout=dropout,
+        mlm_probability=mlm_probability,
     )
     model = model.to(device)
     model = maybe_compile(model, enabled=compile_model)
@@ -311,8 +313,14 @@ def train_elc_two_stage(
                 _infinite(stage1_lines), batch_size=stage1_cfg.batch_size, device=device
             )
         s, t, last_loss, b1 = _run_steps(
-            model, opt, it1, stage1_cfg, max_steps=stage1_cfg.max_steps, mask_id=mask_id,
-            eos_id=eos_id, lr_schedule=schedule,
+            model,
+            opt,
+            it1,
+            stage1_cfg,
+            max_steps=stage1_cfg.max_steps,
+            mask_id=mask_id,
+            eos_id=eos_id,
+            lr_schedule=schedule,
         )
         total_steps += s
         total_tokens += t
@@ -326,8 +334,15 @@ def train_elc_two_stage(
             _infinite(stage2_lines), batch_size=stage2_cfg.batch_size, device=device
         )
     s, t, last_loss2, b2 = _run_steps(
-        model, opt, it2, stage2_cfg, max_steps=stage2_cfg.max_steps, mask_id=mask_id,
-        eos_id=eos_id, step_offset=total_steps, lr_schedule=schedule,
+        model,
+        opt,
+        it2,
+        stage2_cfg,
+        max_steps=stage2_cfg.max_steps,
+        mask_id=mask_id,
+        eos_id=eos_id,
+        step_offset=total_steps,
+        lr_schedule=schedule,
     )
     total_steps += s
     total_tokens += t

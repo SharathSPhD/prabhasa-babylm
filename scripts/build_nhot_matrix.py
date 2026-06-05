@@ -60,9 +60,7 @@ def main() -> None:
     print(f"Tokenizer vocab size: {vocab}", flush=True)
 
     if vocab != args.vocab_size:
-        raise ValueError(
-            f"Tokenizer vocab size ({vocab}) != --vocab-size ({args.vocab_size})"
-        )
+        raise ValueError(f"Tokenizer vocab size ({vocab}) != --vocab-size ({args.vocab_size})")
 
     # Build matrix
     print("Building N-hot matrix...", flush=True)
@@ -86,7 +84,7 @@ def main() -> None:
 
     # Check coverage (each token should have at least one morpheme type)
     coverage = (matrix.sum(axis=1) > 0).sum()
-    print(f"\nTokens with ≥1 morpheme type: {coverage}/{vocab} ({100*coverage/vocab:.1f}%)")
+    print(f"\nTokens with ≥1 morpheme type: {coverage}/{vocab} ({100 * coverage / vocab:.1f}%)")
 
 
 if __name__ == "__main__":

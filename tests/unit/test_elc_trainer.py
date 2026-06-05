@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 pytest.importorskip("torch")
 
 import torch
-from torch import nn
 
 from psalm.benchmarks.babylm_eval import run_smoke_eval
 from psalm.benchmarks.babylm_models import build_babylm_smoke_model
@@ -115,7 +114,9 @@ def test_grad_clip_applied_after_backward() -> None:
         )
 
     # clip_grad_norm_ should be called once per step (3 steps)
-    assert mock_clip.call_count == 3, f"clip_grad_norm_ called {mock_clip.call_count} times, expected 3"
+    assert mock_clip.call_count == 3, (
+        f"clip_grad_norm_ called {mock_clip.call_count} times, expected 3"
+    )
     assert outcome.steps == 3
 
 
@@ -145,7 +146,9 @@ def test_bin_dataset_roundtrip(tmp_path: Path) -> None:
 
     # Get first sample
     sample = dataset[0]
-    assert sample.shape == torch.Size([seq_len + 1]), f"Expected shape ({seq_len + 1},), got {sample.shape}"
+    assert sample.shape == torch.Size([seq_len + 1]), (
+        f"Expected shape ({seq_len + 1},), got {sample.shape}"
+    )
     assert sample.dtype == torch.int64
 
     # Verify all values are uint16-range (0-65535)

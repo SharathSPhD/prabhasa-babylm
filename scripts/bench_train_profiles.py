@@ -33,16 +33,18 @@ PROFILES = {
 }
 
 
-def _run_profile(name: str, *, arch: str, vocab: int, batch: int, seq: int, steps: int,
-                 device: str, warmup: int) -> tuple[list[float], float]:
+def _run_profile(
+    name: str, *, arch: str, vocab: int, batch: int, seq: int, steps: int, device: str, warmup: int
+) -> tuple[list[float], float]:
     cfg_opt = PROFILES[name]
     torch.manual_seed(0)
     model, cfg = build_elc_encoder(arch, vocab_size=vocab, max_seq_len=seq)
     model = model.to(device)
     model = maybe_compile(model, enabled=cfg_opt["compile"])
     mask_id = cfg.vocab_size - 1
-    opt = build_optimizer(model.parameters(), lr=1e-4, weight_decay=0.1,
-                          kind=cfg_opt["optimizer"], device=device)
+    opt = build_optimizer(
+        model.parameters(), lr=1e-4, weight_decay=0.1, kind=cfg_opt["optimizer"], device=device
+    )
     use_cuda = device.startswith("cuda")
     g = torch.Generator(device="cpu").manual_seed(123)
 
@@ -87,8 +89,9 @@ def main() -> None:
     ap.add_argument("--warmup", type=int, default=5)
     ap.add_argument("--tol", type=float, default=0.05, help="max abs loss-curve diff allowed")
     ap.add_argument("--device", default="cuda")
-    ap.add_argument("--profiles", nargs="+", default=["baseline", "adamw_fused"],
-                    choices=list(PROFILES))
+    ap.add_argument(
+        "--profiles", nargs="+", default=["baseline", "adamw_fused"], choices=list(PROFILES)
+    )
     args = ap.parse_args()
 
     if "baseline" not in args.profiles:
@@ -98,8 +101,14 @@ def main() -> None:
     for name in args.profiles:
         print(f"[bench] {name} ...", flush=True)
         results[name] = _run_profile(
-            name, arch=args.arch, vocab=args.vocab, batch=args.batch, seq=args.seq,
-            steps=args.steps, device=args.device, warmup=args.warmup,
+            name,
+            arch=args.arch,
+            vocab=args.vocab,
+            batch=args.batch,
+            seq=args.seq,
+            steps=args.steps,
+            device=args.device,
+            warmup=args.warmup,
         )
 
     base_losses, base_tps = results["baseline"]
@@ -114,9 +123,11 @@ def main() -> None:
         parity = max_diff <= args.tol
         faster = tps > base_tps
         verdict = "ADOPT" if (parity and faster) else "REJECT"
-        print(f"{name}: final_loss={losses[-1]:.4f} tok/s={tps:,.0f} "
-              f"max|Δloss|={max_diff:.4f} speedup={speedup:.2f}x -> {verdict}"
-              f"{'' if parity else ' (loss drift)'}{'' if faster else ' (not faster)'}")
+        print(
+            f"{name}: final_loss={losses[-1]:.4f} tok/s={tps:,.0f} "
+            f"max|Δloss|={max_diff:.4f} speedup={speedup:.2f}x -> {verdict}"
+            f"{'' if parity else ' (loss drift)'}{'' if faster else ' (not faster)'}"
+        )
 
 
 if __name__ == "__main__":

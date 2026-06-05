@@ -103,9 +103,7 @@ def _smoothed_weights(freqs: list[int]) -> list[float]:
     return [float(f) + 1.0 for f in freqs]
 
 
-def _noun(
-    idx: int, stem: Stem, number: str, karaka: str, head: int
-) -> dict[str, object]:
+def _noun(idx: int, stem: Stem, number: str, karaka: str, head: int) -> dict[str, object]:
     return {
         "id": idx,
         "pos": "noun",

@@ -11,6 +11,7 @@ emits ``docs/reports/PSALM-project-record-<ISO8601>.html``.
 
 from __future__ import annotations
 
+import contextlib
 import html
 import json
 import sqlite3
@@ -62,6 +63,7 @@ def json_table(obj: dict, keys: list[str] | None = None) -> str:
 
 # ---------------- sections ----------------
 
+
 def sec_narrative() -> str:
     state = read(ROOT / "docs/memory/ORCHESTRATOR-STATE.md")
     charter = render_md_file(ROOT / "CHARTER.md")
@@ -73,16 +75,23 @@ def sec_narrative() -> str:
         "BabyLM Strict-Small budget. The project is GPU-only, no-mock, with budget-matched "
         "ablation arms (A–D) and an orthogonal leaderboard submission track.</p>"
     )
-    return section("1. Project narrative (start → now)", "narrative",
-                   intro + details("Charter", charter) +
-                   details("Orchestrator state (current)", md(state), open_=True))
+    return section(
+        "1. Project narrative (start → now)",
+        "narrative",
+        intro
+        + details("Charter", charter)
+        + details("Orchestrator state (current)", md(state), open_=True),
+    )
 
 
 def sec_prd_spec() -> str:
     body = (
-        details("PRD (docs/prd.md)", render_md_file(ROOT / "docs/prd.md")) +
-        details("Spec (docs/spec.md)", render_md_file(ROOT / "docs/spec.md")) +
-        details("Requirements", render_md_file(ROOT / "docs/requirements/2026-05-31-psalm-requirements.md"))
+        details("PRD (docs/prd.md)", render_md_file(ROOT / "docs/prd.md"))
+        + details("Spec (docs/spec.md)", render_md_file(ROOT / "docs/spec.md"))
+        + details(
+            "Requirements",
+            render_md_file(ROOT / "docs/requirements/2026-05-31-psalm-requirements.md"),
+        )
     )
     return section("2. PRD, spec & requirements", "prd-spec", body)
 
@@ -125,29 +134,34 @@ def sec_adrs() -> str:
         )
         bodies.append(details(p.name, md(txt)))
     digest = f"<table class='kv'>{''.join(rows)}</table>"
-    return section(f"4. ADR digest ({len(adrs)} decisions)", "adrs",
-                   digest + "<h3>Full ADRs</h3>" + "".join(bodies))
+    return section(
+        f"4. ADR digest ({len(adrs)} decisions)",
+        "adrs",
+        digest + "<h3>Full ADRs</h3>" + "".join(bodies),
+    )
 
 
 def sec_manifests() -> str:
     parts = []
     prior = ROOT / "data/corpora/priors/paninian_1m_stats.json"
     if prior.exists():
-        parts.append("<h3>Paninian prior dose stats</h3>" +
-                     json_table(json.loads(read(prior))))
+        parts.append("<h3>Paninian prior dose stats</h3>" + json_table(json.loads(read(prior))))
     spm_vocab = ROOT / "data/tokenizer/strict_small/spm.vocab"
     if spm_vocab.exists():
         n = sum(1 for _ in spm_vocab.open(encoding="utf-8"))
-        parts.append(f"<h3>Tokenizer</h3><p>Joint SentencePiece, vocab size "
-                     f"<strong>{n}</strong> (data/tokenizer/strict_small/spm.model).</p>")
-    return section("5. Corpus & tokenizer manifests", "manifests",
-                   "".join(parts) or "<p>none</p>")
+        parts.append(
+            f"<h3>Tokenizer</h3><p>Joint SentencePiece, vocab size "
+            f"<strong>{n}</strong> (data/tokenizer/strict_small/spm.model).</p>"
+        )
+    return section("5. Corpus & tokenizer manifests", "manifests", "".join(parts) or "<p>none</p>")
 
 
 def sec_results() -> str:
     cdir = ROOT / "data/checkpoints"
-    rows = ["<tr><th>Checkpoint</th><th>arm/seed</th><th>steps</th><th>tokens</th>"
-            "<th>best_loss</th><th>BLiMP (local PLL)</th></tr>"]
+    rows = [
+        "<tr><th>Checkpoint</th><th>arm/seed</th><th>steps</th><th>tokens</th>"
+        "<th>best_loss</th><th>BLiMP (local PLL)</th></tr>"
+    ]
     for summ in sorted(cdir.glob("*/*/summary.json")):
         try:
             s = json.loads(read(summ))
@@ -158,10 +172,8 @@ def sec_results() -> str:
         for bf in ("blimp_full.json", "blimp_pll.json"):
             bp = d / bf
             if bp.exists():
-                try:
+                with contextlib.suppress(Exception):
                     blimp = f"{json.loads(read(bp)).get('overall_accuracy'):.4f}"
-                except Exception:
-                    pass
                 break
         rel = d.relative_to(cdir)
         rows.append(
@@ -175,11 +187,13 @@ def sec_results() -> str:
     # Official / GLUE summaries if present.
     extra = []
     for js in sorted((ROOT / "data/hf_export").glob("*/official_summary.json")):
-        extra.append(details(f"official_summary: {js.parent.name}",
-                             f"<pre>{html.escape(read(js))}</pre>"))
+        extra.append(
+            details(f"official_summary: {js.parent.name}", f"<pre>{html.escape(read(js))}</pre>")
+        )
     for js in sorted((ROOT / "data/hf_export").glob("*/glue_summary.json")):
-        extra.append(details(f"glue_summary: {js.parent.name}",
-                             f"<pre>{html.escape(read(js))}</pre>"))
+        extra.append(
+            details(f"glue_summary: {js.parent.name}", f"<pre>{html.escape(read(js))}</pre>")
+        )
 
     leaderboard = (
         "<h3>Leaderboard comparison (Strict-Small reference)</h3>"
@@ -231,9 +245,11 @@ def sec_lessons() -> str:
                 "SELECT kind, title, body FROM notes ORDER BY kind, created_at"
             ).fetchall()
             conn.close()
-            lis = [f"<li><strong>[{html.escape(r['kind'])}]</strong> "
-                   f"{html.escape(r['title'])}<br><small>{html.escape(r['body'])}</small></li>"
-                   for r in rows]
+            lis = [
+                f"<li><strong>[{html.escape(r['kind'])}]</strong> "
+                f"{html.escape(r['title'])}<br><small>{html.escape(r['body'])}</small></li>"
+                for r in rows
+            ]
             parts.append(f"<ul>{''.join(lis)}</ul>")
         except Exception as exc:
             parts.append(f"<p>knowledge store unreadable: {html.escape(str(exc))}</p>")
@@ -271,17 +287,28 @@ def build() -> Path:
     out = ROOT / "docs/reports" / fname
     out.parent.mkdir(parents=True, exist_ok=True)
 
-    nav = ("<nav><strong>Contents:</strong> "
-           '<a href="#narrative">Narrative</a><a href="#prd-spec">PRD/Spec</a>'
-           '<a href="#contracts">Contracts</a><a href="#adrs">ADRs</a>'
-           '<a href="#manifests">Manifests</a><a href="#results">Results</a>'
-           '<a href="#research">Research</a><a href="#next">Next stages</a>'
-           '<a href="#lessons">Lessons</a></nav>')
+    nav = (
+        "<nav><strong>Contents:</strong> "
+        '<a href="#narrative">Narrative</a><a href="#prd-spec">PRD/Spec</a>'
+        '<a href="#contracts">Contracts</a><a href="#adrs">ADRs</a>'
+        '<a href="#manifests">Manifests</a><a href="#results">Results</a>'
+        '<a href="#research">Research</a><a href="#next">Next stages</a>'
+        '<a href="#lessons">Lessons</a></nav>'
+    )
 
-    sections = "".join([
-        sec_narrative(), sec_prd_spec(), sec_contracts(), sec_adrs(),
-        sec_manifests(), sec_results(), sec_research(), sec_next(), sec_lessons(),
-    ])
+    sections = "".join(
+        [
+            sec_narrative(),
+            sec_prd_spec(),
+            sec_contracts(),
+            sec_adrs(),
+            sec_manifests(),
+            sec_results(),
+            sec_research(),
+            sec_next(),
+            sec_lessons(),
+        ]
+    )
 
     doc = (
         f"<!doctype html><html lang='en'><head><meta charset='utf-8'>"
