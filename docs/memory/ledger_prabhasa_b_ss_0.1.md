@@ -41,6 +41,19 @@ Closure-contract EMPIRICAL + MEMORY layers.
 
 ---
 
+## Correctness audit (parallel to Attempt #2) — ✅ NO CODE BUGS
+Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
+(Muon/AdamW split), masking schedules, tokenizer-vocab parity, gradients.
+**Verdict: pipeline is correct; the failure is hyperparameter, not a bug.**
+- Confirms Attempt #1 root cause = LR-too-high (HP search was a 1.5s toy-scale
+  smoke test, non-predictive at 114M/vocab-20000).
+- Recalibration: objective is **hybrid MLM+CLM** → averaged loss ~5 is partly the
+  higher-entropy CLM term; **BLiMP (MLM pseudo-LL) is the real validation signal,
+  not raw loss.**
+- **Intervention #2 (pre-loaded, only if Attempt #2 BLiMP still < ~60):**
+  `peak_lr 1e-3 → 5e-4`, `warmup_frac 0.06 → 0.10`, consider `muon_lr 0.01 → 0.005`,
+  and if grad-clip rate > 10% raise clip 1.0 → 1.5. Then inspect dose/English ratio.
+
 ### Standing optimization backlog (post-validation)
 1. If #2 works at seq 192, bench seq 192 vs 256 throughput (`bench_attention_backends.py`).
 2. Consider Fix C (build flash-attn for sm_121) before the 100M Small run.
