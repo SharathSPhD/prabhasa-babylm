@@ -73,6 +73,31 @@ Closure-contract EMPIRICAL + MEMORY layers.
   not hurts — central to H1_MECHANISM); improve kāraka signal quality; ablate the
   3-epoch Sanskrit dose (interference test); rebalance MLM/CLM ~70/30.
 
+## 🎯 OFFICIAL TARGETS (babylm baseline scores, Strict-Small) — must BEAT
+From the official babylm benchmark repo, gpt2 strict-small baseline:
+- **BLiMP ≥ 65.08** | BLiMP-supp ≥ 57.25 | COMPS ≥ 51.81 | entity-tracking ≥ 21.07
+- GLUE: BoolQ ≥ 65.87 | MNLI ≥ 49.80 | MRPC-F1 ≥ 83.49
+- Stretch (2025 winners): BLiMP ~70–71. **Current best 61.26 → below baseline; close this first.**
+
+## Attempt #4 RESULT (v0.2 = ep10 + static 0.15) — BLiMP 61.26 (+1.79)
+- 55.41 → 59.47 → **61.26**. Best final_loss yet (2.76). Static-mask + epochs help, but
+  modest; still below the 65.08 baseline and the 64.55 arm-A reference.
+
+## Round 4 → Attempt #5 = v0.3 (RUNNING) — DROP THE DOSE (English-only)
+- **Two-fold rationale:** (1) Official docs do NOT clarify whether non-English/synthetic
+  pre-pretraining counts toward the 10M budget — genuinely ambiguous (user flagged ×3).
+  Dropping the Sanskrit dose REMOVES the compliance question. (2) The arm-A **English-only**
+  run historically hit **64.55** — beating all our dose runs (59–61) → dose-interference.
+- **Thesis intact:** H1_MECHANISM = the *mechanisms* (Vidyut N-hot + Paribhāṣā kāraka
+  masking) applied during English — these stay ON. Only the separate Sanskrit *data dose*
+  (the already-null H1_COGS path, ADR-0017) is removed.
+- **Config delta vs v0.2:** dose epochs 3 to 0 (English-only). Else identical (static 0.15,
+  10 ep, lr 1e-3, N-hot + structured masking + freq_alpha 0.5 ON).
+  Run: `data/checkpoints/prabhasa_b_ss_v03_englishonly/seed_0`.
+- **Pre-registered expectation:** recover toward/above arm-A 64.55, target ≥65.08 baseline.
+- **2026 note:** teacher-model feedback is now explicitly PERMITTED in Strict tracks to
+  validate the (secondary) teacher-student path for later.
+
 ## Correctness audit (parallel to Attempt #2) — ✅ NO CODE BUGS
 Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 (Muon/AdamW split), masking schedules, tokenizer-vocab parity, gradients.
