@@ -67,17 +67,83 @@ import Base from "../layouts/Base.astro";
   </section>
 
   <section>
+    <h2>Leaderboard submission: H1_MECHANISM</h2>
+    <p>
+      The ablation arms isolate dose type; a separate submission track layers six
+      Pāṇinian-inspired mechanisms throughout all 10M tokens of pretraining.
+      These mechanisms are never applied to arms A–D, so the ablation is uncontaminated.
+    </p>
+    <table>
+      <thead><tr><th>Mechanism</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Vidyut N-hot embeddings</td>
+          <td>10-dimensional binary morpheme-boundary feature per BPE token; linear
+          projection to 768d, summed with token embedding at every layer</td>
+        </tr>
+        <tr>
+          <td>BPE-heuristic kāraka masking</td>
+          <td>Word-initial tokens → kartā (p=0.50); derivational suffixes → viśeṣaṇa
+          (p=0.20); sub-word fragments → separator (p=0.10); vectorized GPU gather
+          applied at every step</td>
+        </tr>
+        <tr>
+          <td>Salience transfer</td>
+          <td>Empirical masking frequencies from dose-priming Stage 1 become a soft
+          prior for Stage 2; structures that were hard to predict during Sanskrit
+          training receive more attention during English pretraining</td>
+        </tr>
+        <tr>
+          <td>Muon optimizer</td>
+          <td>Newton–Schulz orthogonalization of gradient momentum on all 2-D weight
+          matrices; embeddings and layer norms use AdamW</td>
+        </tr>
+        <tr>
+          <td>Progressive sequence length</td>
+          <td>Training sequence grows 64 → 128 → 256, allocating early GPU capacity
+          to local morpho-syntactic patterns before full-sentence context</td>
+        </tr>
+        <tr>
+          <td>Cosine mask decay</td>
+          <td>Masking probability decreases 0.30 → 0.15 over training; the model
+          trains harder on rare-token structure early and relaxes as it learns</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      BabyLM 2026 compliance: 3 dose epochs + 7 English epochs (= 10, the
+      published maximum). Developmental checkpoints are saved at every 1M-word
+      interval to 10M, and at every 10M thereafter — enabling a sample-efficiency
+      learning-curve analysis. Pre-registered threshold: BLiMP ≥ 70.0 on the
+      official zero-shot suite (≥ 3 seeds, mean ± 95% CI, Holm–Bonferroni).
+    </p>
+  </section>
+
+  <section>
+    <h2>H2: Navya-Nyāya post-pretraining</h2>
+    <p>
+      After the 10M-word pretraining, the best H1_MECHANISM arm is fine-tuned using
+      LoRA adapters (rank 16, QKV projections) on 75 Pañcāvayava inference chains from
+      the pramana dataset. Each chain encodes a six-phase Navya-Nyāya scaffold:
+      pratijñā (thesis), hetu (reason), udāharaṇa (example), upanaya (application),
+      nigamana (conclusion), plus tarka (tautological reduction) and hetvābhāsa
+      (fallacy detection). A Z3 SMT vyāpti verifier validates the entailment steps
+      before inclusion. The synergy test measures sample efficiency: how many examples
+      does PSALM + Nyāya need to reach 80% NLI accuracy, compared to a Generic-1B
+      baseline + Nyāya?
+    </p>
+  </section>
+
+  <section>
     <h2>How we measure, and how we stay honest</h2>
     <p>
       Minimal-pair and world-knowledge tasks are scored without task-specific heads
       by reading pseudo-log-likelihoods directly off the masked model, and the
       (Super)GLUE tasks are read with a light classifier fine-tune. Every reported
       contrast carries bootstrap confidence intervals and Holm–Bonferroni
-      correction against thresholds fixed before the numbers were computed. A
-      separate leaderboard-submission track may add data-efficiency mechanisms such
-      as a decaying masking schedule and the Muon optimizer, but those are kept
-      strictly out of the ablation so they can never flatter the scientific
-      comparison.
+      correction against thresholds fixed before the numbers were computed. The
+      ablation arms (A–D) are strictly separated from the submission track mechanisms,
+      so the scientific comparison is never contaminated by leaderboard tuning.
     </p>
   </section>
 </Base>
