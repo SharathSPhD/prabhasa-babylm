@@ -47,6 +47,12 @@ docs/data/*.db
 !data/**/.gitkeep
 checkpoints/
 outputs/
+
+# Claude Code session worktrees (created by /worktree commands)
+.claude/worktrees/
+
+# Battery training logs (large, non-essential)
+logs/battery/
 runs/
 wandb/
 *.gguf
