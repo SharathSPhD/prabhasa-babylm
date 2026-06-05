@@ -41,6 +41,22 @@ Closure-contract EMPIRICAL + MEMORY layers.
 
 ---
 
+## Attempt #2 RESULT — ✅ IMPROVED (v0.1 working baseline)
+- **BLiMP = 59.47** (vs attempt-1 55.41 → **+4.06pp**). No divergence
+  (final_loss 4.54 vs 6.46). Wall 78 min (vs 110 → seq cap −30%).
+- **Interpretation:** LR fix confirmed — the failure was hyperparameter, as
+  audited. But 59.47 < gate (~65) and < threshold (70). Under-target.
+- **Establishes prabhasa-b_ss v0.1 working baseline.** Iterate single seeds to
+  the best config before spending 3-seed budget (per iteration-loop spec).
+
+## Round 2 → Attempt #3 (RUNNING) — use full epoch budget
+- **Hypothesis:** under-training. We use 7/10 allowed English epochs; end loss
+  (~4.5) still descending. 2026 caps at 10 epochs (new) — strong submissions use
+  all 10. **Pre-registered expectation: +3 to +8pp (59.47 → 62–67).**
+- **Config delta vs Attempt #2:** `english_epochs 7 → 10` (compliant: ≤10; dose
+  exempt). Keep lr 1e-3, muon 0.01, seq 192, dose 3, mechanisms on. Single var.
+- **Run:** `data/checkpoints/prabhasa_b_ss_round2_ep10/seed_0`.
+
 ## Correctness audit (parallel to Attempt #2) — ✅ NO CODE BUGS
 Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 (Muon/AdamW split), masking schedules, tokenizer-vocab parity, gradients.
