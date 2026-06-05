@@ -61,6 +61,11 @@ def main() -> None:
     ap.add_argument("--out", default="data/checkpoints/strict_small")
     ap.add_argument("--require-cuda", action="store_true")
     ap.add_argument("--smoke-eval", action="store_true")
+    ap.add_argument(
+        "--progressive-seq",
+        action="store_true",
+        help="Enable progressive sequence length schedule (64->128->256) during stage-2",
+    )
     args = ap.parse_args()
 
     import torch
@@ -89,7 +94,8 @@ def main() -> None:
     print(
         f"arm {args.arm} seed {args.seed}: dose_tok={dose_tokens} base_tok={base_tokens} "
         f"| stage1={stage1_steps} stage2={stage2_steps} total={total_steps} warmup={warmup} "
-        f"| batch={args.batch_size} seq={args.seq_len} peak_lr={args.peak_lr}",
+        f"| batch={args.batch_size} seq={args.seq_len} peak_lr={args.peak_lr} "
+        f"progressive_seq={args.progressive_seq}",
         flush=True,
     )
 
@@ -154,6 +160,7 @@ def main() -> None:
             "peak_lr": args.peak_lr,
             "dropout": args.dropout,
             "mlm_prob": args.mlm_prob,
+            "progressive_seq": getattr(args, "progressive_seq", False),
         },
     )
     print(
