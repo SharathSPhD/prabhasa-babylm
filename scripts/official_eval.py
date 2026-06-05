@@ -84,7 +84,7 @@ def _run_zero_shot(
     log = logdir / f"{name}__{label}.log"
     print(f"[zero_shot] {task}:{label}", flush=True)
     with log.open("w", encoding="utf-8") as fh:
-        subprocess.run(
+        result = subprocess.run(
             [
                 PY,
                 "-m",
@@ -107,8 +107,11 @@ def _run_zero_shot(
             cwd=pipeline,
             stdout=fh,
             stderr=subprocess.STDOUT,
-            check=True,
+            check=False,
         )
+    if result.returncode != 0:
+        print(f"[zero_shot] {label}: FAILED (exit {result.returncode}) — log: {log}", flush=True)
+        return None
     avg = _avg_from_report(log.read_text(encoding="utf-8"))
     print(f"[zero_shot] {label}: {avg}", flush=True)
     return avg
@@ -155,7 +158,7 @@ def _run_reading(hf_dir: Path, logdir: Path, name: str, pipeline: Path) -> bool:
     log = logdir / f"{name}__reading.log"
     print("[reading] surprisal predictions", flush=True)
     with log.open("w", encoding="utf-8") as fh:
-        subprocess.run(
+        result = subprocess.run(
             [
                 PY,
                 "-m",
@@ -172,8 +175,11 @@ def _run_reading(hf_dir: Path, logdir: Path, name: str, pipeline: Path) -> bool:
             cwd=pipeline,
             stdout=fh,
             stderr=subprocess.STDOUT,
-            check=True,
+            check=False,
         )
+    if result.returncode != 0:
+        print(f"[reading] FAILED (exit {result.returncode}) — log: {log}", flush=True)
+        return False
     return True
 
 
@@ -185,6 +191,11 @@ def main() -> None:
     ap.add_argument("--batch-size", type=int, default=16)
     ap.add_argument("--logdir", default="logs/official")
     ap.add_argument("--skip-reading", action="store_true")
+    ap.add_argument(
+        "--resume",
+        action="store_true",
+        help="Skip tasks whose log already contains ### AVERAGE ACCURACY; re-run only failed/missing tasks.",
+    )
     ap.add_argument(
         "--harness",
         choices=["2025", "2026"],
@@ -201,23 +212,27 @@ def main() -> None:
     logdir.mkdir(parents=True, exist_ok=True)
 
     # 1) Export to HF (validates tokenizer id-parity + remote-code load).
-    print(f"[export] {args.ckpt} -> {hf_dir}", flush=True)
-    subprocess.run(
-        [
-            PY,
-            "scripts/export_hf_model.py",
-            "--ckpt",
-            args.ckpt,
-            "--tokenizer",
-            args.tokenizer,
-            "--out",
-            str(hf_dir),
-            "--model-name",
-            args.name,
-        ],
-        cwd=ROOT,
-        check=True,
-    )
+    # In resume mode, skip re-export if the hf_dir already looks valid.
+    if args.resume and hf_dir.exists() and (hf_dir / "config.json").exists():
+        print(f"[export] resuming — HF export already at {hf_dir}", flush=True)
+    else:
+        print(f"[export] {args.ckpt} -> {hf_dir}", flush=True)
+        subprocess.run(
+            [
+                PY,
+                "scripts/export_hf_model.py",
+                "--ckpt",
+                args.ckpt,
+                "--tokenizer",
+                args.tokenizer,
+                "--out",
+                str(hf_dir),
+                "--model-name",
+                args.name,
+            ],
+            cwd=ROOT,
+            check=True,
+        )
 
     # 2) Zero-shot suite (EWoK full if present, else fast).
     tasks = list(ZERO_SHOT_TASKS)
@@ -227,13 +242,28 @@ def main() -> None:
     print(f"[ewok] using {ewok_label}", flush=True)
 
     summary: dict[str, float | None] = {}
-    for task, data_rel, label, _in_avg in tasks:
+    for task, data_rel, label, _ in tasks:
+        log = logdir / f"{args.name}__{label}.log"
+        if args.resume and log.exists():
+            cached = _avg_from_report(log.read_text(encoding="utf-8"))
+            if cached is not None:
+                print(f"[zero_shot] {label}: {cached} (resumed from log)", flush=True)
+                summary[label] = cached
+                continue
         summary[label] = _run_zero_shot(
             task, data_rel, label, hf_dir, args.batch_size, logdir, args.name, pipeline
         )
 
     # 3) Reading surprisal (predictions only; not in Text Average).
-    reading_ran = False if args.skip_reading else _run_reading(hf_dir, logdir, args.name, pipeline)
+    reading_log = logdir / f"{args.name}__reading.log"
+    reading_already_done = (
+        args.resume and reading_log.exists() and reading_log.stat().st_size > 0
+    )
+    reading_ran = (
+        True
+        if reading_already_done
+        else (False if args.skip_reading else _run_reading(hf_dir, logdir, args.name, pipeline))
+    )
 
     # 4) Text Average over the accuracy tasks the leaderboard includes.
     vals = [v for k, v in summary.items() if k in TEXT_AVERAGE_LABELS and v is not None]
