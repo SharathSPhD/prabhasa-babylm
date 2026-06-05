@@ -28,6 +28,13 @@ except ImportError:  # pragma: no cover - optional without psalm[ml]
     nn = None  # type: ignore[assignment]
 
 
+def _make_nhot_placeholder(elc: ElcPsalmConfig) -> Any:
+    """Return a zero-weight NhotEmbedding placeholder; state_dict loading fills real weights."""
+    from psalm.infrastructure.ml.nhot_embeddings import NHOT_DIM, NhotEmbedding
+
+    return NhotEmbedding(torch.zeros(elc.vocab_size, NHOT_DIM), elc.d_model)
+
+
 class ElcPsalmHFConfig(PretrainedConfig):
     """HF config shim mapping to :class:`ElcPsalmConfig`."""
 
@@ -62,7 +69,8 @@ class ElcPsalmForMaskedLM(PreTrainedModel):
         config.tie_word_embeddings = False
         super().__init__(config)
         elc = ElcPsalmConfig.model_validate(config.elc)
-        self.encoder = ElcPsalmEncoder(elc)
+        nhot_emb = _make_nhot_placeholder(elc) if elc.nhot_embeddings else None
+        self.encoder = ElcPsalmEncoder(elc, nhot_emb=nhot_emb)
         self.mask_token_id = elc.vocab_size - 1
         self.post_init()
 
@@ -126,7 +134,8 @@ class ElcPsalmModel(PreTrainedModel):
         config.tie_word_embeddings = False
         super().__init__(config)
         elc = ElcPsalmConfig.model_validate(config.elc)
-        self.encoder = ElcPsalmEncoder(elc)
+        nhot_emb = _make_nhot_placeholder(elc) if elc.nhot_embeddings else None
+        self.encoder = ElcPsalmEncoder(elc, nhot_emb=nhot_emb)
         self.post_init()
 
     def get_input_embeddings(self) -> Any:
@@ -166,9 +175,11 @@ def export_elc_checkpoint_to_hf(
     model, mask_id = load_elc_checkpoint(checkpoint_path, device="cpu")
     hf_cfg = ElcPsalmHFConfig(elc=model.cfg)
     wrapper = ElcPsalmForMaskedLM(hf_cfg)
-    wrapper.encoder.load_state_dict(model.state_dict())
-    if wrapper.encoder.cfg.tie_embeddings:
-        wrapper.encoder.lm_head.weight = nn.Parameter(wrapper.encoder.tok.weight.detach().clone())
+    # Swap in the already-loaded encoder; avoids a redundant state_dict round-trip
+    # and correctly propagates N-hot weights when nhot_embeddings=True.
+    wrapper.encoder = model
+    if model.cfg.tie_embeddings:
+        model.lm_head.weight = nn.Parameter(model.tok.weight.detach().clone())
     wrapper.save_pretrained(output_dir)
 
     config_extra = {
