@@ -57,6 +57,22 @@ Closure-contract EMPIRICAL + MEMORY layers.
   exempt). Keep lr 1e-3, muon 0.01, seq 192, dose 3, mechanisms on. Single var.
 - **Run:** `data/checkpoints/prabhasa_b_ss_round2_ep10/seed_0`.
 
+## Round 3 → Attempt #4 = v0.2 candidate (RUNNING) — fix masking + full epochs
+- **Supersedes Round 2** (epochs-only, killed at step 200 — negligible loss). A
+  commissioned research+TRIZ agent ranked the **masking schedule as the #1 gap
+  driver** (HIGH confidence): our 0.30→0.15 cosine starts at 2× the standard rate;
+  all published strict-small winners (LTG-BERT ~71, ELC-BERT ~70, GPT-BERT ~68)
+  use **~0.15 static**. See `round3_intervention_research.md`.
+- **Config delta vs v0.1 (Attempt #2):** `english_epochs 7 → 10` (full budget) +
+  `masking cosine 0.30→0.15 → constant 0.15`. Combined (leaderboard speed); paper
+  ablation isolates later. lr 1e-3, muon 0.01, seq 192, dose 3, **all mechanisms
+  ON** (N-hot, kāraka stratification at 0.15, salience).
+- **Pre-registered expectation:** epochs +2–4pp, static-mask +2–5pp → target
+  **63–67** (from 59.47). Run: `data/checkpoints/prabhasa_b_ss_r3_ep10_mask015/seed_0`.
+- **Research backlog (next rounds, ranked):** ablate Paribhāṣā (validate it helps,
+  not hurts — central to H1_MECHANISM); improve kāraka signal quality; ablate the
+  3-epoch Sanskrit dose (interference test); rebalance MLM/CLM ~70/30.
+
 ## Correctness audit (parallel to Attempt #2) — ✅ NO CODE BUGS
 Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 (Muon/AdamW split), masking schedules, tokenizer-vocab parity, gradients.
