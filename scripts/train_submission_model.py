@@ -164,7 +164,7 @@ def main() -> None:
     # Vidyut N-hot morpheme-boundary embeddings (H1_MECHANISM)
     nhot_emb: nn.Module | None = None
     if args.nhot_embeddings:
-        nhot_matrix = build_nhot_matrix(str(TOK), vocab_size=vocab, vidyut_available=False)
+        nhot_matrix = build_nhot_matrix(sp, vocab_size=vocab, vidyut_available=False)
         nhot_emb = NhotEmbedding(torch.from_numpy(nhot_matrix).float(), d_model=768)
         print(f"N-hot embeddings: ON (vocab={vocab}, nhot_dim=10, d_model=768)", flush=True)
 
@@ -272,8 +272,8 @@ def main() -> None:
                     _, aux = model(batch, objective=HybridObjective.CLM, labels=batch)
                     loss = aux["loss"]
                 else:
-                    if mask_cfg.enabled and karaka_lookup is not None:
-                        # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM)
+                    if mask_cfg.enabled and karaka_lookup is not None and karaka_lookup._map:
+                        # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM, full lookup)
                         prob_tensor = karaka_lookup.mask_probs_for_ids(
                             batch, default_prob=mask_prob
                         )
