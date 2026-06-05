@@ -31,12 +31,14 @@ def build_elc_encoder(
     smoke: bool = False,
     dropout: float | None = None,
     mlm_probability: float | None = None,
+    nhot_emb: nn.Module | None = None,
 ) -> tuple[ElcPsalmEncoder, ElcPsalmConfig]:
     """Resolve ``architecture`` (``elc_psalm_s`` / ``elc_psalm_m``) and construct the encoder.
 
     ``dropout`` / ``mlm_probability`` override the preset defaults when set (the
     presets default to dropout 0.0 / mask 0.15; BabyLM small-data regimes want
-    ~0.1 dropout and ~0.3 masking).
+    ~0.1 dropout and ~0.3 masking).  Pass ``nhot_emb`` to attach a Vidyut N-hot
+    morpheme-boundary embedding module (H1_MECHANISM lever).
     """
     cfg = resolve_architecture(architecture, vocab_size=vocab_size, max_seq_len=max_seq_len)
     if not isinstance(cfg, ElcPsalmConfig):
@@ -61,7 +63,7 @@ def build_elc_encoder(
             hybrid_clm_weight=cfg.hybrid_clm_weight,
         )
     torch.manual_seed(0)
-    return ElcPsalmEncoder(cfg), cfg
+    return ElcPsalmEncoder(cfg, nhot_emb=nhot_emb), cfg
 
 
 def _infinite(make_stream: Callable[[], Iterable[str]]) -> Iterator[str]:

@@ -38,7 +38,14 @@ from psalm.infrastructure.ml.leaderboard_levers import (
     progressive_seq_len,
     scheduled_mask_prob,
 )
+from psalm.infrastructure.ml.nhot_embeddings import NhotEmbedding, build_nhot_matrix
 from psalm.infrastructure.ml.packing import TokenPacker
+from psalm.infrastructure.ml.structured_masking import (
+    KarakaRoleLookup,
+    SalienceTransfer,
+    StructuredMaskConfig,
+    make_structured_mlm_mask,
+)
 
 SS = Path("data/corpora/strict_small")
 TOK = Path("data/tokenizer/strict_small/spm.model")
@@ -83,6 +90,26 @@ def main() -> None:
     ap.add_argument("--mask-kind", default="cosine")
     ap.add_argument("--freq-alpha", type=float, default=0.5, help="0 disables freq-informed mask")
     ap.add_argument("--no-muon", action="store_true", help="use plain AdamW (ablate the lever)")
+    ap.add_argument(
+        "--nhot-embeddings",
+        action="store_true",
+        default=True,
+        help="Vidyut N-hot morpheme-boundary embeddings (H1_MECHANISM)",
+    )
+    ap.add_argument("--no-nhot-embeddings", dest="nhot_embeddings", action="store_false")
+    ap.add_argument(
+        "--structured-masking",
+        action="store_true",
+        default=True,
+        help="Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM)",
+    )
+    ap.add_argument("--no-structured-masking", dest="structured_masking", action="store_false")
+    ap.add_argument(
+        "--karaka-lookup",
+        type=Path,
+        default=None,
+        help="Path to .npy kāraka role lookup (optional; BPE heuristics used if absent)",
+    )
     ap.add_argument("--vocab", type=int, default=20000)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="data/checkpoints/submission")
@@ -134,16 +161,50 @@ def main() -> None:
     ]
     log_freq = _token_log_freq(base + dose_lines, encode, vocab)
 
+    # Vidyut N-hot morpheme-boundary embeddings (H1_MECHANISM)
+    nhot_emb: nn.Module | None = None
+    if args.nhot_embeddings:
+        nhot_matrix = build_nhot_matrix(str(TOK), vocab_size=vocab, vidyut_available=False)
+        nhot_emb = NhotEmbedding(torch.from_numpy(nhot_matrix).float(), d_model=768)
+        print(f"N-hot embeddings: ON (vocab={vocab}, nhot_dim=10, d_model=768)", flush=True)
+
     model, cfg = build_elc_encoder(
         args.arch,
         vocab_size=vocab,
         max_seq_len=args.max_seq_len,
         dropout=args.dropout,
         mlm_probability=args.mask_start,
+        nhot_emb=nhot_emb,
     )
     model = model.to(device)
     mask_id = cfg.vocab_size - 1
 
+    # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM)
+    karaka_lookup: KarakaRoleLookup | None = None
+    salience_transfer: SalienceTransfer | None = None
+    mask_cfg = StructuredMaskConfig(enabled=False)
+    if args.structured_masking:
+        if args.karaka_lookup is not None and args.karaka_lookup.exists():
+            karaka_lookup = KarakaRoleLookup.from_npy(args.karaka_lookup)
+            print(
+                f"Kāraka lookup: {args.karaka_lookup} ({len(karaka_lookup._map)} entries)",
+                flush=True,
+            )
+        else:
+            karaka_lookup = KarakaRoleLookup.empty()
+            print(
+                "Kāraka lookup: empty (all tokens → 'unknown'; role-stratified probs via base_prob)",
+                flush=True,
+            )
+        mask_cfg = StructuredMaskConfig(
+            enabled=True,
+            mask_prob_start=args.mask_start,
+            mask_prob_end=args.mask_end,
+        )
+        salience_transfer = SalienceTransfer(vocab_size=vocab)
+        print(f"Structured masking: ON (p={args.mask_start}→{args.mask_end})", flush=True)
+
+    opts: list[torch.optim.Optimizer]
     if args.no_muon:
         opts = [
             torch.optim.AdamW(
@@ -172,7 +233,13 @@ def main() -> None:
             step, peak_lr=args.peak_lr, warmup_steps=warmup, total_steps=total_steps
         )
 
-    def run_stage(lines: list[str], n_steps: int, offset: int) -> tuple[float, float]:
+    def run_stage(
+        lines: list[str],
+        n_steps: int,
+        offset: int,
+        *,
+        salience_weights: torch.Tensor | None = None,
+    ) -> tuple[float, float]:
         it = packer.packed_batches(stream(lines), batch_size=args.batch_size, device=device)
         last = best = float("inf")
         ema = None
@@ -205,7 +272,30 @@ def main() -> None:
                     _, aux = model(batch, objective=HybridObjective.CLM, labels=batch)
                     loss = aux["loss"]
                 else:
-                    if args.freq_alpha > 0:
+                    if mask_cfg.enabled and karaka_lookup is not None:
+                        # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM)
+                        prob_tensor = karaka_lookup.mask_probs_for_ids(
+                            batch, default_prob=mask_prob
+                        )
+                        masked, loss_mask = make_structured_mlm_mask(
+                            batch,
+                            mask_id=mask_id,
+                            prob_tensor=prob_tensor,
+                            exclude={EOS_ID, mask_id},
+                        )
+                        if salience_transfer is not None:
+                            salience_transfer.record_batch(batch, loss_mask)
+                    elif salience_weights is not None:
+                        # Stage 2: use salience transfer weights from Stage 1
+                        masked, loss_mask = make_freq_informed_mlm_mask(
+                            batch,
+                            mask_id=mask_id,
+                            probability=mask_prob,
+                            token_log_freq=salience_weights,
+                            alpha=args.freq_alpha if args.freq_alpha > 0 else 0.5,
+                            exclude={EOS_ID, mask_id},
+                        )
+                    elif args.freq_alpha > 0:
                         masked, loss_mask = make_freq_informed_mlm_mask(
                             batch,
                             mask_id=mask_id,
@@ -216,14 +306,17 @@ def main() -> None:
                         )
                     else:
                         masked, loss_mask = make_mlm_mask(
-                            batch, mask_id=mask_id, probability=mask_prob, exclude={EOS_ID, mask_id}
+                            batch,
+                            mask_id=mask_id,
+                            probability=mask_prob,
+                            exclude={EOS_ID, mask_id},
                         )
                     _, aux = model(
                         masked, objective=HybridObjective.MLM, labels=batch, mlm_mask=loss_mask
                     )
                     loss = aux["loss"]
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             loss.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             for o in opts:
                 o.step()
             v = float(loss.detach())
@@ -239,13 +332,26 @@ def main() -> None:
                 )
         return last, best
 
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    salience_path = out_dir / "salience_weights.npy"
+
     t0 = time.time()
     _, b1 = run_stage(dose_lines, stage1_steps, 0)
-    last, b2 = run_stage(base, stage2_steps, stage1_steps)
+    # After Stage 1: save salience weights for transfer to Stage 2
+    stage2_salience: torch.Tensor | None = None
+    if salience_transfer is not None:
+        salience_transfer.save(salience_path)
+        import numpy as np  # noqa: PLC0415
+
+        w = np.log(np.clip(salience_transfer.salience_weights(), 1e-6, 1.0))
+        stage2_salience = torch.tensor(w, dtype=torch.float32)
+        print(f"Salience transfer: saved {salience_path} ({vocab} entries)", flush=True)
+
+    last, b2 = run_stage(base, stage2_steps, stage1_steps, salience_weights=stage2_salience)
     wall = time.time() - t0
     best = min(b1, b2)
 
-    out_dir = Path(args.out)
     ckpt = out_dir / "elc.pt"
     save_elc_checkpoint(
         ckpt,
@@ -257,6 +363,8 @@ def main() -> None:
             "arch": args.arch,
             "tokenizer": str(TOK),
             "muon": not args.no_muon,
+            "nhot_embeddings": args.nhot_embeddings,
+            "structured_masking": args.structured_masking,
             "freq_alpha": args.freq_alpha,
             "mask_start": args.mask_start,
             "mask_end": args.mask_end,
