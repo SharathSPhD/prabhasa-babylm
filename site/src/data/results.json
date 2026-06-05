@@ -1,66 +1,53 @@
 {
   "arms": [
-    {
-      "arm": "A",
-      "dose": "English (control)"
-    },
-    {
-      "arm": "B",
-      "dose": "Pāṇinian"
-    },
-    {
-      "arm": "C",
-      "dose": "Dyck (control)"
-    },
-    {
-      "arm": "D",
-      "dose": "Paribhāṣā"
-    }
+    { "arm": "A", "dose": "English (control)" },
+    { "arm": "B", "dose": "Pāṇinian" },
+    { "arm": "C", "dose": "Dyck (control)" },
+    { "arm": "D", "dose": "Paribhāṣā" }
   ],
   "blimp_pll": {
-    "A": {
-      "mean": 0.6415,
-      "std": 0.0,
-      "n": 1
-    },
-    "B": {
-      "mean": 0.6354,
-      "std": 0.0,
-      "n": 1
-    },
-    "C": {
-      "mean": 0.6385,
-      "std": 0.0,
-      "n": 1
-    },
-    "D": {
-      "mean": 0.6377,
-      "std": 0.0,
-      "n": 1
-    }
+    "A": { "mean": 0.6415, "std": 0.0, "n": 1 },
+    "B": { "mean": 0.6354, "std": 0.0, "n": 1 },
+    "C": { "mean": 0.6385, "std": 0.0, "n": 1 },
+    "D": { "mean": 0.6377, "std": 0.0, "n": 1 }
   },
   "dose_best_loss": {
-    "A": {
-      "mean": 1.4324,
-      "std": 0.0,
-      "n": 1
-    },
-    "B": {
-      "mean": 1.4948,
-      "std": 0.0,
-      "n": 1
-    },
-    "C": {
-      "mean": 1.4136,
-      "std": 0.0,
-      "n": 1
-    },
-    "D": {
-      "mean": 0.8985,
-      "std": 0.0,
-      "n": 1
-    }
+    "A": { "mean": 1.4324, "std": 0.0, "n": 1 },
+    "B": { "mean": 1.4948, "std": 0.0, "n": 1 },
+    "C": { "mean": 1.4136, "std": 0.0, "n": 1 },
+    "D": { "mean": 0.8985, "std": 0.0, "n": 1 }
   },
   "text_average": {},
-  "glue_average": {}
+  "glue_average": {},
+  "submission_track": {
+    "model": "ELC-PSALM-S",
+    "params_M": 114,
+    "architecture": "14L-768d-12h ELC encoder",
+    "babylm_compliant": true,
+    "dose_epochs": 3,
+    "english_epochs": 7,
+    "total_epochs": 10,
+    "word_budget_M": 10,
+    "checkpoint_schedule": "1M intervals to 10M, then 10M",
+    "mechanisms": [
+      "Vidyut N-hot morpheme-boundary embeddings (10-dim → 768d projection)",
+      "BPE-heuristic kāraka masking (kartā p=0.50, viśeṣaṇa p=0.20, separator p=0.10)",
+      "Salience transfer (stage-1 masking prior from stage-0 frequencies)",
+      "Muon optimizer (Newton-Schulz orthogonalized momentum on 2D weights)",
+      "Progressive sequence length (64 → 128 → 256)",
+      "Cosine mask decay (0.30 → 0.15)"
+    ],
+    "karaka_lookup": "BPE-heuristic (10574 kartā, 2533 viśeṣaṇa, 6893 separator / 20k vocab)",
+    "status": "training_in_progress",
+    "seeds_complete": 0,
+    "seeds_planned": 3,
+    "h1_mechanism_threshold": 70.0,
+    "blimp_preliminary": null,
+    "text_average_preliminary": null,
+    "h2_nyaya": {
+      "method": "LoRA fine-tune (rank=16) on 75 pramana Pañcāvayava chains",
+      "verifier": "Z3 SMT vyāpti verifier on entailment steps",
+      "status": "pending_compliant_checkpoint"
+    }
+  }
 }

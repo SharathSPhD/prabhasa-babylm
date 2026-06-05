@@ -73,15 +73,52 @@ const seedLabel = seeds <= 1 ? `seed ${seeds === 1 ? "0" : "—"}` : `${seeds} s
     </p>
   </section>
 
+  {results.submission_track && (
+    <section>
+      <h2>BabyLM 2026 leaderboard submission (H1_MECHANISM)</h2>
+      <p class="note">
+        ELC-PSALM-S is the Pāṇinian mechanism submission: all six structural levers
+        active, BabyLM 2026 compliant (3 dose + 7 English = 10-epoch limit).
+        Training is in progress ({results.submission_track.seeds_complete}/{results.submission_track.seeds_planned} seeds complete).
+        Scores will be filled in when the full 3-seed battery finishes.
+      </p>
+      <table>
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Architecture</td><td>{results.submission_track.architecture}</td></tr>
+          <tr><td>Parameters</td><td>{results.submission_track.params_M}M</td></tr>
+          <tr><td>Epoch split</td><td>{results.submission_track.dose_epochs} dose + {results.submission_track.english_epochs} English (= {results.submission_track.total_epochs}, BabyLM 2026 max)</td></tr>
+          <tr><td>Word budget</td><td>{results.submission_track.word_budget_M}M words (Strict-Small)</td></tr>
+          <tr><td>Checkpoint schedule</td><td>{results.submission_track.checkpoint_schedule}</td></tr>
+          <tr><td>H1_MECHANISM threshold</td><td>BLiMP ≥ {results.submission_track.h1_mechanism_threshold}</td></tr>
+          <tr><td>BLiMP (preliminary)</td><td>{results.submission_track.blimp_preliminary ?? "— in progress"}</td></tr>
+          <tr><td>Text Average (preliminary)</td><td>{results.submission_track.text_average_preliminary ?? "— in progress"}</td></tr>
+        </tbody>
+      </table>
+      <h3>Active Pāṇinian mechanisms</h3>
+      <ol>
+        {results.submission_track.mechanisms.map((m: string) => <li>{m}</li>)}
+      </ol>
+      <h3>H2 Navya-Nyāya post-pretraining</h3>
+      <p>
+        After the 10M-word pretraining, the best H1_MECHANISM checkpoint is fine-tuned
+        with LoRA adapters (rank 16) on 75 Pañcāvayava inference chains from the pramana
+        dataset. A Z3 SMT vyāpti verifier validates each entailment step. The synergy test
+        measures how sample-efficiently PSALM + Nyāya outperforms a Generic-1B baseline + Nyāya.
+      </p>
+      <p class="note">Status: {results.submission_track.h2_nyaya.status.replace(/_/g, " ")}</p>
+    </section>
+  )}
+
   <section>
     <h2>Coming at close-out</h2>
     <p>
       Three-seed BLiMP with bootstrap intervals and Holm–Bonferroni-corrected paired
       contrasts; the full Text-Average suite including EWoK, entity tracking, the WUG
       morphology probes, and COMPS; reading-time surprisal predictions; the
-      (Super)GLUE average from the official fine-tuner; and the leaderboard-submission
-      model's operating points. The same verified findings feed both this page and the
-      paper, so what you see here is never a projection.
+      (Super)GLUE average from the official fine-tuner; developmental checkpoint
+      learning curves (BLiMP at 1M, 2M, …, 10M words); and the H2 Nyāya synergy test
+      result. The same verified findings feed both this page and the paper.
     </p>
   </section>
 </Base>
