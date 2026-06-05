@@ -1,0 +1,48 @@
+# Experiment Ledger — prabhasa-b_ss-0.1 (BabyLM Strict-Small)
+
+Append-only. Each attempt: config delta, result, interpretation, next intervention.
+Closure-contract EMPIRICAL + MEMORY layers.
+
+---
+
+## Attempt #1 — baseline submission config — ❌ UNDER-CONVERGED
+- **Config:** ELC 114M, dose A/B/C/D ×3 epochs + English ×7 epochs, batch 256,
+  max_seq 256, **peak_lr 2e-3, muon_lr 0.02**, mask 0.30→0.15 cosine, freq_alpha 0.5.
+- **Run:** `data/checkpoints/submission_compliant/seed_0/elc.pt` (wall 110 min).
+- **Result:**
+  - **BLiMP (official) = 55.41** (8M-checkpoint was 52.68 → curve nearly flat).
+  - Training loss: ema stuck ~5.0 throughout (healthy MLM ≈ 2); high batch
+    variance (1.83 ↔ 6.46); **final_loss 6.46 vs best 1.83** (end blow-up).
+- **Interpretation:** Not merely an end-of-training divergence — the model
+  **under-converged globally**. The loss signature (high variance + divergence +
+  flat BLiMP) is textbook **learning-rate-too-high**.
+- **Root-cause finding:** The HP search that "selected" `peak_lr=2e-3`
+  (`data/hp_search/best_config.json`) was a **1.5–3.1 second smoke test**
+  (`wall_seconds` in `results.jsonl`) — far too short to reveal instability. Its
+  own trials show `peak_lr=1e-3` gave the lowest loss (1.64 vs 2e-3 region). So
+  `2e-3` was never validated for a full run.
+- **Compliance:** ✅ verified (10.00M words, 7≤10 epochs) — see
+  `tarka_compliance_resolution.md`. The failure is optimization, not rules.
+
+## Intervention #1 → Attempt #2 (RUNNING) — halve LR + cap seq
+- **Config delta vs #1:** `peak_lr 2e-3 → 1e-3`, `muon_lr 0.02 → 0.01`
+  (root-cause fix, supported by HP trials); `max_seq 256 → 192`
+  (compute-opt Fix A: stabilizes the divergent long-context phase **and**
+  ~1.5–2× faster); `--babylm-checkpoints ON` (correct 1M-interval schedule).
+- **Run:** `data/checkpoints/prabhasa_b_ss_0.1/seed_0` (PID 545673),
+  log `logs/prabhasa_b_ss_0.1_seed0.log`.
+- **Validation gate:** early-loss trend — ema must head toward ~2–3 (not stall
+  at ~5). If yes → complete → official eval → expect BLiMP ≫ 55.41. If still
+  stalled → Intervention #2 (drop peak_lr to 5e-4 + longer warmup; then inspect
+  mechanism/dose interaction).
+- **Note:** seeds 1+2 were NOT run on the broken config (would have been 3×
+  wasted GPU). Deviation from the "3-seeds-then-optimize" order is deliberate:
+  3 samples of a broken config is not statistical rigor.
+
+---
+
+### Standing optimization backlog (post-validation)
+1. If #2 works at seq 192, bench seq 192 vs 256 throughput (`bench_attention_backends.py`).
+2. Consider Fix C (build flash-attn for sm_121) before the 100M Small run.
+3. Re-audit HP search: replace the smoke-test grid with a real short-but-sufficient
+   sweep (≥300 steps/trial) before any future LR claims.
