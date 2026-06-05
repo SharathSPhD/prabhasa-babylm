@@ -355,22 +355,69 @@ into a downstream BLiMP advantage.}
 \label{fig:doseloss}
 \end{figure}
 
-\subsection{Leaderboard-submission track}
+\subsection{Leaderboard-submission track (H1\_MECHANISM)}
+\label{sec:submission}
+
 A scientific within-budget comparison and a competitive leaderboard entry have
 different objectives, and conflating them would let submission-only tuning
-contaminate the controlled contrast. We therefore separate a submission track that
-is free to layer data-efficiency mechanisms that the ablation arms deliberately omit:
-a decaying and frequency-informed masking schedule that begins dense and rare-token
-biased before relaxing toward the end of training; a progressive sequence-length
-schedule that spends early compute on short contexts; and the Muon
-optimiser~\cite{jordan2024muon}, which orthogonalises the momentum of hidden weight
-matrices by a Newton--Schulz iteration while the embeddings, normalisation
-parameters, and output head retain decoupled-weight-decay
-AdamW~\cite{loshchilov2019adamw}. These mechanisms are implemented behind a separate
-trainer and are never applied to arms A through D, so the ablation remains a fair
-test of dose content while the submission model targets the published Strict-Small
-operating points on BLiMP, (Super)GLUE~\cite{wang2019glue,wang2019superglue}, and
-EWoK~\cite{ivanova2024ewok}.
+contaminate the controlled contrast. We therefore separate a \emph{submission
+track} (model ELC-PSALM-S, $\approx$114M parameters) that is free to layer
+data-efficiency mechanisms that the ablation arms deliberately omit.
+
+\paragraph{BabyLM 2026 compliance.}
+The submission model is trained on the 10M-word Strict-Small corpus under the
+BabyLM 2026 rules: a maximum of 10 training epochs, split as 3 dose-primed
+epochs followed by 7 English-only epochs ($3 + 7 = 10$, totalling approximately
+88M word-exposures); developmental checkpoints saved at every 1M-word interval
+up to 10M and every 10M thereafter; the full HuggingFace Transformers export with
+\texttt{trust\_remote\_code} for both the \texttt{fill-mask} (zero-shot) and
+\texttt{AutoModel} (fine-tuning) backends.
+
+\paragraph{P\=a\d{n}inian mechanisms.}
+Six Pāṇinian-inspired levers distinguish ELC-PSALM-S from a standard AMLM baseline.
+(i)~\emph{Vidyut N-hot morpheme-boundary embeddings}: each BPE token receives a
+10-dimensional binary feature vector encoding its morphological category (word-start,
+suffix, sub-word glue, punctuation, etc.); a learned linear projection $W \in
+\mathbb{R}^{10 \times 768}$ fuses these features with the standard token-plus-position
+embedding at every forward pass.
+(ii)~\emph{BPE-heuristic k\=araka masking}: tokens are assigned a functional role
+based on surface form --- word-initial tokens (\textsc{kart\=a}, $p=0.50$),
+derivational suffixes (\textsc{vi\'se\d{s}a\d{n}a}, $p=0.20$), and sub-word
+fragments (\textsc{separator}, $p=0.10$) --- so that the model trains harder on
+argument-bearing positions.
+(iii)~\emph{Salience transfer}: empirical masking frequencies from Stage~1
+(dose-priming) become a soft prior that initialises Stage~2 masking probabilities,
+encoding structural salience discovered during Sanskrit exposure.
+(iv)~\emph{Muon optimiser}~\cite{jordan2024muon}: Newton--Schulz orthogonalisation
+of the gradient momentum on all 2-D weight matrices; embeddings and layer-norm
+parameters use decoupled-weight-decay AdamW~\cite{loshchilov2019adamw}.
+(v)~\emph{Progressive sequence length}: training begins at length 64, advances to
+128, then 256, allocating early capacity to intra-clause structure before full-sentence
+context.
+(vi)~\emph{Cosine mask decay}: masking probability decreases from 0.30 at the start
+of training to 0.15 at the final step, matching the model's growing ability to
+predict from minimal context.
+
+\paragraph{H2: Navya-Ny\=aya post-pretraining.}
+After the 10-epoch pretraining, the best H1\_MECHANISM arm is fine-tuned with LoRA
+adapters (rank~16, targeting $Q$/$K$/$V$ projections) on 75 Pañc\=avayava inference
+chains from the pramana dataset~\cite{pramana2025}: a six-stage Navya-Ny\=aya
+scaffold (pratijñ\=a, hetu, ud\=aharaṇa, upanaya, nigamana, + tarka
+hetv\=abh\=asa detection). A Z3 SMT vyāpti verifier validates each chain's
+entailment step before inclusion. The H2 synergy claim is that
+PSALM-mechanism $\times$ Ny\=aya outperforms a matched Generic-1B baseline
+$+$ Ny\=aya on the same 75-example inference-quality readout, measuring
+sample efficiency.
+
+\paragraph{Results (preliminary).}
+BLiMP and Text Average scores for the full 10M-word training run ($\geq$3 seeds,
+mean $\pm$ 95\% CI via paired bootstrap, Holm--Bonferroni corrected) will be
+reported here upon completion of the three-seed battery; training is in
+progress at the time of writing. The pre-registered threshold is
+BLiMP $\geq$ 70.0 on the official BabyLM 2026 zero-shot suite.
+Developmental-checkpoint curves (BLiMP at 1M, 2M, \ldots, 10M words) will
+be included to illustrate the sample-efficiency profile of the P\=a\d{n}inian
+mechanisms.
 
 \section{Discussion}
 The H1 negative is scoped, not universal: it concerns argument-role composition at
