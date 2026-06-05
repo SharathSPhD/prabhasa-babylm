@@ -24,9 +24,7 @@ from pathlib import Path
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="H2 synergy test: PSALM+Nyāya vs TinyLlama+Nyāya"
-    )
+    ap = argparse.ArgumentParser(description="H2 synergy test: PSALM+Nyāya vs TinyLlama+Nyāya")
     ap.add_argument(
         "--psalm-ckpt",
         required=True,

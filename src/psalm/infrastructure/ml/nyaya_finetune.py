@@ -84,6 +84,7 @@ def apply_nyaya_transforms_to_dataset(
     Returns:
         Transformed dataset with 'nyaya_text' column added
     """
+
     def transform_fn(batch: dict[str, list[Any]]) -> dict[str, list[Any]]:
         return apply_nyaya_transform(batch, task_name)
 
