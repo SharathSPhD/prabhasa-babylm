@@ -64,17 +64,34 @@ class KarakaRoleLookup:
     def __init__(self, role_map: dict[int, str]) -> None:
         """role_map: {token_id: karaka_role_string}"""
         self._map = role_map
+        self._vocab_probs: torch.Tensor | None = None  # lazy-built in build_vocab_probs()
 
     def get_role(self, token_id: int) -> str:
         """Get the kāraka role for a token ID, or 'unknown' if not found."""
         return self._map.get(token_id, "unknown")
+
+    def build_vocab_probs(self, vocab_size: int, default_prob: float) -> torch.Tensor:
+        """Pre-build a (vocab_size,) prob tensor for vectorized masking. Call once per run."""
+        t = torch.full((vocab_size,), fill_value=default_prob, dtype=torch.float32)
+        for tid, role in self._map.items():
+            p = KARAKA_MASK_PROB.get(role)
+            if p is not None and 0 <= tid < vocab_size:
+                t[tid] = p
+        self._vocab_probs = t
+        return t
 
     def mask_probs_for_ids(
         self,
         ids: torch.Tensor,  # (B, T)
         default_prob: float,
     ) -> torch.Tensor:  # (B, T) float32
-        """Return per-position masking probabilities."""
+        """Return per-position masking probabilities.
+
+        Uses pre-built vocab tensor if available (O(B*T) gather, runs on GPU).
+        Falls back to Python loop if build_vocab_probs() not called.
+        """
+        if self._vocab_probs is not None:
+            return self._vocab_probs.to(ids.device)[ids.long()]
         probs = torch.full_like(ids, fill_value=default_prob, dtype=torch.float32)
         for b in range(ids.shape[0]):
             for t in range(ids.shape[1]):
