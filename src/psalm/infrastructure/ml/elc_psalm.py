@@ -104,12 +104,15 @@ class _SDPABlock(nn.Module):
 class ElcPsalmEncoder(nn.Module):
     """ELC-BERT backbone with optional MLM/CLM logits from a tied LM head."""
 
-    def __init__(self, cfg: ElcPsalmConfig) -> None:
+    def __init__(self, cfg: ElcPsalmConfig, nhot_emb: nn.Module | None = None) -> None:
         super().__init__()
         self.cfg = cfg
         self.tok = nn.Embedding(cfg.vocab_size, cfg.d_model)
         self.pos = nn.Embedding(cfg.max_seq_len, cfg.d_model)
         self.drop = nn.Dropout(cfg.dropout)
+        self._nhot_emb = nhot_emb
+        if nhot_emb is not None:
+            self.register_module("nhot_emb", nhot_emb)
         self.router = LayerRouteCombiner(cfg.n_layers)
         self.blocks = nn.ModuleList(_SDPABlock(cfg) for _ in range(cfg.n_layers))
         self.ln_f = nn.LayerNorm(cfg.d_model)
@@ -129,7 +132,10 @@ class ElcPsalmEncoder(nn.Module):
     def embed(self, idx: torch.Tensor) -> torch.Tensor:
         _, t = idx.shape
         pos = torch.arange(t, device=idx.device).unsqueeze(0)
-        return self.drop(self.tok(idx) + self.pos(pos))
+        x = self.drop(self.tok(idx) + self.pos(pos))
+        if self._nhot_emb is not None:
+            x = x + self._nhot_emb(idx)
+        return x
 
     def encode(
         self,
@@ -179,12 +185,14 @@ class ElcPsalmEncoder(nn.Module):
                 norm = w_m + w_c
                 aux["loss"] = (w_m * aux["mlm_loss"] + w_c * aux["clm_loss"]) / norm
         elif obj is HybridObjective.MLM:
-            logits = aux.get("logits_mlm", self.lm_head(self.encode(idx)))
+            logits = aux["logits_mlm"] if "logits_mlm" in aux else self.lm_head(self.encode(idx))
             if "mlm_loss" in aux:
                 aux["loss"] = aux["mlm_loss"]
         else:
-            logits = aux.get(
-                "logits_clm", self.lm_head(self.encode(idx, attn_mode=_AttnMode.CAUSAL))
+            logits = (
+                aux["logits_clm"]
+                if "logits_clm" in aux
+                else self.lm_head(self.encode(idx, attn_mode=_AttnMode.CAUSAL))
             )
             if "clm_loss" in aux:
                 aux["loss"] = aux["clm_loss"]
