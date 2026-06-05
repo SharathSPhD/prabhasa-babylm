@@ -8,12 +8,19 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 import torch
 import torch.nn.functional as F
 from torch import nn
 
 from psalm.domain.model.elc_config import ElcPsalmConfig, HybridObjective
+
+if TYPE_CHECKING:
+    from psalm.infrastructure.ml.structured_masking import (
+        KarakaRoleLookup,
+        StructuredMaskConfig,
+    )
 
 
 class _AttnMode(StrEnum):
@@ -251,8 +258,23 @@ def hybrid_training_step(
     mask_id: int,
     step: int,
     pad_id: int = 0,
+    mask_config: StructuredMaskConfig | None = None,
+    karaka_lookup: KarakaRoleLookup | None = None,
 ) -> torch.Tensor:
-    """One optimizer step loss: alternate MLM/CLM when objective is HYBRID."""
+    """One optimizer step loss: alternate MLM/CLM when objective is HYBRID.
+
+    Args:
+        model: ELC-PSALM encoder
+        batch: Token IDs (B, T)
+        mask_id: ID for [MASK] token
+        step: Current training step (for schedule)
+        pad_id: ID for [PAD] token
+        mask_config: Optional StructuredMaskConfig for kāraka-aware masking
+        karaka_lookup: Optional KarakaRoleLookup for kāraka role assignment
+
+    Returns:
+        Scalar loss tensor
+    """
     labels = batch
     obj = model.cfg.default_objective
     if obj is HybridObjective.HYBRID and step % 2 == 1:
@@ -261,12 +283,29 @@ def hybrid_training_step(
         obj = HybridObjective.MLM
 
     if obj is HybridObjective.MLM:
-        masked, loss_mask = make_mlm_mask(
-            batch,
-            mask_id=mask_id,
-            probability=model.cfg.mlm_probability,
-            exclude={pad_id, mask_id},
-        )
+        # Use structured masking if configured, otherwise fall back to uniform
+        if (
+            mask_config is not None
+            and karaka_lookup is not None
+            and getattr(mask_config, "enabled", False)
+        ):
+            # Import here to avoid circular dependency
+            from psalm.infrastructure.ml.structured_masking import make_structured_mlm_mask
+
+            prob_tensor = karaka_lookup.mask_probs_for_ids(batch, model.cfg.mlm_probability)
+            masked, loss_mask = make_structured_mlm_mask(
+                batch,
+                mask_id=mask_id,
+                prob_tensor=prob_tensor,
+                exclude={pad_id, mask_id},
+            )
+        else:
+            masked, loss_mask = make_mlm_mask(
+                batch,
+                mask_id=mask_id,
+                probability=model.cfg.mlm_probability,
+                exclude={pad_id, mask_id},
+            )
         _, aux = model(masked, objective=HybridObjective.MLM, labels=labels, mlm_mask=loss_mask)
         return aux["loss"]
     _, aux = model(batch, objective=HybridObjective.CLM, labels=labels)
