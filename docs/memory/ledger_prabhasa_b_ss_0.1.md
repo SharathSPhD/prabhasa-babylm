@@ -119,6 +119,21 @@ From the official babylm benchmark repo, gpt2 strict-small baseline:
 - **Queued:** v0.5 = ablate structured(kāraka) masking — is the BPE-heuristic helping or
   hurting? (recipe_v2 arm_A is the no-mechanism control; need to confirm mechanisms add value.)
 
+## 🚀 Attempts #6-#9 + BREAKTHROUGH (v0.7 RoPE)
+- v0.4 (decaying mask, absolute pos) = 61.85 (best of the absolute-pos runs).
+- v0.5 vanilla (no mechanisms) = 60.62 → **mechanisms HELP +1.23pp (H1 validated, KEEP)**.
+- v0.6 pure-MLM = 59.92 → **hybrid > pure-MLM (KEEP hybrid)**.
+- **Diagnosis:** plateau ~62 was ARCHITECTURAL — absolute position embeddings. Also the
+  cause of the entity_tracking eval crash (position index OOB at >192).
+- **v0.7 = v0.4 + RoPE (--pos-encoding rope, committed e050458, TDD 24/24):**
+  - **BLiMP = 64.38 (+2.53pp!)** — near baseline 65.08.
+  - **entity_tracking = 30.0** (now COMPLETES + beats baseline 21.07 by +9pp!).
+  - COMPS 52.52 > baseline 51.81; EWoK 50.97; supp 56.07.
+  - **5-task Text Average ≈ 50.79 vs baseline ≈ 49.04 → AHEAD OF BASELINE.** ✓
+  - wug "null" = summary-parser bug (wug reports Spearman rho 0.31, not accuracy); task ran.
+- **RoPE LOCKED as the recipe.** Next: push toward 2025-winner ~70 (GeGLU+RMSNorm = LTG-BERT
+  components), then 3-seed the winner → optimized GLUE → secondary tracks.
+
 ## Correctness audit (parallel to Attempt #2) — ✅ NO CODE BUGS
 Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 (Muon/AdamW split), masking schedules, tokenizer-vocab parity, gradients.
