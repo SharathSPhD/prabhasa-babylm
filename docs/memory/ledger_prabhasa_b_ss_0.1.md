@@ -192,3 +192,15 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
   LOCKED leaderboard submission remains the heuristic RoPE model (64.09, beats baseline).
 - Honest framing > overclaim. Real engines validated for what they ARE (label generation),
   null for what they AREN'T (marginal 10M masking gain).
+
+## H2 NYĀYA — NULL CLOSURE (2 interventions) ✅ honest, scale-limited
+- 75-example pramana: 68.75% (noisy/overfit on tiny test).
+- 2000 coherent chains, lr 1e-4: **52.75% (chance)**, train_loss flat ~0.69.
+- Intervention #2, lr 1e-3: **52.75% (chance)**, train_loss flat ~0.72 → NOT an LR bug.
+- **FINDING:** a 114M encoder + LoRA does NOT learn Nyāya validity discrimination. Two causes:
+  (1) NLI framing (premise=full chain incl. its conclusion → conclusion follows for valid AND
+  fallacious; validity signal absent); (2) reasoning beyond 114M. Consistent with the program's
+  own scoping: H2 synergy test was designed for the **1B track** (Generic-1B baseline,
+  DeepSeek-R1-8B ceiling), not a 114M model.
+- **REPOSITION:** the 2000 pervasion-coherent Nyāya chains are BUILT and ready for the 1B
+  reasoning track + a corrected framing (evaluate the hetu→sādhya pervasion, not chain→own-conclusion).
