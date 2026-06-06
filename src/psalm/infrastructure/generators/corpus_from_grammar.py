@@ -298,24 +298,74 @@ class VyutpattivadaEngine:
     def __init__(self, config: VyutpattivadaEngineConfig | None = None) -> None:
         """Initialize with type rules & validation strategy."""
         self.config = config or VyutpattivadaEngineConfig()
+        self._skip_log: dict[str, int] = {}
 
     def compile_graph(self, parsed_example: PrabasaExample) -> PrabasaExample:
         """Apply Vyutpattivāda rules to generate typed semantic graph.
 
+        Wraps :func:`compile_shabdabodha` from the :mod:`shabdabodha` rule engine,
+        mapping kāraka parse + frame signature into a type-valid Śabdabodha graph
+        (ADR-0034 D3). Returns the input example with shabdabodha_graph populated,
+        or the same example unchanged if the graph cannot be built.
+
         Args:
-            parsed_example: Example with karaka_parse and frame_signature populated.
+            parsed_example: Example with text, karaka_parse, and frame_signature populated.
 
         Returns:
-            Same example with shabdabodha_graph populated.
+            Same example with shabdabodha_graph populated if successful, else unchanged.
 
         Raises:
-            NotImplementedError: Stub for Phase 3.
-            ValueError: if graph violates yogyatā constraints and skip_invalid_graphs=True.
+            ValueError: if enable_type_validation=True and graph violates constraints.
         """
-        raise NotImplementedError(
-            "VyutpattivadaEngine.compile_graph is a stub. "
-            "Implementation maps each kāraka role to a typed node/edge; "
-            "validates classical yogyatā constraints; and logs skips by rule_id."
+        from psalm.infrastructure.generators.paribhasha.shabdabodha import (
+            ShabdabodhaSkip,
+            ShabdabodhaSuccess,
+            compile_shabdabodha,
+        )
+
+        if not parsed_example.karaka_parse:
+            return parsed_example
+
+        sentence = AnnotatedSentence(
+            text=parsed_example.text,
+            karaka_parse=parsed_example.karaka_parse,
+            meta={"frame_signature": parsed_example.frame_signature} | parsed_example.meta,
+        )
+
+        outcome = compile_shabdabodha(sentence)
+
+        # Log skip reasons for coverage analysis
+        if isinstance(outcome, ShabdabodhaSkip):
+            self._skip_log[outcome.rule_id] = self._skip_log.get(outcome.rule_id, 0) + 1
+            if self.config.skip_invalid_graphs:
+                return parsed_example
+            raise ValueError(f"Graph compilation skipped: {outcome.reason} ({outcome.rule_id})")
+
+        # outcome is ShabdabodhaSuccess
+        assert isinstance(outcome, ShabdabodhaSuccess)
+        if self.config.enable_type_validation:
+            from psalm.infrastructure.generators.paribhasha.relations import validate_graph
+
+            try:
+                validate_graph(outcome.graph)
+            except Exception as exc:
+                if self.config.skip_invalid_graphs:
+                    return parsed_example
+                raise ValueError(f"Graph validation failed: {exc}") from exc
+
+        return PrabasaExample(
+            text=parsed_example.text,
+            language=parsed_example.language,
+            morpheme_boundaries=parsed_example.morpheme_boundaries,
+            morpheme_stream=parsed_example.morpheme_stream,
+            derivation_trace=parsed_example.derivation_trace,
+            paribhasha_rule_classes=parsed_example.paribhasha_rule_classes,
+            karaka_parse=parsed_example.karaka_parse,
+            frame_signature=parsed_example.frame_signature,
+            shabdabodha_graph=outcome.graph,
+            nyaya_validity_label=parsed_example.nyaya_validity_label,
+            nyaya_semantic_augmentation=parsed_example.nyaya_semantic_augmentation,
+            meta=parsed_example.meta,
         )
 
 
