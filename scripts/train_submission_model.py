@@ -189,6 +189,12 @@ def main() -> None:
         help="Kāraka role assignment mode: 'bpe' (heuristic, legacy) or 'deprel' (real spaCy dependency parser)",
     )
     ap.add_argument(
+        "--nhot-mode",
+        choices=["heuristic", "real"],
+        default="heuristic",
+        help="N-hot morphology mode: 'heuristic' (BPE suffix list) or 'real' (Morfessor segmentation)",
+    )
+    ap.add_argument(
         "--karaka-lookup",
         type=Path,
         default=None,
@@ -248,7 +254,9 @@ def main() -> None:
     # Vidyut N-hot morpheme-boundary embeddings (H1_MECHANISM)
     nhot_emb: nn.Module | None = None
     if args.nhot_embeddings:
-        nhot_matrix = build_nhot_matrix(sp, vocab_size=vocab, vidyut_available=False)
+        nhot_matrix = build_nhot_matrix(
+            sp, vocab_size=vocab, vidyut_available=False, nhot_mode=args.nhot_mode
+        )
         nhot_emb = NhotEmbedding(torch.from_numpy(nhot_matrix).float(), d_model=768)
         print(f"N-hot embeddings: ON (vocab={vocab}, nhot_dim=10, d_model=768)", flush=True)
 
