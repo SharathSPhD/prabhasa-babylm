@@ -188,7 +188,7 @@ class VidyutMorphologyEngine:
                 raise RuntimeError(
                     "vidyut is not installed. Install it: `uv pip install vidyut`."
                 ) from exc
-            self._vyakarana = Vyakarana()
+            self._vyakarana = Vyakarana()  # type: ignore[no-untyped-call,assignment]
         return self._vyakarana
 
     def generate_verb_form(
@@ -215,13 +215,13 @@ class VidyutMorphologyEngine:
         Raises:
             ValueError: if derivation fails or produces no results.
         """
-        from vidyut.prakriya import Dhatu, Gana, Lakara, Pada, Prayoga, Purusha, Vacana
+        from vidyut.prakriya import Dhatu, Gana, Lakara, Pada, Prayoga, Purusha, Vacana  # type: ignore[attr-defined] # noqa: I001
 
         vyakarana = self._get_vyakarana()
 
         # Build the Dhatu from root and gana
         try:
-            dhatu_obj = Dhatu.mula(dhatu, getattr(Gana, gana))
+            dhatu_obj = Dhatu.mula(dhatu, getattr(Gana, gana))  # type: ignore[attr-defined]
         except AttributeError as exc:
             raise ValueError(f"Unknown gana: {gana}") from exc
 
@@ -238,7 +238,7 @@ class VidyutMorphologyEngine:
             raise ValueError(f"Invalid tense/person/number: {lakara}/{purusha}/{vacana}") from exc
 
         # Derive using Vyakarana (Pāṇinian grammar engine)
-        results = vyakarana.derive(pada)
+        results = vyakarana.derive(pada)  # type: ignore[attr-defined]
         if not results:
             raise ValueError(f"No derivation for {dhatu} {lakara} {purusha} {vacana}")
 

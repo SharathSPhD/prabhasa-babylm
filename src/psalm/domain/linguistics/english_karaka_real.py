@@ -130,7 +130,7 @@ def assign_karaka_roles_spacy(doc: Doc) -> list[TokenRole]:
     return roles
 
 
-def parse_and_assign(sentence: str, nlp) -> list[TokenRole]:
+def parse_and_assign(sentence: str, nlp: object) -> list[TokenRole]:
     """Parse a sentence with spaCy and assign kāraka roles.
 
     Args:
@@ -140,7 +140,7 @@ def parse_and_assign(sentence: str, nlp) -> list[TokenRole]:
     Returns:
         List of (token, role) pairs
     """
-    doc = nlp(sentence)
+    doc = nlp(sentence)  # type: ignore[operator]
     return assign_karaka_roles_spacy(doc)
 
 
