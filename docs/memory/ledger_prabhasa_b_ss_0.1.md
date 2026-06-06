@@ -164,3 +164,16 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 2. Consider Fix C (build flash-attn for sm_121) before the 100M Small run.
 3. Re-audit HP search: replace the smoke-test grid with a real short-but-sufficient
    sweep (≥300 steps/trial) before any future LR claims.
+
+## EMPIRICAL GATE: real engines vs heuristic mechanisms
+- **Heuristic mechanisms (locked recipe):** BLiMP 64.09 ± 0.26 (3-seed).
+- **Real engines v1** (real spaCy kāraka + real Morfessor N-hot, RoPE): **62.08** (−2.01pp). 
+  → Real linguistic fidelity did NOT beat the heuristic at 10M scale.
+- **Diagnosis (documented):** the role→mask-prob map left `kriya` (2244 real verb tokens)
+  unmapped → verbs under-masked; `sampradata` typo dropped recipients. Real kāraka thus
+  masked content LESS than the heuristic's word-initial-@0.50 (which masked ~53% of tokens).
+- **Intervention #1 (running):** add `kriya→0.55` (verbs = prime BLiMP signal) + fix typo →
+  real-engines model `prabhasa_real_engines_v2`. Hypothesis: with true verbs masked heavily,
+  real kāraka should match/beat the heuristic. If still <64.09 after this 2nd documented
+  intervention → NULL closure: heuristic masking suffices at 10M; the real engines' value is
+  scalable GOLD-LABEL corpus generation (SLM/LLM thesis), not the 10M masking curriculum.
