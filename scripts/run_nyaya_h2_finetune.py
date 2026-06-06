@@ -232,6 +232,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="H2 Navya-Nyaya LoRA fine-tune")
     ap.add_argument("--psalm-ckpt", required=True, help="Path to ELC checkpoint (.pt)")
     ap.add_argument("--pramana-path", default=str(PRAMANA_DEFAULT))
+    ap.add_argument(
+        "--nli-data",
+        default=None,
+        help="Path to a generated NLI jsonl ({premise,hypothesis,label}); bypasses pramana-path.",
+    )
     ap.add_argument("--lora-rank", type=int, default=16)
     ap.add_argument("--epochs", type=int, default=20)
     ap.add_argument("--batch-size", type=int, default=8)
@@ -245,22 +250,27 @@ def main() -> None:
     import sys
     sys.path.insert(0, str(ROOT / "src"))
 
-    pramana_path = Path(args.pramana_path)
-    stage_0_path = pramana_path / "data" / "training" / "stage_0.jsonl"
-    stage_1_path = pramana_path / "data" / "training" / "stage_1.jsonl"
-
-    if not stage_0_path.exists() or not stage_1_path.exists():
-        print(f"[h2] ERROR: pramana data not found at {pramana_path}", flush=True)
-        sys.exit(1)
-
-    stage_0_raw = _load_pramana_jsonl(stage_0_path)
-    stage_1_raw = _load_pramana_jsonl(stage_1_path)
-
-    # Convert to NLI format using the domain converter
-    from psalm.infrastructure.data.pramana_loader import load_pramana_datasets
-    nli = load_pramana_datasets(stage_0_path, stage_1_path)
-    nli_data = nli.get("combined", [])
-    print(f"[h2] Loaded {len(nli_data)} NLI examples from pramana", flush=True)
+    if args.nli_data:
+        nli_path = Path(args.nli_data)
+        if not nli_path.exists():
+            print(f"[h2] ERROR: --nli-data not found at {nli_path}", flush=True)
+            sys.exit(1)
+        nli_data = [
+            {"premise": r["premise"], "hypothesis": r["hypothesis"], "label": int(r["label"])}
+            for r in _load_pramana_jsonl(nli_path)
+        ]
+        print(f"[h2] Loaded {len(nli_data)} NLI examples from {nli_path}", flush=True)
+    else:
+        pramana_path = Path(args.pramana_path)
+        stage_0_path = pramana_path / "data" / "training" / "stage_0.jsonl"
+        stage_1_path = pramana_path / "data" / "training" / "stage_1.jsonl"
+        if not stage_0_path.exists() or not stage_1_path.exists():
+            print(f"[h2] ERROR: pramana data not found at {pramana_path}", flush=True)
+            sys.exit(1)
+        from psalm.infrastructure.data.pramana_loader import load_pramana_datasets
+        nli = load_pramana_datasets(stage_0_path, stage_1_path)
+        nli_data = nli.get("combined", [])
+        print(f"[h2] Loaded {len(nli_data)} NLI examples from pramana", flush=True)
 
     sp_path = ROOT / "data" / "tokenizer" / "strict_small" / "spm.model"
     psalm_ckpt = Path(args.psalm_ckpt)
