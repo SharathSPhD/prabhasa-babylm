@@ -543,7 +543,6 @@ def main() -> None:
     stage2_salience: torch.Tensor | None = None
     if salience_transfer is not None:
         salience_transfer.save(salience_path)
-        import numpy as np  # noqa: PLC0415
 
         w = np.log(np.clip(salience_transfer.salience_weights(), 1e-6, 1.0))
         stage2_salience = torch.tensor(w, dtype=torch.float32)
