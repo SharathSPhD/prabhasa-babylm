@@ -83,8 +83,9 @@ def test_rope_translation_invariance() -> None:
     score_2 = torch.dot(q_at_105, k_at_108)
 
     # Scores should be equal (translation invariant)
-    assert torch.isclose(score_1, score_2, atol=1e-5), \
+    assert torch.isclose(score_1, score_2, atol=1e-5), (
         f"Translation invariance failed: score_1={score_1}, score_2={score_2}"
+    )
 
 
 @pytest.mark.slow
@@ -168,8 +169,9 @@ def test_rope_vs_absolute_different_embeddings() -> None:
         h_abs = model_abs.encode(idx)
 
     # Embeddings should differ (different position encoding)
-    assert not torch.allclose(h_rope, h_abs, atol=1e-5), \
+    assert not torch.allclose(h_rope, h_abs, atol=1e-5), (
         "RoPE and absolute encodings should produce different hidden states"
+    )
 
 
 @pytest.mark.slow

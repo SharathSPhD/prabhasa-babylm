@@ -12,8 +12,8 @@ from psalm.infrastructure.morphology.english import (
     segment_english_token,
 )
 from psalm.infrastructure.morphology.sanskrit import (
-    SanskritMorphemeAnalyzer,
     SanskritMorpheme,
+    SanskritMorphemeAnalyzer,
     analyze_sanskrit_token,
 )
 

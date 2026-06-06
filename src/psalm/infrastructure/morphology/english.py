@@ -131,9 +131,7 @@ class EnglishMorphemeAnalyzer:
 
         # Single-character tokens: assume root
         if len(surface) <= 1:
-            return [
-                Morpheme(surface=surface, role="root", type_="stem", is_inflectional=False)
-            ]
+            return [Morpheme(surface=surface, role="root", type_="stem", is_inflectional=False)]
 
         # Step 1: Strip inflectional suffixes (longest match wins, minimum 2-char stem)
         for suffix in sorted(self.INFLECTIONAL_SUFFIXES, key=len, reverse=True):
@@ -186,9 +184,11 @@ class EnglishMorphemeAnalyzer:
                 Morpheme(surface=surface, role="root", type_="stem", is_inflectional=False),
             )
 
-        return result if result else [
-            Morpheme(surface=token, role="root", type_="stem", is_inflectional=False)
-        ]
+        return (
+            result
+            if result
+            else [Morpheme(surface=token, role="root", type_="stem", is_inflectional=False)]
+        )
 
 
 def segment_english_token(token: str) -> list[Morpheme]:

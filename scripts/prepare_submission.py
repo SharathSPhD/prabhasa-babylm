@@ -32,7 +32,13 @@ HF_BASE = ROOT / "data" / "hf_export" / "submission"
 TOKENIZER = ROOT / "data" / "tokenizer" / "strict_small" / "spm.model"
 RESULTS_BASE = ROOT / "results" / "submission"
 
-TEXT_AVERAGE_TASKS = ["blimp", "blimp_supplement", "entity_tracking", "wug_adj_nominalization", "comps"]
+TEXT_AVERAGE_TASKS = [
+    "blimp",
+    "blimp_supplement",
+    "entity_tracking",
+    "wug_adj_nominalization",
+    "comps",
+]
 
 
 def _run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
@@ -50,11 +56,18 @@ def export_seed(seed: int, model_name: str) -> Path:
 
     print(f"[submit] Exporting seed {seed} → {out}", flush=True)
     _run(
-        [PY, "scripts/export_hf_model.py",
-         "--ckpt", str(ckpt),
-         "--tokenizer", str(TOKENIZER),
-         "--out", str(out),
-         "--model-name", f"{model_name}_seed{seed}"],
+        [
+            PY,
+            "scripts/export_hf_model.py",
+            "--ckpt",
+            str(ckpt),
+            "--tokenizer",
+            str(TOKENIZER),
+            "--out",
+            str(out),
+            "--model-name",
+            f"{model_name}_seed{seed}",
+        ],
         cwd=ROOT,
     )
     return out
@@ -69,9 +82,14 @@ def run_scoring(seed: int, model_name: str) -> dict[str, float]:
 
     print(f"[submit] Running scoring suite seed {seed}...", flush=True)
     _run(
-        [PY, "scripts/official_eval.py",
-         "--ckpt", str(CKPT_BASE / f"seed_{seed}" / "elc.pt"),
-         "--name", f"{model_name}_seed{seed}"],
+        [
+            PY,
+            "scripts/official_eval.py",
+            "--ckpt",
+            str(CKPT_BASE / f"seed_{seed}" / "elc.pt"),
+            "--name",
+            f"{model_name}_seed{seed}",
+        ],
         cwd=ROOT,
         stdout=log.open("w"),
         stderr=subprocess.STDOUT,
@@ -85,7 +103,9 @@ def run_scoring(seed: int, model_name: str) -> dict[str, float]:
     return {}
 
 
-def bootstrap_ci(scores: list[float], n_boot: int = 2000, ci: float = 0.95) -> tuple[float, float, float]:
+def bootstrap_ci(
+    scores: list[float], n_boot: int = 2000, ci: float = 0.95
+) -> tuple[float, float, float]:
     """Return (mean, lower_95, upper_95) via percentile bootstrap."""
     rng = np.random.default_rng(42)
     arr = np.array(scores, dtype=float)
@@ -126,8 +146,13 @@ def aggregate_results(seed_results: list[dict[str, float]]) -> dict[str, object]
         else:
             mean = ta_vals_per_seed[0]
             lo = hi = mean
-        agg["text_average"] = {"mean": mean, "ci95_lo": lo, "ci95_hi": hi,
-                                "n": len(ta_vals_per_seed), "values": ta_vals_per_seed}
+        agg["text_average"] = {
+            "mean": mean,
+            "ci95_lo": lo,
+            "ci95_hi": hi,
+            "n": len(ta_vals_per_seed),
+            "values": ta_vals_per_seed,
+        }
 
     return agg
 
@@ -164,8 +189,16 @@ def print_summary(agg: dict[str, object], model_name: str) -> None:
     print("\n" + "=" * 65)
     print(f"  BabyLM 2026 Submission: {model_name}")
     print("=" * 65)
-    priority = ["text_average", "blimp", "blimp_supplement", "entity_tracking",
-                "wug_adj_nominalization", "comps", "wug_past_tense", "ewok"]
+    priority = [
+        "text_average",
+        "blimp",
+        "blimp_supplement",
+        "entity_tracking",
+        "wug_adj_nominalization",
+        "comps",
+        "wug_past_tense",
+        "ewok",
+    ]
     for task in priority:
         if task not in agg:
             continue
@@ -194,7 +227,9 @@ def main() -> None:
     ap.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
     ap.add_argument("--model-name", default="ELC-PSALM-S")
     ap.add_argument("--skip-export", action="store_true", help="Skip HF export (already done)")
-    ap.add_argument("--skip-scoring", action="store_true", help="Skip scoring (use existing results)")
+    ap.add_argument(
+        "--skip-scoring", action="store_true", help="Skip scoring (use existing results)"
+    )
     ap.add_argument("--fast", action="store_true", help="Smoke: only seed 0")
     args = ap.parse_args()
 

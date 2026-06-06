@@ -43,8 +43,12 @@ def compute_mean_std(values: list[float]) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models", nargs="+", required=True, help="Model name(s) to read from results/")
-    ap.add_argument("--preliminary", action="store_true", help="Write as preliminary (not final) scores")
+    ap.add_argument(
+        "--models", nargs="+", required=True, help="Model name(s) to read from results/"
+    )
+    ap.add_argument(
+        "--preliminary", action="store_true", help="Write as preliminary (not final) scores"
+    )
     args = ap.parse_args()
 
     summaries = {}
@@ -72,7 +76,12 @@ def main() -> None:
         if text_avg_vals:
             site_data["submission_track"]["text_average_preliminary"] = round(text_avg_vals[0], 2)
         site_data["submission_track"]["status"] = "scoring_complete"
-        print(f"[update] Preliminary BLiMP={blimp_vals[0]:.2f}" if blimp_vals else "[update] No BLiMP value", flush=True)
+        print(
+            f"[update] Preliminary BLiMP={blimp_vals[0]:.2f}"
+            if blimp_vals
+            else "[update] No BLiMP value",
+            flush=True,
+        )
     else:
         # Multi-seed final results
         n_seeds = len(blimp_vals)
@@ -82,7 +91,9 @@ def main() -> None:
                 site_data["submission_track"] = {}
             site_data["submission_track"]["blimp_final"] = agg
             site_data["submission_track"]["seeds_complete"] = n_seeds
-            site_data["submission_track"]["status"] = "scoring_complete" if n_seeds >= 3 else f"seed_{n_seeds}_complete"
+            site_data["submission_track"]["status"] = (
+                "scoring_complete" if n_seeds >= 3 else f"seed_{n_seeds}_complete"
+            )
 
             # Update main blimp_pll table with mechanism arm
             site_data.setdefault("mechanism_blimp", {})
@@ -90,7 +101,10 @@ def main() -> None:
 
             thresh = 70.0
             met = agg["mean"] >= thresh
-            print(f"[update] Final BLiMP: {agg['mean']:.2f} ± {agg['std']:.2f} ({n_seeds} seeds) — {'THRESHOLD MET' if met else 'below threshold'}", flush=True)
+            print(
+                f"[update] Final BLiMP: {agg['mean']:.2f} ± {agg['std']:.2f} ({n_seeds} seeds) — {'THRESHOLD MET' if met else 'below threshold'}",
+                flush=True,
+            )
 
     SITE_RESULTS.write_text(json.dumps(site_data, indent=2, ensure_ascii=False))
     print(f"[update] Updated {SITE_RESULTS}", flush=True)

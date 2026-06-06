@@ -1,0 +1,69 @@
+{
+  "name": "prabhasa_b_ss_0.1_glue",
+  "tasks": {
+    "boolq": {
+      "metrics": {
+        "accuracy": 0.653822629969419,
+        "f1": 0.7394106813996317,
+        "mcc": 0.2271992610393818
+      },
+      "score": 0.653822629969419,
+      "valid_metric": "accuracy"
+    },
+    "multirc": {
+      "metrics": {
+        "accuracy": 0.5965346534653465,
+        "f1": 0.33559782608695654,
+        "mcc": 0.12730210619187374
+      },
+      "score": 0.5965346534653465,
+      "valid_metric": "accuracy"
+    },
+    "rte": {
+      "metrics": {
+        "accuracy": 0.5035971223021583,
+        "f1": 0.3893805309734513,
+        "mcc": -0.016953317256112287
+      },
+      "score": 0.5035971223021583,
+      "valid_metric": "accuracy"
+    },
+    "wsc": {
+      "metrics": {
+        "accuracy": 0.6730769230769231,
+        "f1": 0.41379310344827586,
+        "mcc": 0.2652335521937267
+      },
+      "score": 0.6730769230769231,
+      "valid_metric": "accuracy"
+    },
+    "mrpc": {
+      "metrics": {
+        "accuracy": 0.6862745098039216,
+        "f1": 0.8128654970760234,
+        "mcc": 0.10263670538805297
+      },
+      "score": 0.8128654970760234,
+      "valid_metric": "f1"
+    },
+    "qqp": {
+      "metrics": {
+        "accuracy": 0.6876576799406381,
+        "f1": 0.4829675728791353,
+        "mcc": 0.29201762233842643
+      },
+      "score": 0.4829675728791353,
+      "valid_metric": "f1"
+    },
+    "mnli": {
+      "metrics": {
+        "accuracy": 0.3422982885085575
+      },
+      "score": 0.3422982885085575,
+      "valid_metric": "accuracy"
+    }
+  },
+  "glue_average": 0.5807,
+  "n_tasks": 7,
+  "note": "mnli/qqp capped at 2 epochs (large datasets); recovered from per-task results.txt after name-truncation bug"
+}
