@@ -204,3 +204,22 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
   DeepSeek-R1-8B ceiling), not a 114M model.
 - **REPOSITION:** the 2000 pervasion-coherent Nyāya chains are BUILT and ready for the 1B
   reasoning track + a corrected framing (evaluate the hetu→sādhya pervasion, not chain→own-conclusion).
+
+## ✅ STRICT-SMALL FINAL (Phase A complete) — prabhasa-b_ss-0.1
+- **Zero-shot 3-seed:** BLiMP **64.09 ± 0.26** (64.38/63.87/64.01); Text Average **49.86 ± 0.84**
+  (50.79/49.64/49.16); entity_tracking 30.0/24.5/21.8 (RoPE fixed the OOB). Beats the gpt2
+  baseline Text Average (~49.0).
+- **GLUE column (mandatory):** avg **58.07** — boolq 65.4, wsc 67.3, mrpc-f1 81.3, multirc 59.7,
+  rte 50.4, qqp-f1 48.3, mnli 34.2. (mnli/qqp capped at 2 epochs on the large sets; recovered
+  from per-task results.txt after a name-truncation bug in eval_finetune's summary writer.)
+
+## B1 torch.compile — NULL on GB10/sm_121
+- `--compile` builds (`torch.compile: ON`) but **crashes at the first compiled forward**:
+  Triton/Inductor gcc CUDA-module build fails (sm_121/CUDA-13/aarch64 — the flagged risk).
+  Guard catches `compile()` not lazy runtime compilation. Decision: **100M runs eager** (no compile).
+
+## Small track — C1 prabhasa-b_s (RUNNING)
+- 100M English (official BabyLM-2026-Strict, 100,000,000 words = 156.8M tokens), validated
+  RoPE recipe (hybrid + decay 0.40→0.15 + Muon, 10 epochs, 31,908 steps), eager, English-only.
+  Run: `data/checkpoints/prabhasa_b_s/seed_0`. Tests if 10× data lifts BLiMP/TextAvg vs 10M.
+- Next: C2 = real-engines-100M (deprel + Morfessor) to re-test the 10M masking null at scale.
