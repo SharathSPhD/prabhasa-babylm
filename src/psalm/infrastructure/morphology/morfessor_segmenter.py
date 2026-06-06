@@ -28,14 +28,14 @@ class Morph(NamedTuple):
 
 # Known English inflectional affixes (for post-hoc classification)
 ENGLISH_INFLECTIONAL_SUFFIXES = {
-    "s",      # plural / 3sg
-    "es",     # plural / 3sg
-    "ed",     # past tense
-    "ing",    # gerund / progressive
-    "en",     # past participle
-    "er",     # comparative
-    "est",    # superlative
-    "ly",     # adverbial (often inflectional on adjectives)
+    "s",  # plural / 3sg
+    "es",  # plural / 3sg
+    "ed",  # past tense
+    "ing",  # gerund / progressive
+    "en",  # past participle
+    "er",  # comparative
+    "est",  # superlative
+    "ly",  # adverbial (often inflectional on adjectives)
 }
 
 ENGLISH_INFLECTIONAL_PREFIXES = set()  # English has few inflectional prefixes
@@ -112,7 +112,10 @@ class MorfessorSegmenter:
         # Classify each morph as inflectional or derivational
         result: list[Morph] = []
         for morph in morphs_list:
-            is_infl = morph.lower() in ENGLISH_INFLECTIONAL_SUFFIXES or morph.lower() in ENGLISH_INFLECTIONAL_PREFIXES
+            is_infl = (
+                morph.lower() in ENGLISH_INFLECTIONAL_SUFFIXES
+                or morph.lower() in ENGLISH_INFLECTIONAL_PREFIXES
+            )
             result.append(Morph(surface=morph, is_inflectional=is_infl))
 
         return result

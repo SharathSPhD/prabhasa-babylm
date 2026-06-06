@@ -99,13 +99,15 @@ def main() -> None:
             all_success = False
         else:
             graph = result.shabdabodha_graph
-            print(f"      ✓ SUCCESS: Graph generated")
-            print(f"        - Nodes: {len(graph.nodes)} ({', '.join(n.label or n.id for n in graph.nodes)})")
+            print("      ✓ SUCCESS: Graph generated")
+            print(
+                f"        - Nodes: {len(graph.nodes)} ({', '.join(n.label or n.id for n in graph.nodes)})"
+            )
             print(
                 f"        - Edges: {len(graph.edges)} "
                 f"({', '.join(f'{e.sansa.value}' for e in graph.edges)})"
             )
-            print(f"        - Node categories: {sorted(set(n.category.value for n in graph.nodes))}")
+            print(f"        - Node categories: {sorted({n.category.value for n in graph.nodes})}")
 
         print()
 

@@ -67,7 +67,9 @@ def main() -> None:
         morphs = segmenter.segment(word)
         morph_surfaces = [m.surface for m in morphs]
         morph_str = " + ".join(morph_surfaces)
-        infl_str = " ".join([f"({m.surface}{'[I]' if m.is_inflectional else '[D]'})" for m in morphs])
+        infl_str = " ".join(
+            [f"({m.surface}{'[I]' if m.is_inflectional else '[D]'})" for m in morphs]
+        )
 
         print(f"{word:20} | Expected: {expected:40} | Actual: {morph_str:20}")
         print(f"{'':20} | Morphs (I=inflectional, D=derivational): {infl_str}")

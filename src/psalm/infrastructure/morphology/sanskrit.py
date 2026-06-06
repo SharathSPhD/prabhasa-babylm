@@ -13,7 +13,6 @@ The analyzer is a thin wrapper over vidyut.prakriya.Vyakarana.
 
 from __future__ import annotations
 
-import contextlib
 from dataclasses import dataclass
 from typing import NamedTuple
 
@@ -154,9 +153,7 @@ class SanskritMorphemeAnalyzer:
                 )
             ]
 
-    def _classify_pratyaya(
-        self, morpheme: str, position: int, total: int
-    ) -> tuple[str, bool]:
+    def _classify_pratyaya(self, morpheme: str, position: int, total: int) -> tuple[str, bool]:
         """Classify a pratyaya (affix) by type and inflectionality.
 
         Args:

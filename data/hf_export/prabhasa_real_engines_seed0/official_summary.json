@@ -1,0 +1,27 @@
+{
+  "name": "prabhasa_real_engines_seed0",
+  "averages": {
+    "blimp": 62.08,
+    "blimp_supplement": 60.62,
+    "ewok": 50.01,
+    "entity_tracking": 37.27,
+    "wug_adj_nominalization": null,
+    "comps": 52.16,
+    "wug_past_tense": null
+  },
+  "text_average": 52.428,
+  "text_average_components": [
+    "blimp",
+    "blimp_supplement",
+    "comps",
+    "entity_tracking",
+    "ewok",
+    "wug_adj_nominalization"
+  ],
+  "notes": {
+    "wug_past_tense": "lower is better; excluded from Text Average",
+    "reading": "predictions saved; leaderboard score is human-RT correlation via official aggregator",
+    "aoa": "reported separately; excluded from Text Average",
+    "ewok_set": "ewok_filtered"
+  }
+}

@@ -11,6 +11,7 @@ Usage:
 
 from psalm.infrastructure.morphology.english import EnglishMorphemeAnalyzer
 
+
 def main() -> None:
     """Demonstrate real morphological analysis on 10+ English words."""
     analyzer = EnglishMorphemeAnalyzer()

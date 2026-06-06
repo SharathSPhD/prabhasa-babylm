@@ -7,7 +7,9 @@ derivation_trace from vidyut.prakriya (the Pāṇinian grammar engine).
 
 from __future__ import annotations
 
-from psalm.infrastructure.generators.corpus_from_grammar import VidyutMorphologyEngine, VidyutEngineConfig
+from psalm.infrastructure.generators.corpus_from_grammar import (
+    VidyutMorphologyEngine,
+)
 
 
 def main() -> int:

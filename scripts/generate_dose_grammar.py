@@ -34,11 +34,10 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from psalm.infrastructure.generators.corpus_from_grammar import (
-    VidyutMorphologyEngine,
     VidyutEngineConfig,
+    VidyutMorphologyEngine,
 )
 from psalm.infrastructure.ml.bin_dataset import BinDataset
-
 
 # Vetted Dhātupāṭha selections (classical Pāṇinian root list)
 DHATUS_TO_GENERATE = [
@@ -78,7 +77,9 @@ PURUSHAS = ["Prathama", "Madhyama", "Uttama"]  # 3rd, 2nd, 1st person
 VACANAS = ["Eka", "Dvi", "Bahu"]  # Singular, Dual, Plural
 
 
-def generate_verb_forms(engine: VidyutMorphologyEngine, verbose: bool = True) -> list[dict[str, Any]]:
+def generate_verb_forms(
+    engine: VidyutMorphologyEngine, verbose: bool = True
+) -> list[dict[str, Any]]:
     """Generate all verb forms across dhātu/lakāra/puruṣa/vacana combinations.
 
     Args:
@@ -89,12 +90,7 @@ def generate_verb_forms(engine: VidyutMorphologyEngine, verbose: bool = True) ->
         List of dicts with keys: text, dhatu, lakara, purusha, vacana, derivation_trace_str
     """
     records = []
-    total = (
-        len(DHATUS_TO_GENERATE)
-        * len(LAKARAS_TO_GENERATE)
-        * len(PURUSHAS)
-        * len(VACANAS)
-    )
+    total = len(DHATUS_TO_GENERATE) * len(LAKARAS_TO_GENERATE) * len(PURUSHAS) * len(VACANAS)
 
     if verbose:
         print(f"Generating {total} verb forms from grammar...")
@@ -118,22 +114,22 @@ def generate_verb_forms(engine: VidyutMorphologyEngine, verbose: bool = True) ->
                         # Convert derivation_trace tuple to JSON-serializable string
                         derivation_str = " → ".join(example.derivation_trace)
 
-                        records.append({
-                            "text": example.text,
-                            "dhatu": dhatu,
-                            "gana": gana,
-                            "lakara": lakara,
-                            "purusha": purusha,
-                            "vacana": vacana,
-                            "derivation_trace": derivation_str,
-                        })
+                        records.append(
+                            {
+                                "text": example.text,
+                                "dhatu": dhatu,
+                                "gana": gana,
+                                "lakara": lakara,
+                                "purusha": purusha,
+                                "vacana": vacana,
+                                "derivation_trace": derivation_str,
+                            }
+                        )
                         count += 1
 
                     except Exception as e:
                         if verbose and skipped < 5:
-                            print(
-                                f"  SKIP: {dhatu} {lakara} {purusha} {vacana}: {e}"
-                            )
+                            print(f"  SKIP: {dhatu} {lakara} {purusha} {vacana}: {e}")
                         skipped += 1
 
     if verbose:
@@ -215,9 +211,7 @@ def tokenize_dose_corpus(
         raise FileNotFoundError(f"SentencePiece model not found: {spm_path}")
 
     if bin_path.exists() and not force:
-        raise FileExistsError(
-            f"Output file exists: {bin_path}. Use --force to overwrite."
-        )
+        raise FileExistsError(f"Output file exists: {bin_path}. Use --force to overwrite.")
 
     try:
         import sentencepiece as spm
@@ -234,7 +228,8 @@ def tokenize_dose_corpus(
     if verbose:
         print(f"Tokenizing with SentencePiece (vocab_size={vocab_size})...")
 
-    encode_fn = lambda s: sp.EncodeAsIds(s)
+    def encode_fn(s):
+        return sp.EncodeAsIds(s)
 
     # Ensure output directory exists
     bin_path.parent.mkdir(parents=True, exist_ok=True)
@@ -244,6 +239,7 @@ def tokenize_dose_corpus(
 
     # Count tokens and records
     import numpy as np
+
     token_count = len(np.memmap(bin_path, dtype="uint16", mode="r"))
 
     record_count = 0
@@ -367,15 +363,15 @@ Examples:
     print(f"  Token count: {token_count:,}")
     print(f"  Size on disk: {bin_path.stat().st_size / 1e6:.2f} MB")
     print(f"\nTokenizer: {spm_path} (vocab_size=20000)")
-    print(f"\nDose corpus generation:")
+    print("\nDose corpus generation:")
     print(f"  Dhātus sampled:   {len(DHATUS_TO_GENERATE)}")
     print(f"  Lakaras included: {len(LAKARAS_TO_GENERATE)}")
     print(f"  Purusha forms:    {len(PURUSHAS)}")
     print(f"  Vacana forms:     {len(VACANAS)}")
-    print(f"  Total combinations: {len(DHATUS_TO_GENERATE) * len(LAKARAS_TO_GENERATE) * len(PURUSHAS) * len(VACANAS):,}")
     print(
-        f"\nNote: Dose corpus is generated from grammar rules, not from corpus text."
+        f"  Total combinations: {len(DHATUS_TO_GENERATE) * len(LAKARAS_TO_GENERATE) * len(PURUSHAS) * len(VACANAS):,}"
     )
+    print("\nNote: Dose corpus is generated from grammar rules, not from corpus text.")
     print("It provides structured morphological diversity for pre-pretraining.")
 
 

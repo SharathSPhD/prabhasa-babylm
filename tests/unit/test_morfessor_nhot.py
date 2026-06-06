@@ -8,8 +8,8 @@ from __future__ import annotations
 import pytest
 
 from psalm.infrastructure.morphology.morfessor_segmenter import (
-    Morph,
     MorfessorSegmenter,
+    Morph,
 )
 
 

@@ -92,8 +92,8 @@ def check_diversity(nli_examples: list) -> dict:
     Returns:
       Dict with diversity metrics
     """
-    unique_premises = set(ex["premise"] for ex in nli_examples)
-    unique_hypotheses = set(ex["hypothesis"] for ex in nli_examples)
+    unique_premises = {ex["premise"] for ex in nli_examples}
+    unique_hypotheses = {ex["hypothesis"] for ex in nli_examples}
 
     return {
         "total_examples": len(nli_examples),
@@ -183,9 +183,7 @@ def validate_samples(pramana_examples: list, n_samples: int = 5) -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="Generate Pañcāvayava dataset for H2 Nyāya training"
-    )
+    ap = argparse.ArgumentParser(description="Generate Pañcāvayava dataset for H2 Nyāya training")
     ap.add_argument(
         "--n",
         type=int,
@@ -215,10 +213,14 @@ def main() -> None:
 
     # Check diversity BEFORE saving
     diversity = check_diversity(nli_examples)
-    print(f"\n[nyaya_gen] DIVERSITY CHECK:")
+    print("\n[nyaya_gen] DIVERSITY CHECK:")
     print(f"  Total examples: {diversity['total_examples']}")
-    print(f"  Unique premises: {diversity['unique_premises']} ({diversity['premise_diversity_pct']:.1f}%)")
-    print(f"  Unique hypotheses: {diversity['unique_hypotheses']} ({diversity['hypothesis_diversity_pct']:.1f}%)")
+    print(
+        f"  Unique premises: {diversity['unique_premises']} ({diversity['premise_diversity_pct']:.1f}%)"
+    )
+    print(
+        f"  Unique hypotheses: {diversity['unique_hypotheses']} ({diversity['hypothesis_diversity_pct']:.1f}%)"
+    )
 
     if diversity["unique_premises"] < 500:
         print(
@@ -232,17 +234,21 @@ def main() -> None:
         validate_samples(pramana_examples, n_samples=5)
 
     # Print summary
-    print(f"\n=== Dataset Summary ===")
+    print("\n=== Dataset Summary ===")
     print(f"Total examples: {len(pramana_examples)}")
-    print(f"Valid: {sum(1 for ex in pramana_examples if len(ex.hetvabhasa.fallacies_detected) == 0)}")
-    print(f"Fallacious: {sum(1 for ex in pramana_examples if len(ex.hetvabhasa.fallacies_detected) > 0)}")
+    print(
+        f"Valid: {sum(1 for ex in pramana_examples if len(ex.hetvabhasa.fallacies_detected) == 0)}"
+    )
+    print(
+        f"Fallacious: {sum(1 for ex in pramana_examples if len(ex.hetvabhasa.fallacies_detected) > 0)}"
+    )
     print(f"Unique premises: {diversity['unique_premises']}")
     print(f"Unique hypotheses: {diversity['unique_hypotheses']}")
     print(f"\nPramana format: {pramana_path}")
     print(f"NLI format: {nli_path}")
-    print(f"\nTo use with H2 fine-tune:")
-    print(f"  uv run python scripts/run_nyaya_h2_finetune.py \\")
-    print(f"    --psalm-ckpt data/checkpoints/.../elc.pt \\")
+    print("\nTo use with H2 fine-tune:")
+    print("  uv run python scripts/run_nyaya_h2_finetune.py \\")
+    print("    --psalm-ckpt data/checkpoints/.../elc.pt \\")
     print(f"    --nli-data {nli_path}")
 
 

@@ -52,9 +52,9 @@ class BenchResult:
     def gflops(self) -> float:
         """Rough FLOP count for attention: 2 * batch * seq^2 * head_dim * num_heads."""
         # Q @ K: batch * num_heads * seq * seq * head_dim
-        qk_flops = 2 * self.batch_size * self.num_heads * (self.seq_len ** 2) * self.head_dim
+        qk_flops = 2 * self.batch_size * self.num_heads * (self.seq_len**2) * self.head_dim
         # Softmax @ V: batch * num_heads * seq * seq * head_dim
-        sv_flops = 2 * self.batch_size * self.num_heads * (self.seq_len ** 2) * self.head_dim
+        sv_flops = 2 * self.batch_size * self.num_heads * (self.seq_len**2) * self.head_dim
         # Gradient wrt Q, K, V: 3x forward
         total = qk_flops + sv_flops + 3 * (qk_flops + sv_flops)
         return total / 1e9
@@ -74,23 +74,15 @@ def try_backend(
     try:
         if backend_name == "math":
             # Default (usually math kernel)
-            out = F.scaled_dot_product_attention(
-                q, k, v, dropout_p=0.0, is_causal=is_causal
-            )
+            out = F.scaled_dot_product_attention(q, k, v, dropout_p=0.0, is_causal=is_causal)
         elif backend_name == "cudnn_attention":
-            with torch.backends.cuda.sdpa_kernel(
-                torch.backends.cuda.SDPABackend.CUDNN_ATTENTION
-            ):
-                out = F.scaled_dot_product_attention(
-                    q, k, v, dropout_p=0.0, is_causal=is_causal
-                )
+            with torch.backends.cuda.sdpa_kernel(torch.backends.cuda.SDPABackend.CUDNN_ATTENTION):
+                out = F.scaled_dot_product_attention(q, k, v, dropout_p=0.0, is_causal=is_causal)
         elif backend_name == "efficient_attention":
             with torch.backends.cuda.sdpa_kernel(
                 torch.backends.cuda.SDPABackend.EFFICIENT_ATTENTION
             ):
-                out = F.scaled_dot_product_attention(
-                    q, k, v, dropout_p=0.0, is_causal=is_causal
-                )
+                out = F.scaled_dot_product_attention(q, k, v, dropout_p=0.0, is_causal=is_causal)
         elif backend_name == "flash":
             # Requires flash-attn installed
             from flash_attn import flash_attn_func
@@ -101,15 +93,13 @@ def try_backend(
             q_rearr = q.transpose(1, 2).contiguous()
             k_rearr = k.transpose(1, 2).contiguous()
             v_rearr = v.transpose(1, 2).contiguous()
-            out_rearr = flash_attn_func(
-                q_rearr, k_rearr, v_rearr, causal=is_causal, dropout_p=0.0
-            )
+            out_rearr = flash_attn_func(q_rearr, k_rearr, v_rearr, causal=is_causal, dropout_p=0.0)
             # Convert back: (b, s, h, d) -> (b, h, s, d)
             out = out_rearr.transpose(1, 2).contiguous()
         else:
             raise ValueError(f"Unknown backend: {backend_name}")
         return out, True
-    except (RuntimeError, ImportError, AttributeError) as e:
+    except (RuntimeError, ImportError, AttributeError):
         # Backend not available on this device/pytorch version
         return None, False
 
@@ -130,7 +120,10 @@ def benchmark_backend(
     """
     # Allocate tensors
     q = torch.randn(
-        batch_size, num_heads, seq_len, head_dim,
+        batch_size,
+        num_heads,
+        seq_len,
+        head_dim,
         device=device,
         dtype=torch.bfloat16,
         requires_grad=True,
@@ -146,7 +139,10 @@ def benchmark_backend(
     for run_idx in range(num_runs):
         # Fresh tensors for each run
         q = torch.randn(
-            batch_size, num_heads, seq_len, head_dim,
+            batch_size,
+            num_heads,
+            seq_len,
+            head_dim,
             device=device,
             dtype=torch.bfloat16,
             requires_grad=True,
@@ -223,8 +219,8 @@ def print_summary_stats(all_results: list[BenchResult]) -> None:
     print("\nSUMMARY STATISTICS (mean ± std over runs)")
     print("-" * 100)
 
-    backends = sorted(set(r.backend for r in all_results))
-    seq_lens = sorted(set(r.seq_len for r in all_results))
+    backends = sorted({r.backend for r in all_results})
+    seq_lens = sorted({r.seq_len for r in all_results})
 
     for seq_len in seq_lens:
         print(f"\nSeq Len = {seq_len}")
@@ -242,9 +238,7 @@ def print_summary_stats(all_results: list[BenchResult]) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Benchmark attention backends on Blackwell sm_121"
-    )
+    parser = argparse.ArgumentParser(description="Benchmark attention backends on Blackwell sm_121")
     parser.add_argument(
         "--seq-lens",
         type=int,

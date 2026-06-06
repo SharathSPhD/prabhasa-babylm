@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import spacy
 from spacy.tokens import Doc, Token
 
 

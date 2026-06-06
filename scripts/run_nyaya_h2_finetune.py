@@ -81,7 +81,7 @@ def _apply_lora(model: nn.Module, rank: int) -> int:
     replaced = 0
     module_dict = dict(model.named_modules())
     for name, module in list(model.named_modules()):
-        if isinstance(module, nn.Linear) and name.endswith('.qkv'):
+        if isinstance(module, nn.Linear) and name.endswith(".qkv"):
             # Navigate to parent and replace the qkv layer
             parts = name.rsplit(".", 1)
             if len(parts) == 2:
@@ -89,10 +89,16 @@ def _apply_lora(model: nn.Module, rank: int) -> int:
                 parent = module_dict[parent_name]
                 setattr(parent, attr, LoRALinear(module, rank=rank))
                 replaced += 1
-    adapter_params = sum(p.numel() for m in model.modules()
-                         if isinstance(m, LoRALinear)
-                         for p in (m.lora_A, m.lora_B))
-    print(f"[h2] LoRA applied: {replaced} layers replaced, {adapter_params:,} adapter params", flush=True)
+    adapter_params = sum(
+        p.numel()
+        for m in model.modules()
+        if isinstance(m, LoRALinear)
+        for p in (m.lora_A, m.lora_B)
+    )
+    print(
+        f"[h2] LoRA applied: {replaced} layers replaced, {adapter_params:,} adapter params",
+        flush=True,
+    )
     return adapter_params
 
 
@@ -122,6 +128,7 @@ def run_h2_finetune(
 ) -> dict[str, object]:
     """Fine-tune ELC-PSALM-S on NLI data with LoRA adapters."""
     import sentencepiece as spm
+
     from psalm.infrastructure.ml.elc_trainer import load_elc_checkpoint
 
     torch.manual_seed(seed)
@@ -143,7 +150,7 @@ def run_h2_finetune(
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
-    print(f"[h2] Trainable: {trainable:,} / {total:,} ({100*trainable/total:.2f}%)", flush=True)
+    print(f"[h2] Trainable: {trainable:,} / {total:,} ({100 * trainable / total:.2f}%)", flush=True)
 
     # Load tokenizer
     sp = spm.SentencePieceProcessor()
@@ -155,14 +162,15 @@ def run_h2_finetune(
     train_data = nli_data[:n_train]
     test_data = nli_data[n_train:]
     if fast:
-        train_data = train_data[:min(20, len(train_data))]
-        test_data = test_data[:min(10, len(test_data))]
+        train_data = train_data[: min(20, len(train_data))]
+        test_data = test_data[: min(10, len(test_data))]
         epochs = min(3, epochs)
     print(f"[h2] Train: {len(train_data)}, Test: {len(test_data)}, epochs: {epochs}", flush=True)
 
     opt = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad],
-        lr=lr, weight_decay=0.01,
+        lr=lr,
+        weight_decay=0.01,
     )
 
     history: list[dict] = []
@@ -200,9 +208,13 @@ def run_h2_finetune(
             test_accs = []
             for i in range(0, len(test_data), batch_size):
                 batch = test_data[i : i + batch_size]
-                max_len = max(len(_tokenize_pair(sp, ex["premise"], ex["hypothesis"])) for ex in batch)
+                max_len = max(
+                    len(_tokenize_pair(sp, ex["premise"], ex["hypothesis"])) for ex in batch
+                )
                 input_ids = torch.zeros(len(batch), max_len, dtype=torch.long, device=device)
-                labels = torch.tensor([ex["label"] for ex in batch], dtype=torch.long, device=device)
+                labels = torch.tensor(
+                    [ex["label"] for ex in batch], dtype=torch.long, device=device
+                )
                 for j, ex in enumerate(batch):
                     ids = _tokenize_pair(sp, ex["premise"], ex["hypothesis"], max_len)
                     input_ids[j, : len(ids)] = torch.tensor(ids)
@@ -214,7 +226,10 @@ def run_h2_finetune(
         test_acc = float(np.mean(test_accs)) if test_accs else 0.0
         train_loss = float(np.mean(train_losses)) if train_losses else float("inf")
         best_test_acc = max(best_test_acc, test_acc)
-        print(f"[h2] epoch {epoch+1:2d}/{epochs}  train_loss={train_loss:.4f}  test_acc={test_acc:.4f}  best={best_test_acc:.4f}", flush=True)
+        print(
+            f"[h2] epoch {epoch + 1:2d}/{epochs}  train_loss={train_loss:.4f}  test_acc={test_acc:.4f}  best={best_test_acc:.4f}",
+            flush=True,
+        )
         history.append({"epoch": epoch + 1, "train_loss": train_loss, "test_acc": test_acc})
 
     return {
@@ -248,6 +263,7 @@ def main() -> None:
     args = ap.parse_args()
 
     import sys
+
     sys.path.insert(0, str(ROOT / "src"))
 
     if args.nli_data:
@@ -268,6 +284,7 @@ def main() -> None:
             print(f"[h2] ERROR: pramana data not found at {pramana_path}", flush=True)
             sys.exit(1)
         from psalm.infrastructure.data.pramana_loader import load_pramana_datasets
+
         nli = load_pramana_datasets(stage_0_path, stage_1_path)
         nli_data = nli.get("combined", [])
         print(f"[h2] Loaded {len(nli_data)} NLI examples from pramana", flush=True)
@@ -281,7 +298,9 @@ def main() -> None:
         device = "cpu"
 
     results = run_h2_finetune(
-        psalm_ckpt, nli_data, sp_path,
+        psalm_ckpt,
+        nli_data,
+        sp_path,
         lora_rank=args.lora_rank,
         epochs=args.epochs,
         batch_size=args.batch_size,

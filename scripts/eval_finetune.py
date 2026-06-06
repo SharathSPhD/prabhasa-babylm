@@ -161,8 +161,13 @@ def main() -> None:
             # The vendored harness truncates the run-name at the first '.' (e.g.
             # "prabhasa_b_ss_0.1_glue" -> "prabhasa_b_ss_0"). Fall back to that.
             alt = (
-                PIPELINE / args.results_dir / args.name.split(".")[0]
-                / "main" / "finetune" / task / "results.txt"
+                PIPELINE
+                / args.results_dir
+                / args.name.split(".")[0]
+                / "main"
+                / "finetune"
+                / task
+                / "results.txt"
             )
             if alt.exists():
                 res_path = alt

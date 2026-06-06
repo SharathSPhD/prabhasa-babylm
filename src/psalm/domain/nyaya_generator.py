@@ -14,10 +14,7 @@ Domain contract:
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
 from datetime import date
-from enum import Enum
-from typing import Literal
 
 from pramana.domain.models.nyaya_example import (
     DoubtType,
@@ -26,12 +23,11 @@ from pramana.domain.models.nyaya_example import (
     HetvabhasaType,
     Nirnaya,
     NyayaExample,
-    Pramana,
     PanchaAvayava,
+    Pramana,
     Samshaya,
     Tarka,
 )
-
 
 # ============================================================================
 # CURATED GENUINE PERVASIONS: (hetu, sādhya, positive_example, negative_example)
@@ -320,7 +316,9 @@ class PanchaAvayavaGenerator:
 
         hetu = pervasion["hetu"]
         sadhya = pervasion["sadhya"]
-        counter_example = self.rng.choice([ex for ex in PAKSHA if ex != pervasion["positive_example"]])
+        counter_example = self.rng.choice(
+            [ex for ex in PAKSHA if ex != pervasion["positive_example"]]
+        )
 
         pratijna = f"{paksha.capitalize()} is {sadhya}"
         hetu_full = f"because it {hetu}"
@@ -398,7 +396,7 @@ class PanchaAvayavaGenerator:
 
         upanaya = f"It is unproven that {paksha.lower()} {hetu}."
 
-        nigamana = f"Therefore, the inference is inconclusive."
+        nigamana = "Therefore, the inference is inconclusive."
 
         return {
             "pratijna": pratijna,
@@ -432,7 +430,7 @@ class PanchaAvayavaGenerator:
 
         upanaya = f"{paksha.capitalize()} {hetu}."
 
-        nigamana = f"Therefore, the inference is indeterminate."
+        nigamana = "Therefore, the inference is indeterminate."
 
         return {
             "pratijna": pratijna,
@@ -455,7 +453,7 @@ class PanchaAvayavaGenerator:
         n_valid = n // 2
         n_fallacious = n - n_valid
 
-        for i in range(n_valid):
+        for _i in range(n_valid):
             chain_data = self._generate_valid_chain()
             example = self._chain_data_to_nyaya_example(chain_data, is_valid=True)
             examples.append(example)
@@ -467,7 +465,7 @@ class PanchaAvayavaGenerator:
             self._generate_fallacy_satpratipaksha,
         ]
 
-        for i in range(n_fallacious):
+        for _i in range(n_fallacious):
             gen_fn = self.rng.choice(fallacy_generators)
             chain_data = gen_fn()
             example = self._chain_data_to_nyaya_example(chain_data, is_valid=False)
@@ -476,9 +474,7 @@ class PanchaAvayavaGenerator:
         self.rng.shuffle(examples)
         return examples
 
-    def _chain_data_to_nyaya_example(
-        self, chain_data: dict, is_valid: bool
-    ) -> NyayaExample:
+    def _chain_data_to_nyaya_example(self, chain_data: dict, is_valid: bool) -> NyayaExample:
         """Convert chain_data dict to a complete NyayaExample."""
         self._example_counter += 1
         example_id = f"nyaya_gen_{self._example_counter:06d}"
@@ -522,7 +518,7 @@ class PanchaAvayavaGenerator:
         else:
             tarka = Tarka(
                 hypothesis=f"Suppose {paksha.lower()} is not {sadhya}",
-                consequence=f"The reasoning would still hold",
+                consequence="The reasoning would still hold",
                 analysis="The argument does not conclusively establish the thesis",
                 resolution="The inference is defective",
             )

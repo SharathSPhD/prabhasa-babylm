@@ -215,7 +215,7 @@ class VidyutMorphologyEngine:
         Raises:
             ValueError: if derivation fails or produces no results.
         """
-        from vidyut.prakriya import Dhatu, Gana, Pada, Prayoga, Lakara, Purusha, Vacana
+        from vidyut.prakriya import Dhatu, Gana, Lakara, Pada, Prayoga, Purusha, Vacana
 
         vyakarana = self._get_vyakarana()
 
@@ -315,7 +315,9 @@ class ShabdabodhaAssembler:
         """Initialize with frame inventory & nominal pool."""
         self.config = config or ShabdabodhaAssemblerConfig()
 
-    def assemble_sentence(self, morph_example: PrabasaExample, frame_type: FrameType) -> PrabasaExample:
+    def assemble_sentence(
+        self, morph_example: PrabasaExample, frame_type: FrameType
+    ) -> PrabasaExample:
         """Generate nominals & assemble full kāraka-parsed sentence.
 
         Args:

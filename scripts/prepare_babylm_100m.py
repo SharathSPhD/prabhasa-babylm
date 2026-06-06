@@ -61,7 +61,7 @@ def download_babylm_strict(
         ) from e
 
     if verbose:
-        print(f"Loading BabyLM 2026 Strict dataset from HuggingFace...")
+        print("Loading BabyLM 2026 Strict dataset from HuggingFace...")
 
     # Load the official dataset
     try:
@@ -153,9 +153,7 @@ def tokenize_corpus(
         raise FileNotFoundError(f"SentencePiece model not found: {spm_path}")
 
     if bin_path.exists() and not force:
-        raise FileExistsError(
-            f"Output file exists: {bin_path}. Use --force to overwrite."
-        )
+        raise FileExistsError(f"Output file exists: {bin_path}. Use --force to overwrite.")
 
     try:
         import sentencepiece as spm
@@ -173,7 +171,8 @@ def tokenize_corpus(
         print(f"Loaded SentencePiece tokenizer (vocab_size={vocab_size})")
         print(f"Tokenizing {text_path} -> {bin_path}...")
 
-    encode_fn = lambda s: sp.EncodeAsIds(s)
+    def encode_fn(s):
+        return sp.EncodeAsIds(s)
 
     # Ensure output directory exists
     bin_path.parent.mkdir(parents=True, exist_ok=True)
@@ -201,17 +200,13 @@ Examples:
         """,
     )
     ap.add_argument("--force", action="store_true", help="Overwrite existing files")
-    ap.add_argument(
-        "--cache-dir", type=Path, default=None, help="HuggingFace cache directory"
-    )
+    ap.add_argument("--cache-dir", type=Path, default=None, help="HuggingFace cache directory")
     ap.add_argument(
         "--text-only",
         action="store_true",
         help="Download text only, skip tokenization",
     )
     args = ap.parse_args()
-
-    import numpy as np  # Import here for the memmap count
 
     # Paths
     text_path = Path("data/corpora/strict/english_base.txt")

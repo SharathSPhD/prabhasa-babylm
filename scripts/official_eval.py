@@ -256,9 +256,7 @@ def main() -> None:
 
     # 3) Reading surprisal (predictions only; not in Text Average).
     reading_log = logdir / f"{args.name}__reading.log"
-    reading_already_done = (
-        args.resume and reading_log.exists() and reading_log.stat().st_size > 0
-    )
+    reading_already_done = args.resume and reading_log.exists() and reading_log.stat().st_size > 0
     reading_ran = (
         True
         if reading_already_done

@@ -22,10 +22,10 @@ from __future__ import annotations
 import argparse
 import json
 import time
-import numpy as np
 from collections import Counter
 from pathlib import Path
 
+import numpy as np
 import sentencepiece as spm
 import torch
 from torch import nn
@@ -59,12 +59,26 @@ EOS_ID = 2
 # BabyLM 2026 official checkpoint schedule (word counts, compliant with guidelines)
 # §: "every 1M words until 10M seen, every 10M words until 100M seen"
 _BABYLM_MILESTONES: tuple[int, ...] = (
-    *range(1_000_000, 10_000_001, 1_000_000),   # 1M, 2M, ..., 10M
-    *range(20_000_000, 200_000_001, 10_000_000), # 20M, 30M, ..., 200M (covers any epoch budget)
+    *range(1_000_000, 10_000_001, 1_000_000),  # 1M, 2M, ..., 10M
+    *range(20_000_000, 200_000_001, 10_000_000),  # 20M, 30M, ..., 200M (covers any epoch budget)
 )
 
 # BPE piece suffix patterns → viśeṣaṇa (modifier) role
-_SUFFIX_ROLES = ("ing", "ed", "er", "est", "ly", "tion", "ness", "ment", "ful", "less", "ous", "ive", "al")
+_SUFFIX_ROLES = (
+    "ing",
+    "ed",
+    "er",
+    "est",
+    "ly",
+    "tion",
+    "ness",
+    "ment",
+    "ful",
+    "less",
+    "ous",
+    "ive",
+    "al",
+)
 _WORD_START = "▁"  # ▁  SentencePiece word-boundary prefix
 
 
@@ -82,7 +96,7 @@ def _build_bpe_karaka_lookup(sp: spm.SentencePieceProcessor, vocab: int) -> Kara
         if piece.startswith("<") and piece.endswith(">"):
             role_map[tid] = "separator"  # special control tokens
         elif piece.startswith(_WORD_START):
-            bare = piece[len(_WORD_START):]
+            bare = piece[len(_WORD_START) :]
             if any(bare.endswith(sfx) for sfx in _SUFFIX_ROLES):
                 role_map[tid] = "visesana"
             else:
@@ -311,8 +325,10 @@ def main() -> None:
             )
         elif args.karaka_mode == "deprel":
             # Real kāraka lookup from spaCy dependency parsing (H1_MECHANISM, REAL)
-            print(f"Building real kāraka lookup (deprel mode) from {len(base)} sentences...", flush=True)
-            import spacy
+            print(
+                f"Building real kāraka lookup (deprel mode) from {len(base)} sentences...",
+                flush=True,
+            )
 
             from psalm.infrastructure.ml.english_karaka_builder_spacy import (
                 build_english_karaka_lookup_spacy,
@@ -433,9 +449,7 @@ def main() -> None:
             )
             ctx = torch.autocast(device_type="cuda", dtype=dtype) if autocast else _null()
             with ctx:
-                _do_clm = args.objective == "clm" or (
-                    args.objective == "hybrid" and gstep % 2 == 1
-                )
+                _do_clm = args.objective == "clm" or (args.objective == "hybrid" and gstep % 2 == 1)
                 if _do_clm:
                     _, aux = model(batch, objective=HybridObjective.CLM, labels=batch)
                     loss = aux["loss"]
@@ -493,25 +507,52 @@ def main() -> None:
             ema = v if ema is None else 0.98 * ema + 0.02 * v
             step_tokens = args.batch_size * cur_seq
             tokens_this_stage += step_tokens
-            words_done = words_offset + tokens_this_stage / 1.376  # empirical tok/word for strict-small
+            words_done = (
+                words_offset + tokens_this_stage / 1.376
+            )  # empirical tok/word for strict-small
 
             # BabyLM 2026 milestone checkpoints
             if ckpt_interval_tokens > 0 and tokens_this_stage >= next_ckpt_tokens:
                 milestone_M = int(words_done / 1_000_000)
                 ckpt_dev = out_dir / f"elc_{milestone_M}M.pt"
-                save_elc_checkpoint(ckpt_dev, model, mask_id=mask_id, extra={
-                    "track": "leaderboard_submission", "checkpoint_words": int(words_done), "step": gstep, "loss": v
-                })
-                print(f"  [CKPT] {ckpt_dev.name} @ {words_done/1e6:.2f}M words (step {gstep+1})", flush=True)
+                save_elc_checkpoint(
+                    ckpt_dev,
+                    model,
+                    mask_id=mask_id,
+                    extra={
+                        "track": "leaderboard_submission",
+                        "checkpoint_words": int(words_done),
+                        "step": gstep,
+                        "loss": v,
+                    },
+                )
+                print(
+                    f"  [CKPT] {ckpt_dev.name} @ {words_done / 1e6:.2f}M words (step {gstep + 1})",
+                    flush=True,
+                )
                 next_ckpt_tokens += ckpt_interval_tokens
-            while milestone_idx < len(pending_milestones) and words_done >= pending_milestones[milestone_idx]:
+            while (
+                milestone_idx < len(pending_milestones)
+                and words_done >= pending_milestones[milestone_idx]
+            ):
                 m = pending_milestones[milestone_idx]
                 ckpt_dev = out_dir / f"elc_{m // 1_000_000}M.pt"
                 if not ckpt_dev.exists():
-                    save_elc_checkpoint(ckpt_dev, model, mask_id=mask_id, extra={
-                        "track": "leaderboard_submission", "checkpoint_words": m, "step": gstep, "loss": v
-                    })
-                    print(f"  [CKPT-BabyLM] {ckpt_dev.name} @ {words_done/1e6:.2f}M words", flush=True)
+                    save_elc_checkpoint(
+                        ckpt_dev,
+                        model,
+                        mask_id=mask_id,
+                        extra={
+                            "track": "leaderboard_submission",
+                            "checkpoint_words": m,
+                            "step": gstep,
+                            "loss": v,
+                        },
+                    )
+                    print(
+                        f"  [CKPT-BabyLM] {ckpt_dev.name} @ {words_done / 1e6:.2f}M words",
+                        flush=True,
+                    )
                 milestone_idx += 1
 
             if (local + 1) % 200 == 0:
@@ -527,14 +568,18 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     salience_path = out_dir / "salience_weights.npy"
 
-    ckpt_interval_tokens = int(args.checkpoint_interval_words * 1.376) if args.checkpoint_interval_words > 0 else 0
+    ckpt_interval_tokens = (
+        int(args.checkpoint_interval_words * 1.376) if args.checkpoint_interval_words > 0 else 0
+    )
     milestones = _BABYLM_MILESTONES if args.babylm_checkpoints else ()
     if args.babylm_checkpoints:
-        print(f"BabyLM checkpoints: ON (milestones at 1M–10M every 1M, then every 10M)", flush=True)
+        print("BabyLM checkpoints: ON (milestones at 1M–10M every 1M, then every 10M)", flush=True)
 
     t0 = time.time()
     _, b1, words_s1 = run_stage(
-        dose_lines, stage1_steps, 0,
+        dose_lines,
+        stage1_steps,
+        0,
         ckpt_interval_tokens=ckpt_interval_tokens,
         ckpt_milestones_words=milestones,
         words_offset=0.0,
@@ -549,7 +594,9 @@ def main() -> None:
         print(f"Salience transfer: saved {salience_path} ({vocab} entries)", flush=True)
 
     last, b2, words_s2 = run_stage(
-        base, stage2_steps, stage1_steps,
+        base,
+        stage2_steps,
+        stage1_steps,
         salience_weights=stage2_salience,
         ckpt_interval_tokens=ckpt_interval_tokens,
         ckpt_milestones_words=milestones,
@@ -583,7 +630,7 @@ def main() -> None:
     )
     total_words = int(words_s1 + words_s2)
     print(
-        f"DONE submission: steps={total_steps} words={total_words/1e6:.1f}M "
+        f"DONE submission: steps={total_steps} words={total_words / 1e6:.1f}M "
         f"final_loss={last:.4f} best_loss={best:.4f} wall={wall / 60:.1f}min -> {ckpt}",
         flush=True,
     )

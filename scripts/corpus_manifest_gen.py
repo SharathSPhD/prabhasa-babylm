@@ -35,6 +35,7 @@ def count_tokens_in_memmap(path: Path) -> int:
         return 0
     try:
         import numpy as np
+
         data = np.memmap(path, dtype="uint16", mode="r")
         return len(data)
     except Exception:
@@ -152,9 +153,7 @@ def generate_manifest() -> dict:
     if english_bin.exists():
         token_count = count_tokens_in_memmap(english_bin)
         manifest["corpora"]["english_100m"]["token_count"] = token_count
-        manifest["corpora"]["english_100m"]["file_size_mb"] = (
-            english_bin.stat().st_size / 1e6
-        )
+        manifest["corpora"]["english_100m"]["file_size_mb"] = english_bin.stat().st_size / 1e6
 
     dose_txt = Path(manifest["corpora"]["dose_grammar"]["text_path"])
     dose_bin = Path(manifest["corpora"]["dose_grammar"]["binary_path"])
@@ -165,9 +164,7 @@ def generate_manifest() -> dict:
     if dose_bin.exists():
         token_count = count_tokens_in_memmap(dose_bin)
         manifest["corpora"]["dose_grammar"]["token_count"] = token_count
-        manifest["corpora"]["dose_grammar"]["file_size_mb"] = (
-            dose_bin.stat().st_size / 1e6
-        )
+        manifest["corpora"]["dose_grammar"]["file_size_mb"] = dose_bin.stat().st_size / 1e6
 
     return manifest
 

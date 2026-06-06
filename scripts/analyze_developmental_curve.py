@@ -50,10 +50,16 @@ def score_checkpoint(ckpt: Path, model_name: str, device: str = "cuda") -> dict[
     log = ROOT / "logs" / f"dev_curve_{model_name}.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     result = subprocess.run(
-        [PY, "scripts/official_eval.py",
-         "--ckpt", str(ckpt),
-         "--name", model_name,
-         "--tasks", "blimp"],
+        [
+            PY,
+            "scripts/official_eval.py",
+            "--ckpt",
+            str(ckpt),
+            "--name",
+            model_name,
+            "--tasks",
+            "blimp",
+        ],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -84,13 +90,16 @@ def main() -> None:
     milestones = discover_milestones(seed_dir)
     if not milestones:
         print(f"[dev-curve] No milestone checkpoints found in {seed_dir}", flush=True)
-        print(f"[dev-curve] Expected pattern: elc_NM.pt (e.g., elc_1M.pt)", flush=True)
+        print("[dev-curve] Expected pattern: elc_NM.pt (e.g., elc_1M.pt)", flush=True)
         sys.exit(1)
 
     if args.fast:
         milestones = milestones[:3]
 
-    print(f"[dev-curve] Found {len(milestones)} milestones: {[m for m, _ in milestones]}M words", flush=True)
+    print(
+        f"[dev-curve] Found {len(milestones)} milestones: {[m for m, _ in milestones]}M words",
+        flush=True,
+    )
 
     out_dir = ROOT / args.out
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -115,12 +124,14 @@ def main() -> None:
     if curve:
         print("\n[dev-curve] BLiMP learning curve:")
         print(f"  {'Words':>8} | {'BLiMP':>6}")
-        print(f"  {'-'*8}-+-{'-'*6}")
+        print(f"  {'-' * 8}-+-{'-' * 6}")
         for pt in curve:
             print(f"  {pt['words_M']:>6}M   |  {pt['blimp']:5.2f}")
         final = curve[-1]["blimp"]
         thresh = 70.0
-        print(f"\n  Final ({curve[-1]['words_M']}M): {final:.2f} ({'above' if final >= thresh else 'below'} {thresh:.1f} target)")
+        print(
+            f"\n  Final ({curve[-1]['words_M']}M): {final:.2f} ({'above' if final >= thresh else 'below'} {thresh:.1f} target)"
+        )
 
 
 if __name__ == "__main__":

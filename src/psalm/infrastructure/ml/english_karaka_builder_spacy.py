@@ -16,12 +16,8 @@ Usage at train time:
 
 from __future__ import annotations
 
-from pathlib import Path
-
-import numpy as np
 import sentencepiece as spm
 import spacy
-from spacy.tokens import Doc
 
 from psalm.domain.linguistics.english_karaka_real import (
     assign_karaka_roles_spacy,
