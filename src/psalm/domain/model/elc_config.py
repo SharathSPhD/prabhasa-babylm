@@ -51,6 +51,12 @@ class ElcPsalmConfig(BaseModel):
         default=False, description="Enable N-hot morpheme embedding layer"
     )
 
+    # Position encoding strategy: "absolute" (learned embeddings) or "rope" (rotary embeddings).
+    pos_encoding: Literal["absolute", "rope"] = Field(
+        default="absolute",
+        description="Position encoding: 'absolute' (learned) or 'rope' (rotary, BLiMP-optimized)",
+    )
+
     @model_validator(mode="after")
     def _validate(self) -> ElcPsalmConfig:
         if self.d_model % self.n_heads != 0:

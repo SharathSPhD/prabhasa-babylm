@@ -123,6 +123,12 @@ def main() -> None:
     ap.add_argument("--dose-epochs", type=float, default=3.0)
     ap.add_argument("--english-epochs", type=float, default=7.0)
     ap.add_argument(
+        "--pos-encoding",
+        choices=["absolute", "rope"],
+        default="absolute",
+        help="Position encoding: 'absolute' (learned embeddings) or 'rope' (rotary embeddings, BLiMP-optimized)",
+    )
+    ap.add_argument(
         "--checkpoint-interval-words",
         type=int,
         default=0,
@@ -210,7 +216,7 @@ def main() -> None:
         f"submission: doses={args.dose_arms} dose_tok={dose_tokens} base_tok={base_tokens} "
         f"| stage1={stage1_steps} stage2={stage2_steps} total={total_steps} "
         f"| muon={'off' if args.no_muon else 'on'} mask={args.mask_start}->{args.mask_end} "
-        f"freq_alpha={args.freq_alpha} max_seq={args.max_seq_len}",
+        f"freq_alpha={args.freq_alpha} pos_encoding={args.pos_encoding} max_seq={args.max_seq_len}",
         flush=True,
     )
 
@@ -235,6 +241,7 @@ def main() -> None:
         dropout=args.dropout,
         mlm_probability=args.mask_start,
         nhot_emb=nhot_emb,
+        pos_encoding=args.pos_encoding,
     )
     model = model.to(device)
     mask_id = cfg.vocab_size - 1
@@ -486,6 +493,7 @@ def main() -> None:
             "freq_alpha": args.freq_alpha,
             "mask_start": args.mask_start,
             "mask_end": args.mask_end,
+            "pos_encoding": args.pos_encoding,
             "max_seq_len": args.max_seq_len,
             "english_epochs": args.english_epochs,
             "final_loss": last,
@@ -512,6 +520,7 @@ def main() -> None:
                 "best_loss": best,
                 "wall_seconds": wall,
                 "checkpoint": str(ckpt),
+                "pos_encoding": args.pos_encoding,
                 "nhot_embeddings": args.nhot_embeddings,
                 "structured_masking": args.structured_masking,
                 "karaka_lookup": str(args.karaka_lookup) if args.karaka_lookup else "bpe_heuristic",

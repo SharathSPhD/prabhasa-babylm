@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from psalm.domain.model.elc_config import ElcPsalmConfig, HybridObjective
+from psalm.infrastructure.ml.rope_utils import RoPECache, apply_rope
 
 if TYPE_CHECKING:
     from psalm.infrastructure.ml.structured_masking import (
@@ -55,7 +56,7 @@ class LayerRouteCombiner(nn.Module):
 
 
 class _SDPABlock(nn.Module):
-    """Pre-norm transformer block with multi-head SDPA."""
+    """Pre-norm transformer block with multi-head SDPA, optionally with RoPE."""
 
     def __init__(self, cfg: ElcPsalmConfig) -> None:
         super().__init__()
@@ -70,6 +71,10 @@ class _SDPABlock(nn.Module):
             nn.Linear(cfg.d_ff, cfg.d_model),
             nn.Dropout(cfg.dropout),
         )
+        # RoPE cache (lazy-initialized on first use)
+        self.rope_cache: RoPECache | None = None
+        if cfg.pos_encoding == "rope":
+            self.rope_cache = RoPECache()
 
     def forward(
         self,
@@ -82,9 +87,16 @@ class _SDPABlock(nn.Module):
         h = self.ln1(x)
         qkv = self.qkv(h).reshape(b, t, 3, self.cfg.n_heads, self.cfg.head_dim)
         q, k, v = qkv.unbind(dim=2)
-        q = q.transpose(1, 2)
-        k = k.transpose(1, 2)
+        q = q.transpose(1, 2)  # (b, nh, t, hd)
+        k = k.transpose(1, 2)  # (b, nh, t, hd)
         v = v.transpose(1, 2)
+
+        # Apply RoPE if enabled
+        if self.cfg.pos_encoding == "rope":
+            positions = torch.arange(t, device=x.device, dtype=torch.long)
+            q = apply_rope(q, positions=positions, cos_sin_cache=self.rope_cache)
+            k = apply_rope(k, positions=positions, cos_sin_cache=self.rope_cache)
+
         attn_mask = _build_attn_mask(t, attn_mode, x.device)
         if key_padding_mask is not None:
             # key_padding_mask: (b, t) bool, True = real token. Build additive
@@ -140,8 +152,14 @@ class ElcPsalmEncoder(nn.Module):
 
     def embed(self, idx: torch.Tensor) -> torch.Tensor:
         _, t = idx.shape
-        pos = torch.arange(t, device=idx.device).unsqueeze(0)
-        x = self.drop(self.tok(idx) + self.pos(pos))
+        # With RoPE, we don't add absolute position embeddings.
+        # Position info is encoded in the query/key rotations within attention blocks.
+        if self.cfg.pos_encoding == "absolute":
+            pos = torch.arange(t, device=idx.device).unsqueeze(0)
+            x = self.drop(self.tok(idx) + self.pos(pos))
+        else:
+            # RoPE: no additive position embeddings
+            x = self.drop(self.tok(idx))
         if self._nhot_emb is not None:
             x = x + self._nhot_emb(idx)
         return x
