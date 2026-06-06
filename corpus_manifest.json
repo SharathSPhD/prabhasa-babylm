@@ -1,0 +1,94 @@
+{
+  "generated_at": "2026-06-06T21:07:02.924440",
+  "version": "1.0",
+  "corpora": {
+    "english_100m": {
+      "description": "Official BabyLM 2026 Strict (100M words, 5 sources)",
+      "license": "MIT",
+      "text_path": "data/corpora/strict/english_base.txt",
+      "binary_path": "data/corpora/strict/english_base.bin",
+      "status": "pending",
+      "source": "HuggingFace BabyLM-community/BabyLM-2026-Strict",
+      "budget": "100M words (Strict track limit)",
+      "components": [
+        {
+          "name": "BNC Spoken",
+          "estimated_tokens": "7.6M",
+          "license": "MIT"
+        },
+        {
+          "name": "CHILDES",
+          "estimated_tokens": "28.4M",
+          "license": "MIT"
+        },
+        {
+          "name": "Project Gutenberg",
+          "estimated_tokens": "25.6M",
+          "license": "MIT"
+        },
+        {
+          "name": "Open Subtitles",
+          "estimated_tokens": "22.8M",
+          "license": "MIT"
+        },
+        {
+          "name": "Simple Wikipedia",
+          "estimated_tokens": "15.3M",
+          "license": "MIT"
+        }
+      ],
+      "word_count": 9740558,
+      "token_count": 13839074,
+      "file_size_mb": 27.678148
+    },
+    "dose_grammar": {
+      "description": "Grammar-derived Sanskrit verb forms (Vidyut prakriya)",
+      "license": "N/A (generated)",
+      "text_path": "data/corpora/strict/dose_grammar.txt",
+      "binary_path": "data/corpora/strict/dose_grammar.bin",
+      "status": "complete",
+      "source": "Generated via VidyutMorphologyEngine",
+      "notes": "NOT counted toward BabyLM 100M budget (dose pre-pretraining layer)",
+      "generation_params": {
+        "dhatus_sampled": 20,
+        "lakaras": 7,
+        "purusha_forms": 3,
+        "vacana_forms": 3,
+        "total_combinations_attempted": 1260
+      },
+      "word_count": 58312,
+      "token_count": 210742,
+      "file_size_mb": 0.421484,
+      "samples": [
+        {
+          "form": "Bavati",
+          "dhatu": "BU",
+          "lakara": "Lat",
+          "purusha": "Prathama",
+          "vacana": "Eka",
+          "derivation_steps": 20
+        },
+        {
+          "form": "baBUva",
+          "dhatu": "BU",
+          "lakara": "Lit",
+          "purusha": "Prathama",
+          "vacana": "Eka",
+          "derivation_steps": 28
+        }
+      ]
+    }
+  },
+  "tokenizer": {
+    "path": "data/tokenizer/strict_small/spm.model",
+    "type": "SentencePiece",
+    "vocab_size": 20000,
+    "encoding": "SLP1 (ASCII, matches Vidyut native)"
+  },
+  "compliance": {
+    "babylm_track": "Small (Strict)",
+    "english_word_limit": "100M words",
+    "sanskrit_outside_budget": true,
+    "notes": "English corpus (english_100m) must be \u2264100M words for official BabyLM submission. Sanskrit dose corpus (dose_grammar) is generated from grammar rules and does NOT count toward the budget; it is a separate pre-pretraining layer per ADR-0020."
+  }
+}
