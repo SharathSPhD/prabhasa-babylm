@@ -172,31 +172,95 @@ class VidyutEngineConfig:
 
 
 class VidyutMorphologyEngine:
-    """Morphology generator using vidyut.prakriya (existing)."""
+    """Morphology generator using vidyut.prakriya (Pāṇinian derivation engine)."""
 
     def __init__(self, config: VidyutEngineConfig | None = None) -> None:
         """Initialize with config; lazily loads vidyut on first call."""
         self.config = config or VidyutEngineConfig()
+        self._vyakarana = None
 
-    def generate_verb_form(self, dhatu: str, lakara: str, purusha: str, vacana: str) -> PrabasaExample:
-        """Generate one tiṅanta (finite verb) with morphology.
+    def _get_vyakarana(self) -> object:
+        """Lazily load Vyakarana instance."""
+        if self._vyakarana is None:
+            try:
+                from vidyut.prakriya import Vyakarana
+            except ImportError as exc:
+                raise RuntimeError(
+                    "vidyut is not installed. Install it: `uv pip install vidyut`."
+                ) from exc
+            self._vyakarana = Vyakarana()
+        return self._vyakarana
+
+    def generate_verb_form(
+        self, dhatu: str, lakara: str, purusha: str, vacana: str, gana: str = "Bhvadi"
+    ) -> PrabasaExample:
+        """Generate one tiṅanta (finite verb) with full Pāṇinian derivation trace.
+
+        Uses vidyut.prakriya to derive the form and capture the ordered sūtra-by-sūtra
+        rule applications (prakriyā history) as the derivation_trace.
 
         Args:
-            dhatu: Verbal root (e.g., "BU").
-            lakara: Tense (e.g., "Lat").
-            purusha: Person (e.g., "Prathama").
-            vacana: Number (e.g., "Eka").
+            dhatu: Verbal root in SLP1 (e.g., "BU").
+            lakara: Tense/mood (e.g., "Lat" for present).
+            purusha: Person (e.g., "Prathama" for 3rd).
+            vacana: Number (e.g., "Eka" for singular).
+            gana: Verbal class (e.g., "Bhvadi" for class 1).
 
         Returns:
-            PrabasaExample with morpheme_stream, morpheme_boundaries, derivation_trace.
+            PrabasaExample with:
+            - text: Derived verb form (SLP1)
+            - derivation_trace: Tuple of sūtra codes (e.g., ("3.2.123", "7.3.84", ...))
+            - meta: dhatu, gana, lakara, purusha, vacana for reference
 
         Raises:
-            NotImplementedError: Stub for Phase 3.
+            ValueError: if derivation fails or produces no results.
         """
-        raise NotImplementedError(
-            "VidyutMorphologyEngine.generate_verb_form is a stub. "
-            "Implementation wraps vidyut.prakriya.Vyakarana().derive() "
-            "and extracts morpheme boundaries from prakriya.history."
+        from vidyut.prakriya import Dhatu, Gana, Pada, Prayoga, Lakara, Purusha, Vacana
+
+        vyakarana = self._get_vyakarana()
+
+        # Build the Dhatu from root and gana
+        try:
+            dhatu_obj = Dhatu.mula(dhatu, getattr(Gana, gana))
+        except AttributeError as exc:
+            raise ValueError(f"Unknown gana: {gana}") from exc
+
+        # Build the Pada (tinanta request)
+        try:
+            pada = Pada.Tinanta(
+                dhatu=dhatu_obj,
+                prayoga=Prayoga.Kartari,
+                lakara=getattr(Lakara, lakara),
+                purusha=getattr(Purusha, purusha),
+                vacana=getattr(Vacana, vacana),
+            )
+        except AttributeError as exc:
+            raise ValueError(f"Invalid tense/person/number: {lakara}/{purusha}/{vacana}") from exc
+
+        # Derive using Vyakarana (Pāṇinian grammar engine)
+        results = vyakarana.derive(pada)
+        if not results:
+            raise ValueError(f"No derivation for {dhatu} {lakara} {purusha} {vacana}")
+
+        prakriya = results[0]
+        text = str(prakriya.text)
+        if not text:
+            raise ValueError(f"Empty derivation for {dhatu} {lakara} {purusha} {vacana}")
+
+        # Extract sūtra trace from prakriya history
+        derivation_trace = tuple(str(step.code) for step in prakriya.history)
+
+        return PrabasaExample(
+            text=text,
+            language="sa",
+            derivation_trace=derivation_trace,
+            meta={
+                "dhatu": dhatu,
+                "gana": gana,
+                "lakara": lakara,
+                "purusha": purusha,
+                "vacana": vacana,
+            },
         )
 
 
