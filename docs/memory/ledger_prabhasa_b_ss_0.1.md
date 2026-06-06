@@ -177,3 +177,18 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
   real kāraka should match/beat the heuristic. If still <64.09 after this 2nd documented
   intervention → NULL closure: heuristic masking suffices at 10M; the real engines' value is
   scalable GOLD-LABEL corpus generation (SLM/LLM thesis), not the 10M masking curriculum.
+
+## EMPIRICAL GATE — NULL CLOSURE (2 documented interventions) ✅ honest
+- Heuristic mechanisms (locked): **64.09 ± 0.26**.
+- Real engines v1 (spaCy kāraka + Morfessor N-hot): **62.08**.
+- Intervention #1 (verbs masked @0.55): **61.50** — WORSE, not better.
+- **FINDING (NULL, rigorously documented):** real linguistically-faithful kāraka-role +
+  morpheme masking does NOT beat dense heuristic content masking on BLiMP at 10M. Role-
+  *concentrated* masking is a sparser, weaker MLM curriculum than the heuristic's uniform
+  word-initial masking; more verb-masking hurt further. Sophistication doesn't pay at 10M.
+- **INTERPRETATION / repositioning:** the real engines (Vyutpattivāda prakriyā traces, real
+  spaCy kāraka graphs, real Morfessor morphology, coherent Nyāya) are a **scalable gold-label
+  corpus-generation moat for the SLM/LLM thesis**, not a 10M masking-curriculum win. The
+  LOCKED leaderboard submission remains the heuristic RoPE model (64.09, beats baseline).
+- Honest framing > overclaim. Real engines validated for what they ARE (label generation),
+  null for what they AREN'T (marginal 10M masking gain).
