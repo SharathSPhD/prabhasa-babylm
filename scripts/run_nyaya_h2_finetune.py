@@ -67,8 +67,9 @@ class LoRALinear(nn.Module):
         super().__init__()
         self.linear = linear
         in_f, out_f = linear.in_features, linear.out_features
-        self.lora_A = nn.Parameter(torch.randn(rank, in_f) * 0.01)
-        self.lora_B = nn.Parameter(torch.zeros(out_f, rank))
+        device = linear.weight.device
+        self.lora_A = nn.Parameter(torch.randn(rank, in_f, device=device) * 0.01)
+        self.lora_B = nn.Parameter(torch.zeros(out_f, rank, device=device))
         self.scale = alpha / rank
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -78,15 +79,16 @@ class LoRALinear(nn.Module):
 def _apply_lora(model: nn.Module, rank: int) -> int:
     """Replace QKV Linear layers with LoRA wrappers; return adapter param count."""
     replaced = 0
+    module_dict = dict(model.named_modules())
     for name, module in list(model.named_modules()):
-        parts = name.rsplit(".", 1)
-        parent = model
-        for p in parts[:-1]:
-            parent = getattr(parent, p)
-        attr = parts[-1] if len(parts) > 1 else name
-        if isinstance(module, nn.Linear) and attr in ("q", "k", "v"):
-            setattr(parent, attr, LoRALinear(module, rank=rank))
-            replaced += 1
+        if isinstance(module, nn.Linear) and name.endswith('.qkv'):
+            # Navigate to parent and replace the qkv layer
+            parts = name.rsplit(".", 1)
+            if len(parts) == 2:
+                parent_name, attr = parts
+                parent = module_dict[parent_name]
+                setattr(parent, attr, LoRALinear(module, rank=rank))
+                replaced += 1
     adapter_params = sum(p.numel() for m in model.modules()
                          if isinstance(m, LoRALinear)
                          for p in (m.lora_A, m.lora_B))
