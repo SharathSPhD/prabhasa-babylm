@@ -155,6 +155,18 @@ def main() -> None:
         choices=["hybrid", "mlm", "clm"],
         help="training objective: hybrid=50/50 MLM/CLM alternation; mlm=pure MLM (BLiMP-optimized); clm=pure CLM",
     )
+    ap.add_argument(
+        "--ffn-type",
+        default="gelu",
+        choices=["gelu", "geglu"],
+        help="feed-forward type: gelu (default) or geglu (LTG-BERT gated FFN)",
+    )
+    ap.add_argument(
+        "--norm-type",
+        default="layernorm",
+        choices=["layernorm", "rmsnorm"],
+        help="normalization: layernorm (default) or rmsnorm",
+    )
     ap.add_argument("--no-muon", action="store_true", help="use plain AdamW (ablate the lever)")
     ap.add_argument(
         "--nhot-embeddings",
