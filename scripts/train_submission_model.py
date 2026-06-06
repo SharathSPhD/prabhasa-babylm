@@ -55,6 +55,13 @@ TOK = Path("data/tokenizer/strict_small/spm.model")
 ARMS_MANIFEST = Path("docs/data/strict-small-arms.json")
 EOS_ID = 2
 
+# BabyLM 2026 official checkpoint schedule (word counts, compliant with guidelines)
+# §: "every 1M words until 10M seen, every 10M words until 100M seen"
+_BABYLM_MILESTONES: tuple[int, ...] = (
+    *range(1_000_000, 10_000_001, 1_000_000),   # 1M, 2M, ..., 10M
+    *range(20_000_000, 200_000_001, 10_000_000), # 20M, 30M, ..., 200M (covers any epoch budget)
+)
+
 # BPE piece suffix patterns → viśeṣaṇa (modifier) role
 _SUFFIX_ROLES = ("ing", "ed", "er", "est", "ly", "tion", "ness", "ment", "ful", "less", "ous", "ive", "al")
 _WORD_START = "▁"  # ▁  SentencePiece word-boundary prefix
@@ -118,9 +125,16 @@ def main() -> None:
     ap.add_argument(
         "--checkpoint-interval-words",
         type=int,
-        default=1_000_000,
-        help="Save developmental checkpoint every N words (0=off). BabyLM 2026 requires ≤1M.",
+        default=0,
+        help="Legacy: fixed-interval checkpoints (0=off). Prefer --babylm-checkpoints.",
     )
+    ap.add_argument(
+        "--babylm-checkpoints",
+        action="store_true",
+        default=True,
+        help="Save at BabyLM 2026 official milestones: 1M–10M every 1M, then every 10M.",
+    )
+    ap.add_argument("--no-babylm-checkpoints", dest="babylm_checkpoints", action="store_false")
     ap.add_argument("--peak-lr", type=float, default=1e-3)
     ap.add_argument("--muon-lr", type=float, default=0.02)
     ap.add_argument("--warmup-frac", type=float, default=0.06)
@@ -129,6 +143,12 @@ def main() -> None:
     ap.add_argument("--mask-end", type=float, default=0.15)
     ap.add_argument("--mask-kind", default="cosine")
     ap.add_argument("--freq-alpha", type=float, default=0.5, help="0 disables freq-informed mask")
+    ap.add_argument(
+        "--objective",
+        default="hybrid",
+        choices=["hybrid", "mlm", "clm"],
+        help="training objective: hybrid=50/50 MLM/CLM alternation; mlm=pure MLM (BLiMP-optimized); clm=pure CLM",
+    )
     ap.add_argument("--no-muon", action="store_true", help="use plain AdamW (ablate the lever)")
     ap.add_argument(
         "--nhot-embeddings",
@@ -286,6 +306,7 @@ def main() -> None:
         *,
         salience_weights: torch.Tensor | None = None,
         ckpt_interval_tokens: int = 0,
+        ckpt_milestones_words: tuple[int, ...] = (),
         words_offset: float = 0.0,
     ) -> tuple[float, float, float]:
         """Returns (last_loss, best_loss, words_processed_this_stage)."""
@@ -297,6 +318,9 @@ def main() -> None:
         words_done = words_offset
         tokens_this_stage = 0
         next_ckpt_tokens = ckpt_interval_tokens if ckpt_interval_tokens > 0 else 0
+        # BabyLM milestone checkpoints: pending milestones greater than words_offset
+        pending_milestones = [m for m in ckpt_milestones_words if m > words_offset]
+        milestone_idx = 0
         for local in range(n_steps):
             gstep = offset + local
             batch = next(it)
@@ -320,7 +344,10 @@ def main() -> None:
             )
             ctx = torch.autocast(device_type="cuda", dtype=dtype) if autocast else _null()
             with ctx:
-                if gstep % 2 == 1:
+                _do_clm = args.objective == "clm" or (
+                    args.objective == "hybrid" and gstep % 2 == 1
+                )
+                if _do_clm:
                     _, aux = model(batch, objective=HybridObjective.CLM, labels=batch)
                     loss = aux["loss"]
                 else:
@@ -379,26 +406,24 @@ def main() -> None:
             tokens_this_stage += step_tokens
             words_done = words_offset + tokens_this_stage / 1.376  # empirical tok/word for strict-small
 
-            # BabyLM 2026: intermediate developmental checkpoints
+            # BabyLM 2026 milestone checkpoints
             if ckpt_interval_tokens > 0 and tokens_this_stage >= next_ckpt_tokens:
                 milestone_M = int(words_done / 1_000_000)
                 ckpt_dev = out_dir / f"elc_{milestone_M}M.pt"
-                save_elc_checkpoint(
-                    ckpt_dev,
-                    model,
-                    mask_id=mask_id,
-                    extra={
-                        "track": "leaderboard_submission",
-                        "checkpoint_words": int(words_done),
-                        "step": gstep,
-                        "loss": v,
-                    },
-                )
-                print(
-                    f"  [CKPT] {ckpt_dev.name} @ {words_done / 1e6:.2f}M words (step {gstep + 1})",
-                    flush=True,
-                )
+                save_elc_checkpoint(ckpt_dev, model, mask_id=mask_id, extra={
+                    "track": "leaderboard_submission", "checkpoint_words": int(words_done), "step": gstep, "loss": v
+                })
+                print(f"  [CKPT] {ckpt_dev.name} @ {words_done/1e6:.2f}M words (step {gstep+1})", flush=True)
                 next_ckpt_tokens += ckpt_interval_tokens
+            while milestone_idx < len(pending_milestones) and words_done >= pending_milestones[milestone_idx]:
+                m = pending_milestones[milestone_idx]
+                ckpt_dev = out_dir / f"elc_{m // 1_000_000}M.pt"
+                if not ckpt_dev.exists():
+                    save_elc_checkpoint(ckpt_dev, model, mask_id=mask_id, extra={
+                        "track": "leaderboard_submission", "checkpoint_words": m, "step": gstep, "loss": v
+                    })
+                    print(f"  [CKPT-BabyLM] {ckpt_dev.name} @ {words_done/1e6:.2f}M words", flush=True)
+                milestone_idx += 1
 
             if (local + 1) % 200 == 0:
                 rate = (local + 1) / max(time.time() - t0, 1e-6)
@@ -414,11 +439,15 @@ def main() -> None:
     salience_path = out_dir / "salience_weights.npy"
 
     ckpt_interval_tokens = int(args.checkpoint_interval_words * 1.376) if args.checkpoint_interval_words > 0 else 0
+    milestones = _BABYLM_MILESTONES if args.babylm_checkpoints else ()
+    if args.babylm_checkpoints:
+        print(f"BabyLM checkpoints: ON (milestones at 1M–10M every 1M, then every 10M)", flush=True)
 
     t0 = time.time()
     _, b1, words_s1 = run_stage(
         dose_lines, stage1_steps, 0,
         ckpt_interval_tokens=ckpt_interval_tokens,
+        ckpt_milestones_words=milestones,
         words_offset=0.0,
     )
     # After Stage 1: save salience weights for transfer to Stage 2
@@ -435,6 +464,7 @@ def main() -> None:
         base, stage2_steps, stage1_steps,
         salience_weights=stage2_salience,
         ckpt_interval_tokens=ckpt_interval_tokens,
+        ckpt_milestones_words=milestones,
         words_offset=words_s1,
     )
     wall = time.time() - t0
