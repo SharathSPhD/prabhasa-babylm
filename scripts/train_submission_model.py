@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
+import numpy as np
 from collections import Counter
 from pathlib import Path
 
@@ -202,6 +203,11 @@ def main() -> None:
     )
     ap.add_argument("--vocab", type=int, default=20000)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument(
+        "--base-dir",
+        default="data/corpora/strict_small",
+        help="Dir with english_base.txt (+ optional english_base.bin). Use data/corpora/strict for the 100M Small track.",
+    )
     ap.add_argument("--out", default="data/checkpoints/submission")
     ap.add_argument("--require-cuda", action="store_true")
     args = ap.parse_args()
@@ -228,8 +234,13 @@ def main() -> None:
     for arm in args.dose_arms:
         dose_lines += _read_lines(SS / "arms" / f"dose_{arm}.txt")
         dose_tokens += int(manifest["arms"][arm]["tokens"])
-    base = _read_lines(SS / "english_base.txt")
-    base_tokens = int(manifest["english_base"]["tokens"])
+    base_dir = Path(args.base_dir)
+    base = _read_lines(base_dir / "english_base.txt")
+    base_bin = base_dir / "english_base.bin"
+    if base_bin.exists():
+        base_tokens = int(len(np.memmap(base_bin, dtype=np.uint16, mode="r")))
+    else:
+        base_tokens = int(manifest["english_base"]["tokens"])
 
     tok_per_step = args.batch_size * args.max_seq_len
     stage1_steps = max(int(args.dose_epochs * dose_tokens / tok_per_step), 1)
