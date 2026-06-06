@@ -170,6 +170,11 @@ def main() -> None:
     )
     ap.add_argument("--no-muon", action="store_true", help="use plain AdamW (ablate the lever)")
     ap.add_argument(
+        "--compile",
+        action="store_true",
+        help="torch.compile the model (result-neutral throughput; auto-falls-back to eager on failure)",
+    )
+    ap.add_argument(
         "--nhot-embeddings",
         action="store_true",
         default=True,
@@ -283,6 +288,14 @@ def main() -> None:
         norm_type=args.norm_type,
     )
     model = model.to(device)
+    if args.compile and device == "cuda":
+        # Result-neutral throughput lever (PyTorch 2.x). Guarded: sm_121/Blackwell
+        # may not support inductor — fall back to eager rather than abort the run.
+        try:
+            model = torch.compile(model)  # type: ignore[assignment]
+            print("torch.compile: ON", flush=True)
+        except Exception as e:  # noqa: BLE001
+            print(f"torch.compile: FAILED ({e}); continuing eager", flush=True)
     mask_id = cfg.vocab_size - 1
 
     # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM)
