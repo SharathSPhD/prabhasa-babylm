@@ -1,0 +1,13 @@
+{
+  "trial_idx": 4,
+  "mask_prob_start": 0.3,
+  "mask_prob_end": 0.15,
+  "nhot_embeddings": true,
+  "optimizer": "muon",
+  "peak_lr": 0.002,
+  "progressive_seq": true,
+  "rank": 1,
+  "final_loss": 1.3369345664978027,
+  "best_loss": 1.309690237045288,
+  "wall_seconds": 1.5368678569793701
+}

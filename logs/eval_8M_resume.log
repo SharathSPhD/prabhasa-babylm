@@ -1,0 +1,24 @@
+[export] resuming — HF export already at /home/sharaths/projects/PSALM-integration/data/hf_export/psalm_8M_preliminary
+[ewok] using ewok_filtered
+[zero_shot] blimp: 52.68 (resumed from log)
+[zero_shot] blimp_supplement: 50.17 (resumed from log)
+[zero_shot] ewok: 50.05 (resumed from log)
+[zero_shot] entity_tracking:entity_tracking
+[zero_shot] entity_tracking: FAILED (exit 1) — log: /home/sharaths/projects/PSALM-integration/logs/official/psalm_8M_preliminary__entity_tracking.log
+[zero_shot] wug_adj:wug_adj_nominalization
+[zero_shot] wug_adj_nominalization: None
+[zero_shot] comps:comps
+[zero_shot] comps: 50.05
+[zero_shot] wug_past:wug_past_tense
+[zero_shot] wug_past_tense: None
+[reading] surprisal predictions
+
+=== official summary -> /home/sharaths/projects/PSALM-integration/data/hf_export/psalm_8M_preliminary/official_summary.json ===
+  blimp: 52.68
+  blimp_supplement: 50.17
+  ewok: 50.05
+  entity_tracking: None
+  wug_adj_nominalization: None
+  comps: 50.05
+  wug_past_tense: None
+  TEXT AVERAGE: 50.7375

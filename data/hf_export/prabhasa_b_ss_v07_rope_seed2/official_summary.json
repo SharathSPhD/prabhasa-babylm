@@ -1,0 +1,27 @@
+{
+  "name": "prabhasa_b_ss_v07_rope_seed2",
+  "averages": {
+    "blimp": 64.01,
+    "blimp_supplement": 56.68,
+    "ewok": 50.96,
+    "entity_tracking": 21.8,
+    "wug_adj_nominalization": null,
+    "comps": 52.37,
+    "wug_past_tense": null
+  },
+  "text_average": 49.164,
+  "text_average_components": [
+    "blimp",
+    "blimp_supplement",
+    "comps",
+    "entity_tracking",
+    "ewok",
+    "wug_adj_nominalization"
+  ],
+  "notes": {
+    "wug_past_tense": "lower is better; excluded from Text Average",
+    "reading": "predictions saved; leaderboard score is human-RT correlation via official aggregator",
+    "aoa": "reported separately; excluded from Text Average",
+    "ewok_set": "ewok_filtered"
+  }
+}

@@ -50,6 +50,12 @@ def main() -> None:
         action="store_true",
         help="Attempt to apply Vidyut Sanskrit morphology labels",
     )
+    ap.add_argument(
+        "--nhot-mode",
+        choices=["heuristic", "real"],
+        default="heuristic",
+        help="N-hot morpheme mode: 'heuristic' (BPE only) or 'real' (Morfessor English + Vidyut Sanskrit)",
+    )
     args = ap.parse_args()
 
     # Load tokenizer
@@ -63,8 +69,10 @@ def main() -> None:
         raise ValueError(f"Tokenizer vocab size ({vocab}) != --vocab-size ({args.vocab_size})")
 
     # Build matrix
-    print("Building N-hot matrix...", flush=True)
-    matrix = build_nhot_matrix(sp, vocab_size=vocab, vidyut_available=args.vidyut)
+    print(f"Building N-hot matrix (mode: {args.nhot_mode})...", flush=True)
+    matrix = build_nhot_matrix(
+        sp, vocab_size=vocab, vidyut_available=args.vidyut, nhot_mode=args.nhot_mode
+    )
 
     assert matrix.shape == (vocab, 10), f"Expected shape ({vocab}, 10), got {matrix.shape}"
     assert matrix.dtype == np.float32, f"Expected dtype float32, got {matrix.dtype}"
