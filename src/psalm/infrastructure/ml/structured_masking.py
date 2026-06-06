@@ -16,9 +16,10 @@ import torch
 
 # Kāraka roles and their masking probabilities
 KARAKA_MASK_PROB: dict[str, float | None] = {
+    "kriya": 0.55,  # kriyā — verb/action (PRIME BLiMP signal: agreement, verb form)
     "karta": 0.50,  # kartā — agent
     "karma": 0.50,  # karma — patient
-    "sampradata": 0.50,  # sampradāna — recipient
+    "sampradana": 0.50,  # sampradāna — recipient (was mis-keyed "sampradata")
     "karana": 0.35,  # karaṇa — instrument
     "adhikarana": 0.35,  # adhikaraṇa — location/locus
     "apadana": 0.30,  # apādāna — ablative/source
