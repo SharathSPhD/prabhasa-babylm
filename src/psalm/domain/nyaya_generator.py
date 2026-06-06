@@ -264,7 +264,7 @@ class PanchaAvayavaGenerator:
         self.rng = random.Random(seed)
         self._example_counter = 0
 
-    def _generate_valid_chain(self) -> dict:
+    def _generate_valid_chain(self) -> dict[str, object]:
         """Generate a logically valid Pañcāvayava with coherent vyāpti.
 
         Returns:
@@ -306,7 +306,7 @@ class PanchaAvayavaGenerator:
             "fallacy_type": None,
         }
 
-    def _generate_fallacy_savyabhichara(self) -> dict:
+    def _generate_fallacy_savyabhichara(self) -> dict[str, object]:
         """Generate SAVYABHICHARA: hetu is NOT pervaded by sādhya.
 
         Hetu occurs with both sādhya and ¬sādhya (erratic reason).
@@ -344,7 +344,7 @@ class PanchaAvayavaGenerator:
             "fallacy_type": HetvabhasaType.SAVYABHICHARA,
         }
 
-    def _generate_fallacy_viruddha(self) -> dict:
+    def _generate_fallacy_viruddha(self) -> dict[str, object]:
         """Generate VIRUDDHA: hetu proves the opposite (¬sādhya)."""
         pervasion = self.rng.choice(PERVASIONS)
         paksha = self.rng.choice(PAKSHA)
@@ -377,7 +377,7 @@ class PanchaAvayavaGenerator:
             "fallacy_type": HetvabhasaType.VIRUDDHA,
         }
 
-    def _generate_fallacy_asiddha(self) -> dict:
+    def _generate_fallacy_asiddha(self) -> dict[str, object]:
         """Generate ASIDDHA: the paksha does not actually possess the hetu."""
         pervasion = self.rng.choice(PERVASIONS)
         paksha = self.rng.choice(PAKSHA)
@@ -410,7 +410,7 @@ class PanchaAvayavaGenerator:
             "fallacy_type": HetvabhasaType.ASIDDHA,
         }
 
-    def _generate_fallacy_satpratipaksha(self) -> dict:
+    def _generate_fallacy_satpratipaksha(self) -> dict[str, object]:
         """Generate SATPRATIPAKSHA: an equally strong counter-inference exists."""
         pervasion = self.rng.choice(PERVASIONS)
         paksha = self.rng.choice(PAKSHA)
@@ -474,7 +474,9 @@ class PanchaAvayavaGenerator:
         self.rng.shuffle(examples)
         return examples
 
-    def _chain_data_to_nyaya_example(self, chain_data: dict, is_valid: bool) -> NyayaExample:
+    def _chain_data_to_nyaya_example(
+        self, chain_data: dict[str, object], is_valid: bool
+    ) -> NyayaExample:
         """Convert chain_data dict to a complete NyayaExample."""
         self._example_counter += 1
         example_id = f"nyaya_gen_{self._example_counter:06d}"
@@ -485,14 +487,14 @@ class PanchaAvayavaGenerator:
         fallacy_type = chain_data.get("fallacy_type")
 
         problem = (
-            f"Does {paksha.lower()} have the property of being {sadhya}? "
-            f"Reason: {chain_data['hetu'].replace('because ', '')}"
+            f"Does {paksha.lower()} have the property of being {sadhya}? "  # type: ignore[attr-defined]
+            f"Reason: {chain_data['hetu'].replace('because ', '')}"  # type: ignore[attr-defined]
         )
 
         doubt_type = DoubtType.ANADHYAVASAYA
         samshaya = Samshaya(
             doubt_type=doubt_type,
-            justification=f"Uncertain whether {paksha.lower()} is truly {sadhya} based on the given reason.",
+            justification=f"Uncertain whether {paksha.lower()} is truly {sadhya} based on the given reason.",  # type: ignore[attr-defined]
         )
 
         pramana = Pramana(
@@ -510,14 +512,14 @@ class PanchaAvayavaGenerator:
 
         if is_valid:
             tarka = Tarka(
-                hypothesis=f"Suppose {paksha.lower()} is not {sadhya}",
-                consequence=f"Then the hetu '{chain_data['hetu'].lower()}' would not lead to {sadhya}",
+                hypothesis=f"Suppose {paksha.lower()} is not {sadhya}",  # type: ignore[attr-defined]
+                consequence=f"Then the hetu '{chain_data['hetu'].lower()}' would not lead to {sadhya}",  # type: ignore[attr-defined]
                 analysis=f"But this contradicts the established pervasion: {vyapti}",
-                resolution=f"Therefore, {paksha.lower()} must be {sadhya}",
+                resolution=f"Therefore, {paksha.lower()} must be {sadhya}",  # type: ignore[attr-defined]
             )
         else:
             tarka = Tarka(
-                hypothesis=f"Suppose {paksha.lower()} is not {sadhya}",
+                hypothesis=f"Suppose {paksha.lower()} is not {sadhya}",  # type: ignore[attr-defined]
                 consequence="The reasoning would still hold",
                 analysis="The argument does not conclusively establish the thesis",
                 resolution="The inference is defective",
@@ -531,7 +533,7 @@ class PanchaAvayavaGenerator:
         else:
             hetvabhasa = Hetvabhasa(
                 fallacies_detected=[fallacy_type] if fallacy_type else [],
-                analysis=f"The argument contains a {fallacy_type.value if fallacy_type else 'logical'} fallacy.",
+                analysis=f"The argument contains a {fallacy_type.value if fallacy_type else 'logical'} fallacy.",  # type: ignore[attr-defined]
             )
 
         nirnaya = Nirnaya(

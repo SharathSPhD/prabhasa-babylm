@@ -38,7 +38,7 @@ ENGLISH_INFLECTIONAL_SUFFIXES = {
     "ly",  # adverbial (often inflectional on adjectives)
 }
 
-ENGLISH_INFLECTIONAL_PREFIXES = set()  # English has few inflectional prefixes
+ENGLISH_INFLECTIONAL_PREFIXES: set[str] = set()  # English has few inflectional prefixes
 
 
 @dataclass(frozen=True)
