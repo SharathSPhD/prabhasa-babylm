@@ -7,7 +7,7 @@ import math
 import time
 from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import torch
 from torch import nn
@@ -32,6 +32,7 @@ def build_elc_encoder(
     dropout: float | None = None,
     mlm_probability: float | None = None,
     nhot_emb: nn.Module | None = None,
+    pos_encoding: Literal["absolute", "rope"] = "absolute",
 ) -> tuple[ElcPsalmEncoder, ElcPsalmConfig]:
     """Resolve ``architecture`` (``elc_psalm_s`` / ``elc_psalm_m``) and construct the encoder.
 
@@ -39,17 +40,22 @@ def build_elc_encoder(
     presets default to dropout 0.0 / mask 0.15; BabyLM small-data regimes want
     ~0.1 dropout and ~0.3 masking).  Pass ``nhot_emb`` to attach a Vidyut N-hot
     morpheme-boundary embedding module (H1_MECHANISM lever).
+
+    ``pos_encoding`` selects position encoding: "absolute" (learned embeddings, default)
+    or "rope" (rotary embeddings, optimized for BLiMP compositional generalization).
     """
     cfg = resolve_architecture(architecture, vocab_size=vocab_size, max_seq_len=max_seq_len)
     if not isinstance(cfg, ElcPsalmConfig):
         raise TypeError(f"{architecture!r} did not resolve to ElcPsalmConfig")
-    overrides: dict[str, float] = {}
+    overrides: dict[str, Any] = {}
     if dropout is not None:
         overrides["dropout"] = dropout
     if mlm_probability is not None:
         overrides["mlm_probability"] = mlm_probability
     if nhot_emb is not None:
-        overrides["nhot_embeddings"] = True  # type: ignore[assignment]
+        overrides["nhot_embeddings"] = True
+    if pos_encoding != "absolute":
+        overrides["pos_encoding"] = pos_encoding
     if overrides:
         cfg = cfg.model_copy(update=overrides)
     if smoke:
@@ -63,6 +69,7 @@ def build_elc_encoder(
             mlm_probability=cfg.mlm_probability,
             hybrid_mlm_weight=cfg.hybrid_mlm_weight,
             hybrid_clm_weight=cfg.hybrid_clm_weight,
+            pos_encoding=pos_encoding,
         )
     torch.manual_seed(0)
     return ElcPsalmEncoder(cfg, nhot_emb=nhot_emb), cfg
