@@ -277,6 +277,36 @@ def main() -> None:
                 f"Kāraka lookup: {args.karaka_lookup} ({len(karaka_lookup._map)} entries)",
                 flush=True,
             )
+        elif args.karaka_mode == "deprel":
+            # Real kāraka lookup from spaCy dependency parsing (H1_MECHANISM, REAL)
+            print(f"Building real kāraka lookup (deprel mode) from {len(base)} sentences...", flush=True)
+            import spacy
+
+            from psalm.infrastructure.ml.english_karaka_builder_spacy import (
+                build_english_karaka_lookup_spacy,
+                load_spacy_model,
+            )
+
+            nlp = load_spacy_model("en_core_web_sm")
+            karaka_lookup = build_english_karaka_lookup_spacy(nlp, base, sp, vocab_size=vocab)
+
+            # Count role distribution
+            karta_n = sum(1 for r in karaka_lookup._map.values() if r == "karta")
+            karma_n = sum(1 for r in karaka_lookup._map.values() if r == "karma")
+            karana_n = sum(1 for r in karaka_lookup._map.values() if r == "karana")
+            adhikarana_n = sum(1 for r in karaka_lookup._map.values() if r == "adhikarana")
+            apadana_n = sum(1 for r in karaka_lookup._map.values() if r == "apadana")
+            sampradana_n = sum(1 for r in karaka_lookup._map.values() if r == "sampradana")
+            kriya_n = sum(1 for r in karaka_lookup._map.values() if r == "kriya")
+            visesana_n = sum(1 for r in karaka_lookup._map.values() if r == "visesana")
+            sep_n = sum(1 for r in karaka_lookup._map.values() if r == "separator")
+
+            print(
+                f"Kāraka lookup: deprel (spaCy) ({karta_n} kartā, {karma_n} karma, {karana_n} karaṇa, "
+                f"{adhikarana_n} adhikaraṇa, {apadana_n} apādāna, {sampradana_n} sampradāna, "
+                f"{kriya_n} kriyā, {visesana_n} viśeṣaṇa, {sep_n} separator)",
+                flush=True,
+            )
         else:
             # BPE-heuristic kāraka roles: ▁word-starts→kartā(0.50), suffixes→viśeṣaṇa(0.20), rest→separator(0.10)
             karaka_lookup = _build_bpe_karaka_lookup(sp, vocab)
