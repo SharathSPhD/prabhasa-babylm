@@ -157,6 +157,15 @@ def main() -> None:
         res_path = (
             PIPELINE / args.results_dir / args.name / "main" / "finetune" / task / "results.txt"
         )
+        if not res_path.exists():
+            # The vendored harness truncates the run-name at the first '.' (e.g.
+            # "prabhasa_b_ss_0.1_glue" -> "prabhasa_b_ss_0"). Fall back to that.
+            alt = (
+                PIPELINE / args.results_dir / args.name.split(".")[0]
+                / "main" / "finetune" / task / "results.txt"
+            )
+            if alt.exists():
+                res_path = alt
         res = _parse_results(res_path)
         score = res.get(cfg["valid_metric"])
         summary[task] = {"metrics": res, "score": score, "valid_metric": cfg["valid_metric"]}
