@@ -242,6 +242,8 @@ def main() -> None:
         mlm_probability=args.mask_start,
         nhot_emb=nhot_emb,
         pos_encoding=args.pos_encoding,
+        ffn_type=args.ffn_type,
+        norm_type=args.norm_type,
     )
     model = model.to(device)
     mask_id = cfg.vocab_size - 1

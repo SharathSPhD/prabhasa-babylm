@@ -33,6 +33,8 @@ def build_elc_encoder(
     mlm_probability: float | None = None,
     nhot_emb: nn.Module | None = None,
     pos_encoding: Literal["absolute", "rope"] = "absolute",
+    ffn_type: Literal["gelu", "geglu"] = "gelu",
+    norm_type: Literal["layernorm", "rmsnorm"] = "layernorm",
 ) -> tuple[ElcPsalmEncoder, ElcPsalmConfig]:
     """Resolve ``architecture`` (``elc_psalm_s`` / ``elc_psalm_m``) and construct the encoder.
 
@@ -56,6 +58,10 @@ def build_elc_encoder(
         overrides["nhot_embeddings"] = True
     if pos_encoding != "absolute":
         overrides["pos_encoding"] = pos_encoding
+    if ffn_type != "gelu":
+        overrides["ffn_type"] = ffn_type
+    if norm_type != "layernorm":
+        overrides["norm_type"] = norm_type
     if overrides:
         cfg = cfg.model_copy(update=overrides)
     if smoke:
@@ -70,6 +76,8 @@ def build_elc_encoder(
             hybrid_mlm_weight=cfg.hybrid_mlm_weight,
             hybrid_clm_weight=cfg.hybrid_clm_weight,
             pos_encoding=pos_encoding,
+            ffn_type=ffn_type,
+            norm_type=norm_type,
         )
     torch.manual_seed(0)
     return ElcPsalmEncoder(cfg, nhot_emb=nhot_emb), cfg
