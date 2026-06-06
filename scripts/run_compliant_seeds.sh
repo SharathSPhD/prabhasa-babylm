@@ -8,7 +8,7 @@ BASE_ARGS="--dose-arms A B C D --dose-epochs 3 --english-epochs 7 \
     --batch-size 256 --max-seq-len 256 \
     --peak-lr 2e-3 --muon-lr 0.02 \
     --mask-start 0.30 --mask-end 0.15 --mask-kind cosine \
-    --freq-alpha 0.5 --checkpoint-interval-words 5000000 \
+    --freq-alpha 0.5 --babylm-checkpoints \
     --require-cuda"
 
 for SEED in $(seq $SEED_START 2); do

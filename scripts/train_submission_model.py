@@ -183,10 +183,16 @@ def main() -> None:
     )
     ap.add_argument("--no-structured-masking", dest="structured_masking", action="store_false")
     ap.add_argument(
+        "--karaka-mode",
+        choices=["bpe", "deprel"],
+        default="bpe",
+        help="Kāraka role assignment mode: 'bpe' (heuristic, legacy) or 'deprel' (real spaCy dependency parser)",
+    )
+    ap.add_argument(
         "--karaka-lookup",
         type=Path,
         default=None,
-        help="Path to .npy kāraka role lookup (optional; BPE heuristics used if absent)",
+        help="Path to .npy kāraka role lookup (optional; computed from --karaka-mode if absent)",
     )
     ap.add_argument("--vocab", type=int, default=20000)
     ap.add_argument("--seed", type=int, default=0)

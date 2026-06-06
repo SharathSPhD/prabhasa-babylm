@@ -284,9 +284,11 @@ class PanchaAvayavaGenerator:
         hetu_full = f"because it {hetu}"
 
         # Udāharaṇa: establish the SAME pervasion (hetu ⊂ sadhya)
+        # Use classical Nyāya form: positive exemplar shows hetu→sadhya;
+        # negative exemplar (counterexample) shows absence of sadhya
         udaharana = (
-            f"Whatever {hetu} is {sadhya}, as exemplified in {pervasion['positive_example']}; "
-            f"and whatever is not {sadhya} is not {hetu}, as in {pervasion['negative_example']}"
+            f"Whatever {hetu} is {sadhya}—as seen in {pervasion['positive_example']}; "
+            f"and {pervasion['negative_example']} is not {sadhya}, hence not {hetu}."
         )
 
         # Upanaya: apply the pervasion to the paksha

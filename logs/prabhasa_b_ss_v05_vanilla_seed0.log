@@ -1,0 +1,31 @@
+CUDA: NVIDIA GB10 | torch 2.12.0+cu130
+submission: doses=['A'] dose_tok=1498229 base_tok=13757590 | stage1=1 stage2=2798 total=2799 | muon=on mask=0.4->0.15 freq_alpha=0.5 max_seq=192
+BabyLM checkpoints: ON (milestones at 1M–10M every 1M, then every 10M)
+  [CKPT-BabyLM] elc_1M.pt @ 1.00M words
+  step 201/2799 loss=7.8869 ema=6.8475 lr=1.00e-03 seq=48 maskp=0.397 0.74 step/s
+  [CKPT-BabyLM] elc_2M.pt @ 2.00M words
+  [CKPT-BabyLM] elc_3M.pt @ 3.00M words
+  step 401/2799 loss=8.5170 ema=4.9593 lr=9.83e-04 seq=48 maskp=0.388 0.71 step/s
+  [CKPT-BabyLM] elc_4M.pt @ 4.00M words
+  [CKPT-BabyLM] elc_5M.pt @ 5.00M words
+  step 601/2799 loss=7.2142 ema=6.2153 lr=9.41e-04 seq=48 maskp=0.373 0.70 step/s
+  [CKPT-BabyLM] elc_6M.pt @ 6.00M words
+  [CKPT-BabyLM] elc_7M.pt @ 7.00M words
+  step 801/2799 loss=6.3329 ema=5.7602 lr=8.78e-04 seq=48 maskp=0.353 0.70 step/s
+  [CKPT-BabyLM] elc_8M.pt @ 8.00M words
+  step 1001/2799 loss=6.6782 ema=4.5304 lr=7.95e-04 seq=48 maskp=0.329 0.70 step/s
+  [CKPT-BabyLM] elc_9M.pt @ 9.00M words
+  [CKPT-BabyLM] elc_10M.pt @ 10.00M words
+  step 1201/2799 loss=7.5431 ema=6.2267 lr=6.99e-04 seq=96 maskp=0.303 0.68 step/s
+  step 1401/2799 loss=5.8161 ema=5.5228 lr=5.95e-04 seq=96 maskp=0.275 0.67 step/s
+  step 1601/2799 loss=5.1008 ema=4.2113 lr=4.87e-04 seq=96 maskp=0.247 0.69 step/s
+  [CKPT-BabyLM] elc_20M.pt @ 20.00M words
+  step 1801/2799 loss=6.2280 ema=5.4203 lr=3.84e-04 seq=96 maskp=0.221 0.70 step/s
+  step 2001/2799 loss=5.6360 ema=5.1362 lr=2.90e-04 seq=96 maskp=0.197 0.72 step/s
+  [CKPT-BabyLM] elc_30M.pt @ 30.02M words
+  step 2201/2799 loss=6.1572 ema=4.6653 lr=2.10e-04 seq=192 maskp=0.177 0.70 step/s
+  step 2401/2799 loss=6.9997 ema=5.8199 lr=1.50e-04 seq=192 maskp=0.162 0.67 step/s
+  [CKPT-BabyLM] elc_40M.pt @ 40.03M words
+  step 2601/2799 loss=5.3503 ema=4.9520 lr=1.13e-04 seq=192 maskp=0.153 0.65 step/s
+  [CKPT-BabyLM] elc_50M.pt @ 50.03M words
+DONE submission: steps=2799 words=52.5M final_loss=4.4324 best_loss=2.1408 wall=74.4min -> data/checkpoints/prabhasa_b_ss_v05_vanilla/seed_0/elc.pt

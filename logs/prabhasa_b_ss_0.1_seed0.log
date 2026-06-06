@@ -1,0 +1,33 @@
+CUDA: NVIDIA GB10 | torch 2.12.0+cu130
+submission: doses=['A', 'B', 'C', 'D'] dose_tok=5992836 base_tok=13757590 | stage1=365 stage2=1959 total=2324 | muon=on mask=0.3->0.15 freq_alpha=0.5 max_seq=192
+N-hot embeddings: ON (vocab=20000, nhot_dim=10, d_model=768)
+Kāraka lookup: BPE-heuristic (10574 kartā, 2533 viśeṣaṇa, 6893 separator)
+Structured masking: ON (p=0.3→0.15)
+BabyLM checkpoints: ON (milestones at 1M–10M every 1M, then every 10M)
+  [CKPT-BabyLM] elc_1M.pt @ 1.00M words
+  step 200/2324 loss=12.1294 ema=7.3617 lr=9.98e-04 seq=48 maskp=0.297 0.72 step/s
+  [CKPT-BabyLM] elc_2M.pt @ 2.00M words
+  [CKPT-BabyLM] elc_3M.pt @ 3.00M words
+/home/sharaths/projects/PSALM-integration/src/psalm/infrastructure/ml/structured_masking.py:184: RuntimeWarning: invalid value encountered in divide
+  freq = np.where(self.counts > 0, self.masked / self.counts, base_prob)
+Salience transfer: saved data/checkpoints/prabhasa_b_ss_0.1/seed_0/salience_weights.npy (20000 entries)
+  [CKPT-BabyLM] elc_4M.pt @ 4.00M words
+  [CKPT-BabyLM] elc_5M.pt @ 5.00M words
+  step 565/2324 loss=6.5302 ema=6.4737 lr=9.19e-04 seq=48 maskp=0.279 0.62 step/s
+  [CKPT-BabyLM] elc_6M.pt @ 6.00M words
+  step 765/2324 loss=6.3922 ema=4.2199 lr=8.30e-04 seq=48 maskp=0.263 0.62 step/s
+  [CKPT-BabyLM] elc_7M.pt @ 7.00M words
+  [CKPT-BabyLM] elc_8M.pt @ 8.00M words
+  step 965/2324 loss=6.1378 ema=5.7321 lr=7.19e-04 seq=96 maskp=0.245 0.60 step/s
+  [CKPT-BabyLM] elc_9M.pt @ 9.00M words
+  [CKPT-BabyLM] elc_10M.pt @ 10.00M words
+  step 1165/2324 loss=5.1838 ema=5.1421 lr=5.94e-04 seq=96 maskp=0.225 0.54 step/s
+  step 1365/2324 loss=4.4162 ema=3.6187 lr=4.65e-04 seq=96 maskp=0.205 0.51 step/s
+  step 1565/2324 loss=4.8412 ema=4.9303 lr=3.43e-04 seq=96 maskp=0.186 0.50 step/s
+  [CKPT-BabyLM] elc_20M.pt @ 20.00M words
+  step 1765/2324 loss=5.6689 ema=4.7577 lr=2.38e-04 seq=192 maskp=0.170 0.49 step/s
+  [CKPT-BabyLM] elc_30M.pt @ 30.01M words
+  step 1965/2324 loss=4.3791 ema=3.8504 lr=1.59e-04 seq=192 maskp=0.159 0.47 step/s
+  step 2165/2324 loss=4.5096 ema=4.6560 lr=1.12e-04 seq=192 maskp=0.152 0.47 step/s
+  [CKPT-BabyLM] elc_40M.pt @ 40.01M words
+DONE submission: steps=2324 words=43.6M final_loss=4.5397 best_loss=1.8419 wall=78.2min -> data/checkpoints/prabhasa_b_ss_0.1/seed_0/elc.pt

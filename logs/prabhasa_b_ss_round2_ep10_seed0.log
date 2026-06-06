@@ -1,0 +1,13 @@
+CUDA: NVIDIA GB10 | torch 2.12.0+cu130
+submission: doses=['A', 'B', 'C', 'D'] dose_tok=5992836 base_tok=13757590 | stage1=365 stage2=2798 total=3163 | muon=on mask=0.3->0.15 freq_alpha=0.5 max_seq=192
+N-hot embeddings: ON (vocab=20000, nhot_dim=10, d_model=768)
+Kāraka lookup: BPE-heuristic (10574 kartā, 2533 viśeṣaṇa, 6893 separator)
+Structured masking: ON (p=0.3→0.15)
+BabyLM checkpoints: ON (milestones at 1M–10M every 1M, then every 10M)
+  [CKPT-BabyLM] elc_1M.pt @ 1.00M words
+  step 200/3163 loss=15.7579 ema=7.5012 lr=1.00e-03 seq=48 maskp=0.299 0.72 step/s
+  [CKPT-BabyLM] elc_2M.pt @ 2.00M words
+  [CKPT-BabyLM] elc_3M.pt @ 3.00M words
+/home/sharaths/projects/PSALM-integration/src/psalm/infrastructure/ml/structured_masking.py:184: RuntimeWarning: invalid value encountered in divide
+  freq = np.where(self.counts > 0, self.masked / self.counts, base_prob)
+Salience transfer: saved data/checkpoints/prabhasa_b_ss_round2_ep10/seed_0/salience_weights.npy (20000 entries)

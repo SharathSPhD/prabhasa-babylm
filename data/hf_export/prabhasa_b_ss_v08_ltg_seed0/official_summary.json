@@ -1,0 +1,27 @@
+{
+  "name": "prabhasa_b_ss_v08_ltg_seed0",
+  "averages": {
+    "blimp": 64.17,
+    "blimp_supplement": 55.55,
+    "ewok": 50.5,
+    "entity_tracking": 23.36,
+    "wug_adj_nominalization": null,
+    "comps": 51.94,
+    "wug_past_tense": null
+  },
+  "text_average": 49.104,
+  "text_average_components": [
+    "blimp",
+    "blimp_supplement",
+    "comps",
+    "entity_tracking",
+    "ewok",
+    "wug_adj_nominalization"
+  ],
+  "notes": {
+    "wug_past_tense": "lower is better; excluded from Text Average",
+    "reading": "predictions saved; leaderboard score is human-RT correlation via official aggregator",
+    "aoa": "reported separately; excluded from Text Average",
+    "ewok_set": "ewok_filtered"
+  }
+}

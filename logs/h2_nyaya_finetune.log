@@ -1,0 +1,28 @@
+[h2] Loaded 75 NLI examples from pramana
+[h2] LoRA applied: 14 layers replaced, 688,128 adapter params
+[h2] Trainable: 690,435 / 115,443,655 (0.60%)
+[h2] Train: 60, Test: 15, epochs: 20
+[h2] epoch  1/20  train_loss=1.1549  test_acc=0.3125  best=0.3125
+[h2] epoch  2/20  train_loss=0.9765  test_acc=0.3125  best=0.3125
+[h2] epoch  3/20  train_loss=0.8571  test_acc=0.3125  best=0.3125
+[h2] epoch  4/20  train_loss=0.8022  test_acc=0.3125  best=0.3125
+[h2] epoch  5/20  train_loss=0.7645  test_acc=0.6875  best=0.6875
+[h2] epoch  6/20  train_loss=0.7392  test_acc=0.6875  best=0.6875
+[h2] epoch  7/20  train_loss=0.7231  test_acc=0.3125  best=0.6875
+[h2] epoch  8/20  train_loss=0.7176  test_acc=0.3125  best=0.6875
+[h2] epoch  9/20  train_loss=0.7070  test_acc=0.3125  best=0.6875
+[h2] epoch 10/20  train_loss=0.7077  test_acc=0.3125  best=0.6875
+[h2] epoch 11/20  train_loss=0.7042  test_acc=0.3125  best=0.6875
+[h2] epoch 12/20  train_loss=0.7020  test_acc=0.6875  best=0.6875
+[h2] epoch 13/20  train_loss=0.6997  test_acc=0.6875  best=0.6875
+[h2] epoch 14/20  train_loss=0.7083  test_acc=0.3125  best=0.6875
+[h2] epoch 15/20  train_loss=0.7002  test_acc=0.3125  best=0.6875
+[h2] epoch 16/20  train_loss=0.7026  test_acc=0.3125  best=0.6875
+[h2] epoch 17/20  train_loss=0.7044  test_acc=0.6875  best=0.6875
+[h2] epoch 18/20  train_loss=0.6948  test_acc=0.6875  best=0.6875
+[h2] epoch 19/20  train_loss=0.6997  test_acc=0.3125  best=0.6875
+[h2] epoch 20/20  train_loss=0.6997  test_acc=0.3125  best=0.6875
+
+[h2] Results written to /home/sharaths/projects/PSALM-integration/results/h2_nyaya_lora/h2_results.json
+[h2] Best test accuracy: 0.6875
+[h2] H2 threshold (80%): NOT MET
