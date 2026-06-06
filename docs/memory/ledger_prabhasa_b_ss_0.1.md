@@ -134,6 +134,18 @@ From the official babylm benchmark repo, gpt2 strict-small baseline:
 - **RoPE LOCKED as the recipe.** Next: push toward 2025-winner ~70 (GeGLU+RMSNorm = LTG-BERT
   components), then 3-seed the winner → optimized GLUE → secondary tracks.
 
+## v0.8 (RoPE + GeGLU + RMSNorm) — NEUTRAL → diminishing returns
+- BLiMP 64.17 (vs RoPE-only 64.38, −0.21); Text Avg 49.10 (vs 50.79). GeGLU+RMSNorm
+  don't help on this 10M regime. **Stop rule triggered (<0.5pp) → architecture iteration done.**
+
+## ✅ LOCKED RECIPE: prabhasa-b_ss-0.1 = v0.7 RoPE
+- English-only, hybrid MLM+CLM, **RoPE positions**, decaying mask 0.40→0.15, lr 1e-3,
+  muon 0.01, 10 epochs, **mechanisms ON** (Vidyut N-hot + Paribhāṣā kāraka masking).
+- Seed 0: **BLiMP 64.38, entity_tracking 30.0, COMPS 52.52, Text Avg ≈50.79 → BEATS baseline (49.04).**
+- Running 3-seed validation (seeds 1+2) for mean±95%CI (closure contract).
+- **Optional stretch (deferred):** full DeBERTa disentangled attention for winner-level BLiMP
+  (~70) — high cost / uncertain gain on top of RoPE; revisit only if 3-seed + GLUE leave time.
+
 ## Correctness audit (parallel to Attempt #2) — ✅ NO CODE BUGS
 Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 (Muon/AdamW split), masking schedules, tokenizer-vocab parity, gradients.
