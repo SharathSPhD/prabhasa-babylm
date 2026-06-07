@@ -247,3 +247,8 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 - Key insight: the model's strong suit is MLM-PLL, yet the hybrid spends 50% of compute on the weak CLM. Winning Strict encoders (LTG-BERT ~71, ELC-BERT ~70) are PURE-MLM. 
 - **H_STRICT (new, Pāṇinian-centered):** pure-MLM + Pāṇinian kāraka masking + Vidyut N-hot (no CLM dilution) closes the gap; kāraka masking is the differentiator. TRIZ: separation-by-condition pointed at GPT-BERT, but causal mode is empirically weak here → pure-MLM is the cleaner path.
 - Fast probe: pure-MLM 10M vs hybrid 64.09 (then lock → 100M Strict). Real-engines-100M (C2) DEPRIORITIZED/killed (won't close a 7pp gap; lost to heuristic at 10M).
+
+## Intervention (Strict gap) #2 RESULT — pure-MLM > hybrid ✓
+- pure-MLM 10M BLiMP **65.22** vs hybrid 64.09 (**+1.13pp**); now ABOVE SS baseline 65.08. CLM dilution confirmed harmful. Lock pure-MLM.
+## Intervention (Strict gap) #3 — LTG-BERT-style arch (GeGLU + RMSNorm) on pure-MLM — RUNNING
+- Winners (LTG-BERT ~71, ELC-BERT ~70) use GeGLU FFN + RMSNorm. Stack on pure-MLM @10M. Target ~68-70 → projects 100M toward 74.53.
