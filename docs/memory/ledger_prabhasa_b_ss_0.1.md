@@ -231,3 +231,19 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
   ~70 winner range. (Full Text Average pending eval completion.)
 - C2 (real-engines deprel+Morfessor at 100M) RUNNING — re-tests whether linguistic-fidelity
   masking beats heuristic at 100M (it was a documented NULL at 10M: 62.08 < 64.09).
+
+## 🔴 BASELINE CORRECTION (critical) — Strict ≠ Strict-Small
+- BabyLM 2026 has TWO tracks with DIFFERENT baselines (from babylm-eval README):
+  - **Strict (100M):** BLiMP **74.53**, supp 65.00, COMPS 55.85, entity 23.58; GLUE BoolQ 67.5/MNLI 59.9/MRPC 84.4/QQP 70.7.
+  - **Strict-Small (10M):** BLiMP 65.08, supp 57.25, COMPS 51.81, entity 21.07.
+- **prabhasa-b_s (100M) competes in STRICT.** Its BLiMP 67.57 is **−6.96pp BELOW the Strict baseline (74.53)** — NOT competitive. (I had wrongly compared it to the SS baseline.)
+- prabhasa-b_ss (10M, SS track): BLiMP 64.09 vs SS baseline 65.08 → −1pp (≈baseline; entity/COMPS above).
+
+## Intervention (Strict gap) #1 — causal scoring — NULL
+- Hypothesis: BLiMP scored MLM-PLL (bidirectional); causal autoregressive scoring (like gpt2) would recover the gap on the existing checkpoint (zero retrain).
+- Test: `scripts/eval_blimp_causal.py` (native causal LL) on prabhasa-b_s → **CAUSAL 63.92 < MLM-PLL 67.57.** Model's causal head is weaker (encoder, only 50% CLM steps). Gap is NOT a scoring artifact. NULL.
+
+## Intervention (Strict gap) #2 — pure-MLM (drop CLM dilution) — RUNNING
+- Key insight: the model's strong suit is MLM-PLL, yet the hybrid spends 50% of compute on the weak CLM. Winning Strict encoders (LTG-BERT ~71, ELC-BERT ~70) are PURE-MLM. 
+- **H_STRICT (new, Pāṇinian-centered):** pure-MLM + Pāṇinian kāraka masking + Vidyut N-hot (no CLM dilution) closes the gap; kāraka masking is the differentiator. TRIZ: separation-by-condition pointed at GPT-BERT, but causal mode is empirically weak here → pure-MLM is the cleaner path.
+- Fast probe: pure-MLM 10M vs hybrid 64.09 (then lock → 100M Strict). Real-engines-100M (C2) DEPRIORITIZED/killed (won't close a 7pp gap; lost to heuristic at 10M).
