@@ -252,3 +252,15 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 - pure-MLM 10M BLiMP **65.22** vs hybrid 64.09 (**+1.13pp**); now ABOVE SS baseline 65.08. CLM dilution confirmed harmful. Lock pure-MLM.
 ## Intervention (Strict gap) #3 — LTG-BERT-style arch (GeGLU + RMSNorm) on pure-MLM — RUNNING
 - Winners (LTG-BERT ~71, ELC-BERT ~70) use GeGLU FFN + RMSNorm. Stack on pure-MLM @10M. Target ~68-70 → projects 100M toward 74.53.
+
+## Intervention (Strict gap) #3 RESULT — GeGLU+RMSNorm — NULL (hurt)
+- LTG-style (pure-MLM + GeGLU + RMSNorm) 10M BLiMP **64.45 < pure-MLM 65.22** (−0.77). GeGLU/RMSNorm
+  need LTG-BERT-specific tuning (init/LR) that doesn't transfer to our recipe at this scale. NULL.
+  (Implementation is real + tested — guards the dead-flag regression — but the lever doesn't pay here.)
+
+## 🔒 LOCKED config for the Strict 100M run
+- **pure-MLM + RoPE + kāraka-aware masking (0.40→0.15 cosine) + Vidyut N-hot + Muon, GELU + LayerNorm.**
+- Experiment chain converged: causal-scoring NULL (63.92), pure-MLM WIN (+1.13→65.22), GeGLU/RMSNorm NULL (64.45).
+- HONEST EXPECTATION: 100M pure-MLM ≈ 68–70 BLiMP (from 67.57 hybrid + pure-MLM lift + scale). The Strict
+  baseline (74.53, a well-tuned causal gpt2) is a high bar an encoder-MLM is unlikely to clear here; we report
+  the honest number. Pāṇinian mechanisms remain the research contribution; Strict-Small is where we're at-baseline.
