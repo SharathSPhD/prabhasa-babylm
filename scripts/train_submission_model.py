@@ -324,9 +324,15 @@ def main() -> None:
                 flush=True,
             )
         elif args.karaka_mode == "deprel":
-            # Real kāraka lookup from spaCy dependency parsing (H1_MECHANISM, REAL)
+            # Real kāraka lookup from spaCy dependency parsing (H1_MECHANISM, REAL).
+            # The lookup is a token→role map over the vocab; a representative sample of
+            # sentences covers the vocab fully — parsing all 11.6M (100M track) is ~12h of
+            # idle-GPU waste for no quality gain. Cap to a sample for tractable startup.
+            _karaka_cap = 400_000
+            karaka_sample = base if len(base) <= _karaka_cap else base[:_karaka_cap]
             print(
-                f"Building real kāraka lookup (deprel mode) from {len(base)} sentences...",
+                f"Building real kāraka lookup (deprel mode) from "
+                f"{len(karaka_sample)}/{len(base)} sentences (sampled for vocab coverage)...",
                 flush=True,
             )
 
@@ -336,7 +342,7 @@ def main() -> None:
             )
 
             nlp = load_spacy_model("en_core_web_sm")
-            karaka_lookup = build_english_karaka_lookup_spacy(nlp, base, sp, vocab_size=vocab)
+            karaka_lookup = build_english_karaka_lookup_spacy(nlp, karaka_sample, sp, vocab_size=vocab)
 
             # Count role distribution
             karta_n = sum(1 for r in karaka_lookup._map.values() if r == "karta")

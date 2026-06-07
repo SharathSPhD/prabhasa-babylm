@@ -98,7 +98,9 @@ def load_spacy_model(model_name: str = "en_core_web_sm") -> spacy.Language:
         RuntimeError: If the model is not installed
     """
     try:
-        nlp = spacy.load(model_name)
+        # Only tagger + parser are needed for POS/dep → kāraka roles. Disabling
+        # ner + lemmatizer speeds the corpus parse substantially.
+        nlp = spacy.load(model_name, disable=["ner", "lemmatizer"])
         return nlp
     except OSError as e:
         raise RuntimeError(
