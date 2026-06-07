@@ -1,0 +1,19 @@
+uv run ruff check
+All checks passed!
+uv run mypy
+src/psalm/infrastructure/morphology/morfessor_segmenter.py:41: error: Need type annotation for "ENGLISH_INFLECTIONAL_PREFIXES" (hint: "ENGLISH_INFLECTIONAL_PREFIXES: set[<type>] = ...")  [var-annotated]
+src/psalm/domain/nyaya_generator.py:267: error: Missing type arguments for generic type "dict"  [type-arg]
+src/psalm/domain/nyaya_generator.py:309: error: Missing type arguments for generic type "dict"  [type-arg]
+src/psalm/domain/nyaya_generator.py:347: error: Missing type arguments for generic type "dict"  [type-arg]
+src/psalm/domain/nyaya_generator.py:380: error: Missing type arguments for generic type "dict"  [type-arg]
+src/psalm/domain/nyaya_generator.py:413: error: Missing type arguments for generic type "dict"  [type-arg]
+src/psalm/domain/nyaya_generator.py:477: error: Missing type arguments for generic type "dict"  [type-arg]
+src/psalm/infrastructure/generators/corpus_from_grammar.py:191: error: Call to untyped function "Vyakarana" in typed context  [no-untyped-call]
+src/psalm/infrastructure/generators/corpus_from_grammar.py:191: error: Incompatible types in assignment (expression has type "Vyakarana", variable has type "None")  [assignment]
+src/psalm/infrastructure/generators/corpus_from_grammar.py:218: error: Module "vidyut.prakriya" has no attribute "Gana"  [attr-defined]
+src/psalm/infrastructure/generators/corpus_from_grammar.py:218: error: Module "vidyut.prakriya" has no attribute "Pada"  [attr-defined]
+src/psalm/infrastructure/generators/corpus_from_grammar.py:224: error: "type[Dhatu]" has no attribute "mula"  [attr-defined]
+src/psalm/infrastructure/generators/corpus_from_grammar.py:241: error: "object" has no attribute "derive"  [attr-defined]
+src/psalm/domain/linguistics/english_karaka_real.py:133: error: Function is missing a type annotation for one or more parameters  [no-untyped-def]
+Found 14 errors in 4 files (checked 115 source files)
+make: *** [Makefile:33: types] Error 1
