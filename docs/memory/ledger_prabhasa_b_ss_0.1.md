@@ -223,3 +223,11 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
   RoPE recipe (hybrid + decay 0.40→0.15 + Muon, 10 epochs, 31,908 steps), eager, English-only.
   Run: `data/checkpoints/prabhasa_b_s/seed_0`. Tests if 10× data lifts BLiMP/TextAvg vs 10M.
 - Next: C2 = real-engines-100M (deprel + Morfessor) to re-test the 10M masking null at scale.
+
+## 🚀 SMALL TRACK — prabhasa-b_s (100M) C1 heuristic RESULT
+- 100M English (official, exactly 100,000,000 words), validated RoPE recipe, 10 epochs,
+  eager (torch.compile null on sm_121), wall 12.8h, best_loss 0.60.
+- **BLiMP = 67.57** — **+3.48pp over the 10M model (64.09)**. 10× data lifts us toward the
+  ~70 winner range. (Full Text Average pending eval completion.)
+- C2 (real-engines deprel+Morfessor at 100M) RUNNING — re-tests whether linguistic-fidelity
+  masking beats heuristic at 100M (it was a documented NULL at 10M: 62.08 < 64.09).
