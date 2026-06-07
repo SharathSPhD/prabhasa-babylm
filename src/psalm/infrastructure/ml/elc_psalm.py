@@ -35,6 +35,29 @@ def _build_attn_mask(t: int, mode: _AttnMode, device: torch.device) -> torch.Ten
     return torch.full((t, t), float("-inf"), device=device).triu(1)
 
 
+def _make_norm(cfg: ElcPsalmConfig) -> nn.Module:
+    """LayerNorm or RMSNorm per cfg.norm_type (LTG/ELC-BERT use RMSNorm)."""
+    if getattr(cfg, "norm_type", "layernorm") == "rmsnorm":
+        return nn.RMSNorm(cfg.d_model)
+    return nn.LayerNorm(cfg.d_model)
+
+
+class _GeGLU(nn.Module):
+    """Gated GELU feed-forward (LTG/ELC-BERT-style). Hidden scaled by 2/3 to
+    keep the parameter count comparable to the plain GELU MLP."""
+
+    def __init__(self, d_model: int, d_ff: int, dropout: float) -> None:
+        super().__init__()
+        d_hidden = (int(2 * d_ff / 3) // 8) * 8 or d_ff  # round to multiple of 8
+        self.gate = nn.Linear(d_model, d_hidden)
+        self.up = nn.Linear(d_model, d_hidden)
+        self.down = nn.Linear(d_hidden, d_model)
+        self.drop = nn.Dropout(dropout)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.drop(self.down(F.gelu(self.gate(x)) * self.up(x)))
+
+
 class LayerRouteCombiner(nn.Module):
     """ELC-BERT every-layer-counts: softmax weights over all prior hidden states."""
 
@@ -61,16 +84,19 @@ class _SDPABlock(nn.Module):
     def __init__(self, cfg: ElcPsalmConfig) -> None:
         super().__init__()
         self.cfg = cfg
-        self.ln1 = nn.LayerNorm(cfg.d_model)
+        self.ln1 = _make_norm(cfg)
         self.qkv = nn.Linear(cfg.d_model, 3 * cfg.d_model, bias=False)
         self.out_proj = nn.Linear(cfg.d_model, cfg.d_model, bias=False)
-        self.ln2 = nn.LayerNorm(cfg.d_model)
-        self.mlp = nn.Sequential(
-            nn.Linear(cfg.d_model, cfg.d_ff),
-            nn.GELU(),
-            nn.Linear(cfg.d_ff, cfg.d_model),
-            nn.Dropout(cfg.dropout),
-        )
+        self.ln2 = _make_norm(cfg)
+        if getattr(cfg, "ffn_type", "gelu") == "geglu":
+            self.mlp: nn.Module = _GeGLU(cfg.d_model, cfg.d_ff, cfg.dropout)
+        else:
+            self.mlp = nn.Sequential(
+                nn.Linear(cfg.d_model, cfg.d_ff),
+                nn.GELU(),
+                nn.Linear(cfg.d_ff, cfg.d_model),
+                nn.Dropout(cfg.dropout),
+            )
         # RoPE cache (lazy-initialized on first use)
         self.rope_cache: RoPECache | None = None
         if cfg.pos_encoding == "rope":
@@ -136,7 +162,7 @@ class ElcPsalmEncoder(nn.Module):
             self.register_module("nhot_emb", nhot_emb)
         self.router = LayerRouteCombiner(cfg.n_layers)
         self.blocks = nn.ModuleList(_SDPABlock(cfg) for _ in range(cfg.n_layers))
-        self.ln_f = nn.LayerNorm(cfg.d_model)
+        self.ln_f = _make_norm(cfg)
         self.lm_head = nn.Linear(cfg.d_model, cfg.vocab_size, bias=False)
         if cfg.tie_embeddings:
             self.lm_head.weight = self.tok.weight

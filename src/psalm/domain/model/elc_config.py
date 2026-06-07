@@ -56,6 +56,14 @@ class ElcPsalmConfig(BaseModel):
         default="absolute",
         description="Position encoding: 'absolute' (learned) or 'rope' (rotary, BLiMP-optimized)",
     )
+    ffn_type: Literal["gelu", "geglu"] = Field(
+        default="gelu",
+        description="Feed-forward type: 'gelu' (default) or 'geglu' (gated, LTG/ELC-BERT-style)",
+    )
+    norm_type: Literal["layernorm", "rmsnorm"] = Field(
+        default="layernorm",
+        description="Normalization: 'layernorm' (default) or 'rmsnorm'",
+    )
 
     @model_validator(mode="after")
     def _validate(self) -> ElcPsalmConfig:
