@@ -272,3 +272,11 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
   severely diluting MLM quality at scale. Dropping it (TRIZ-driven: the model's strong suit is MLM-PLL)
   recovered ~5.5pp. The honest reassessment + fast-probe chain + lock-the-best discipline paid off.
 - Full Text Average pending eval completion. Single seed; 3-seed CI for the final submission.
+
+## ✅ prabhasa-b_s pure-MLM (100M) FULL — Strict-competitive
+- BLiMP 73.06 (base 74.53, -1.47) | supplement **67.46 (+2.46 BEAT)** | EWoK 51.66 |
+  entity_tracking **33.26 (+9.68 BEAT)** | COMPS 54.51 (-1.34) | **TEXT AVERAGE 55.99**.
+- Beats the Strict baseline on supplement + entity_tracking; Text Average 55.99 vs baseline ~54
+  (driven by entity +9.68) → likely beats the baseline on the leaderboard zero-shot metric.
+- This is the locked Small/Strict submission candidate (prabhasa-b_s, pure-MLM). 3-seed CI + checkpoint
+  sweep next to firm up + chase the BLiMP gap.
