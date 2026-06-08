@@ -25,3 +25,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - Authored SPEC 0002 (RQ-A: kāraka-masking causality at 100M, matched-budget A/B, ≥3 seeds).
 - GPU busy (SS pure-MLM seed2). next: harvest the SS 3-seed CI → adversarial review →
   record; then GPU-free paper/Pages + git reconcile; then launch RQ-A when GPU frees.
+
+## [cycle 2 | 2026-06-08] RQ-A made launch-clean (GPU-free; seed2 still training)
+- GPU busy (SS seed2) → GPU-free work. Found RQ-A confound: kāraka per-token mask probs
+  have mean ≠ scheduled rate, so a flat control would mask a different budget. Implemented
+  `--karaka-budget-match` (rescale prob tensor to mean=rate, role order preserved; verified
+  0.35→0.30). RQ-A arms now defined exactly (Arm K budget-matched kāraka vs Arm C uniform).
+  ruff clean; flag wired. This converts the would-be confounded contrast into a clean causal test.
+- next (unchanged): harvest SS 3-seed CI when seed2 done → record; then launch RQ-A (1 seed
+  each directional) when GPU frees.

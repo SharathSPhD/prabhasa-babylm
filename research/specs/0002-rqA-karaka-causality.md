@@ -37,9 +37,16 @@ arm; fair scoring (same harness + backend); significance via test, not point-del
 `data/checkpoints/rqA_karaka/seed_*`, `data/checkpoints/rqA_control/seed_*`; results to
 `research/memory/findings.md`; paper objective/mechanism table updated by paper-smith.
 
-## Implementation notes
-- Confirm `--no-structured-masking` yields uniform masking at the scheduled rate (read
-  the mask path in `leaderboard_levers.make_freq_informed_mlm_mask`; the control must
-  mask the SAME expected count, only without role stratification). If freq-informed
-  masking is itself a lever, add a third arm (uniform-flat) — but keep the primary
-  K-vs-C contrast clean.
+## Implementation notes — RESOLVED (cycle 2)
+- The kāraka per-token probs have mean ≠ scheduled rate → a naive flat control would be
+  budget-mismatched (confound). FIX implemented: `--karaka-budget-match` rescales the
+  kāraka prob tensor so its mean equals the scheduled rate (verified: 0.35→0.30, role
+  order preserved). This isolates the DISTRIBUTION effect at matched budget.
+- **Arm K (treatment):** `--objective mlm --pos-encoding rope --karaka-mode bpe
+  --structured-masking --karaka-budget-match` (+ N-hot, Muon, 0.40→0.15).
+- **Arm C (control):** `--objective mlm --pos-encoding rope --no-structured-masking
+  --freq-alpha 0` → uniform flat masking at the same scheduled rate (`make_mlm_mask`).
+  N-hot stays ON in both. Same corpus/epochs/seed protocol.
+- Launch ONE arm/seed at a time (GPU); verify realized mask fraction matches across arms
+  in the logs; md5-distinct seeds; paired-bootstrap significance on the agreement/arg
+  BLiMP subset.
