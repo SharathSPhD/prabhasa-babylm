@@ -71,3 +71,13 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   caught in the spec, not the paper.
 - next: harvest Arm K when done → launch Arm C. RQ-B is design-ready (code TBD) but its
   citations must be independently re-verified before any paper use.
+
+## [cycle 7 | 2026-06-08] GPU-free: RQ-B target builder implemented + TDD (real)
+- GPU busy (Arm K ~41%). Implemented ShabdabodhaTargetBuilder (src/psalm/infrastructure/ml/
+  shabdabodha_target.py): per-SentencePiece-token kāraka-role labels (10-class) from REAL
+  spaCy parses (reuses english_karaka_real.parse_and_assign); ▁-word-start alignment, first
+  piece=role, continuations=separator. 5 TDD tests PASS on real spaCy+tokenizer (no mock):
+  verb→kriyā, one-label-per-piece, continuations=separator. ruff clean. Alignment v1 is an
+  approximation (documented; char-offset refinement planned if noise>5% per SPEC 0003 audit).
+- RQ-B remaining code: aux head (ShabdabodhaHead) + multi-task loss in trainer + label cache.
+- next: harvest Arm K when done → launch Arm C; RQ-B head+integration in a later GPU-free cycle.

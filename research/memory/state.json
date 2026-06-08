@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 6,
+  "cycle": 7,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "RQ-A Arm K training (~13h, ~14% at cycle 5; watcher watch_rqA_armK auto-evals). When Arm K BLiMP harvested: launch Arm C seed0 (uniform control: --no-structured-masking --freq-alpha 0, else identical to Arm K) for the causal contrast. Then paired-bootstrap K vs C on the BLiMP agreement+arg-structure subset. GPU-free interim done (paper F1 + Pages refreshed, afc31c9). Remaining GPU-free backlog: git worktree reconcile (closure #34), RQ-B deep design (shabdabodha-vyutpatti agent), literature grounding.",
+  "next_action": "Arm K training (~41% at c7, ~7h; watcher watch_rqA_armK). When Arm K BLiMP harvested \u2192 launch Arm C (uniform control). RQ-B target builder DONE+tested (shabdabodha_target.py); remaining RQ-B code = ShabdabodhaHead + multi-task loss in train_submission_model + offline label cache (GPU-free, do in upcoming idle cycles). Also pending: git worktree reconcile (#34), RQ-B citation re-verify.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
