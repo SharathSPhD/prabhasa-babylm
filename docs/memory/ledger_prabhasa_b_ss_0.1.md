@@ -264,3 +264,11 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 - HONEST EXPECTATION: 100M pure-MLM ≈ 68–70 BLiMP (from 67.57 hybrid + pure-MLM lift + scale). The Strict
   baseline (74.53, a well-tuned causal gpt2) is a high bar an encoder-MLM is unlikely to clear here; we report
   the honest number. Pāṇinian mechanisms remain the research contribution; Strict-Small is where we're at-baseline.
+
+## 🎯 BREAKTHROUGH — pure-MLM at 100M = BLiMP 73.06 (Strict track)
+- prabhasa-b_s pure-MLM (100M, locked config): **BLiMP 73.06** vs hybrid 67.57 (**+5.49pp**) and
+  Strict baseline 74.53 (**−1.47pp — competitive!**). best_loss 0.515, wall 822min.
+- The pure-MLM lever scaled super-linearly: +1.13 at 10M → +5.49 at 100M. The hybrid's CLM head was
+  severely diluting MLM quality at scale. Dropping it (TRIZ-driven: the model's strong suit is MLM-PLL)
+  recovered ~5.5pp. The honest reassessment + fast-probe chain + lock-the-best discipline paid off.
+- Full Text Average pending eval completion. Single seed; 3-seed CI for the final submission.
