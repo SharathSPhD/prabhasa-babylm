@@ -44,6 +44,27 @@ def role_to_id(role: str) -> int:
     return SHABDABODHA_LABELS.get(role, SHABDABODHA_LABELS["none"])
 
 
+def align_pieces_to_role_ids(pieces: list[str], role_names: list[str]) -> list[int]:
+    """Align word-order role names to SentencePiece pieces.
+
+    First piece of each word (▁-prefixed, or piece 0) takes the next word's role;
+    continuation pieces are 'separator'. Returns one id per piece. Shared by the
+    single-sentence builder and the offline corpus cache generator (no duplication).
+    """
+    roles_iter = iter(role_names)
+    sep = SHABDABODHA_LABELS["separator"]
+    out: list[int] = []
+    for i, piece in enumerate(pieces):
+        if i == 0 or piece.startswith(_WORD_START):
+            try:
+                out.append(role_to_id(next(roles_iter)))
+            except StopIteration:
+                out.append(SHABDABODHA_LABELS["none"])
+        else:
+            out.append(sep)
+    return out
+
+
 class ShabdabodhaTargetBuilder:
     """Builds per-SentencePiece-token śābdabodha role labels from real parses."""
 
@@ -58,16 +79,5 @@ class ShabdabodhaTargetBuilder:
         ``separator``. Length matches ``sp.EncodeAsPieces(sentence)``.
         """
         word_roles = parse_and_assign(sentence, self.nlp)  # [TokenRole(text, role)]
-        roles_iter = iter(word_roles)
         pieces = self.sp.EncodeAsPieces(sentence)  # type: ignore[attr-defined]
-        sep = SHABDABODHA_LABELS["separator"]
-        labels: list[int] = []
-        for i, piece in enumerate(pieces):
-            if i == 0 or piece.startswith(_WORD_START):
-                try:
-                    labels.append(role_to_id(next(roles_iter).role))
-                except StopIteration:
-                    labels.append(SHABDABODHA_LABELS["none"])
-            else:
-                labels.append(sep)
-        return labels
+        return align_pieces_to_role_ids(pieces, [tr.role for tr in word_roles])

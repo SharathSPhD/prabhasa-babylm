@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 8,
+  "cycle": 9,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Arm K ~49% at c8 (~5h, watcher watch_rqA_armK). HARVEST Arm K BLiMP when done \u2192 launch Arm C (uniform control --no-structured-masking --freq-alpha 0). RQ-B GPU-free build continues: next = offline role-label cache generator (spaCy parse corpus \u2192 role .bin aligned to token .bin) + train_submission_model --shabdabodha-aux wiring. Pending: git reconcile #34, RQ-B citation re-verify.",
+  "next_action": "Arm K ~57% at c9 (~4h, watcher watch_rqA_armK). HARVEST Arm K BLiMP when done \u2192 launch Arm C. RQ-B: 10M role-label cache parsing in bg (logs/shabdabodha_cache_10m.log \u2192 data/corpora/strict_small/shabdabodha_roles.bin); when done, wire train_submission_model to load it + add --shabdabodha-aux LAMBDA multi-task loss (use ShabdabodhaHead + shabdabodha_aux_loss). Pending: git reconcile #34, citation re-verify.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -67,5 +67,5 @@
   "flags": {
     "rqB_citations": "SPEC 0003 citations agent-claimed; \u22652 were fabricated (fixed); re-verify ALL before paper use"
   },
-  "rqB_progress": "target_builder\u2713(c7) + aux_head/loss\u2713(c8); remaining: label-cache generator + trainer multi-task wiring"
+  "rqB_progress": "target_builder\u2713 + aux_head/loss\u2713 + label_cache_generator\u2713 (10M parsing in bg); remaining: trainer --shabdabodha-aux wiring"
 }
