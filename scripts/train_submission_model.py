@@ -311,6 +311,13 @@ def main() -> None:
         except Exception as e:  # noqa: BLE001
             print(f"torch.compile: FAILED ({e}); continuing eager", flush=True)
     mask_id = cfg.vocab_size - 1
+    # build_elc_encoder pins init to manual_seed(0) for reproducible weights (fair
+    # cross-arm comparison). Re-seed with args.seed AFTER build so training
+    # stochasticity (MLM masking, data order) genuinely varies per seed → valid
+    # multi-seed CIs. Without this, every --seed produced identical checkpoints.
+    torch.manual_seed(args.seed)
+    if device == "cuda":
+        torch.cuda.manual_seed_all(args.seed)
 
     # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM)
     karaka_lookup: KarakaRoleLookup | None = None
