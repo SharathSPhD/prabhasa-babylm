@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 3,
+  "cycle": 4,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "GPU finishing seed2 eval. When FREE: launch RQ-A (SPEC 0002) Arm K seed0 (k\u0101raka budget-matched) \u2014 the H1 mechanism-causality core, the priority experiment; 1 seed directional first (~13h) + tracked watcher. Then Arm C. RQ-H (crossover 25M/50M, cheap) queued after. paper-smith should fold F1 (honest scale-dependent framing) when doing GPU-free work.",
+  "next_action": "RQ-A Arm K training (~13h, watcher watch_rqA_armK). When done+harvested: launch Arm C seed0 (uniform control: --no-structured-masking --freq-alpha 0, else identical) for the causal contrast. Compute K vs C on BLiMP agreement+arg-structure subset (paired bootstrap). While GPU busy: paper-smith folds F1 + corrected Strict story (GPU-free).",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md"
   ],
@@ -61,5 +61,6 @@
     "babylm-experimentalist",
     "adversarial-reviewer",
     "paper-smith"
-  ]
+  ],
+  "gpu_status": "BUSY \u2014 RQ-A Arm K seed0 training (pid 4049236, ~13h)"
 }
