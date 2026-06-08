@@ -1,21 +1,59 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 1,
-  "phase": "FOUNDATION_BUILT → CLOSURE+RQA",
+  "cycle": 2,
+  "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
   "signoff": "DEFERRED_1_WEEK (findings staged sign-off-pending; NO merge-to-main)",
-  "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY — see research/keepalive/README.md)",
+  "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
-  "gpu_status_at_cycle1": "BUSY — SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "1) HARVEST: when SS pure-MLM seed2 finishes (logs/pbss_mlm_fix_queue.log → SS_3SEED_FIX_DONE), compute the real 3-seed CI {seed0=65.22, seed1=63.31, seed2=?}, adversarial-review (md5-distinct verified), record to findings.md + ledger. 2) Then GPU-free: paper-smith folds the honest SS pure-MLM CI + the corrected Strict story; reconcile git worktrees + stage paper/Pages/HF (sign-off-pending, NO main). 3) When GPU free: launch SPEC 0002 RQ-A (kāraka-causality A/B) — start 1 seed each (Arm K, Arm C) as a directional read before the full 3-seed.",
-  "ready_experiments": ["research/specs/0002-rqA-karaka-causality.md"],
+  "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
+  "next_action": "HARVEST SS 3-seed CI when seed2 done (logs/pbss_mlm_fix_queue.log). RQ-A is now LAUNCH-CLEAN (--karaka-budget-match implemented; arms in SPEC 0002). When GPU frees: launch RQ-A Arm K then Arm C, 1 seed each (directional), then expand to 3 seeds. paper-smith folds SS CI + Strict story (GPU-free) meanwhile.",
+  "ready_experiments": [
+    "research/specs/0002-rqA-karaka-causality.md"
+  ],
   "validated_findings": {
-    "strict_100M_pure_mlm": {"blimp": 73.06, "text_avg": 55.99, "supp": 67.46, "entity": 33.26, "comps": 54.51, "note": "single seed; beats Strict baseline on supp+entity+TextAvg ~54"},
-    "objective_ablation": {"hybrid_100M": 67.57, "pure_mlm_100M": 73.06, "delta_100M": 5.49, "10M": {"hybrid": 64.09, "pure_mlm_seed0": 65.22, "pure_mlm_seed1": 63.31, "note": "10M pure-MLM ~64.5±1 = within hybrid noise; the 100M +5.49 is the real large effect"}}
+    "strict_100M_pure_mlm": {
+      "blimp": 73.06,
+      "text_avg": 55.99,
+      "supp": 67.46,
+      "entity": 33.26,
+      "comps": 54.51,
+      "note": "single seed; beats Strict baseline on supp+entity+TextAvg ~54"
+    },
+    "objective_ablation": {
+      "hybrid_100M": 67.57,
+      "pure_mlm_100M": 73.06,
+      "delta_100M": 5.49,
+      "10M": {
+        "hybrid": 64.09,
+        "pure_mlm_seed0": 65.22,
+        "pure_mlm_seed1": 63.31,
+        "note": "10M pure-MLM ~64.5\u00b11 = within hybrid noise; the 100M +5.49 is the real large effect"
+      }
+    }
   },
-  "documented_nulls": ["causal_scoring(63.92<67.57)", "geglu_rmsnorm(64.45<65.22)", "real_engines_10M(62.08<64.09)", "H2_nyaya_114M(52.75)", "torch_compile_sm121", "H1_COGS_dose(ADR-0017)"],
-  "bugs_fixed_by_verification": ["numpy_shadow_crash", "geglu_rmsnorm_dead_flags", "seed_collapse_fake_CI(elc_trainer:82 reseed)", "glue_name_truncation"],
-  "agents": ["panini-vyakarana", "nyaya-darshana", "shabdabodha-vyutpatti", "babylm-experimentalist", "adversarial-reviewer", "paper-smith"]
+  "documented_nulls": [
+    "causal_scoring(63.92<67.57)",
+    "geglu_rmsnorm(64.45<65.22)",
+    "real_engines_10M(62.08<64.09)",
+    "H2_nyaya_114M(52.75)",
+    "torch_compile_sm121",
+    "H1_COGS_dose(ADR-0017)"
+  ],
+  "bugs_fixed_by_verification": [
+    "numpy_shadow_crash",
+    "geglu_rmsnorm_dead_flags",
+    "seed_collapse_fake_CI(elc_trainer:82 reseed)",
+    "glue_name_truncation"
+  ],
+  "agents": [
+    "panini-vyakarana",
+    "nyaya-darshana",
+    "shabdabodha-vyutpatti",
+    "babylm-experimentalist",
+    "adversarial-reviewer",
+    "paper-smith"
+  ]
 }

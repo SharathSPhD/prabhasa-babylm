@@ -203,6 +203,13 @@ def main() -> None:
     )
     ap.add_argument("--no-structured-masking", dest="structured_masking", action="store_false")
     ap.add_argument(
+        "--karaka-budget-match",
+        action="store_true",
+        help="Rescale the kāraka per-token mask probs so their mean equals the scheduled "
+        "rate — matched mask BUDGET vs a uniform control (clean causal contrast, RQ-A). "
+        "Off by default to preserve the validated 73.06 recipe.",
+    )
+    ap.add_argument(
         "--karaka-mode",
         choices=["bpe", "deprel"],
         default="bpe",
@@ -472,6 +479,13 @@ def main() -> None:
                         prob_tensor = karaka_lookup.mask_probs_for_ids(
                             batch, default_prob=mask_prob
                         )
+                        if args.karaka_budget_match:
+                            # Preserve total mask BUDGET: rescale per-token probs so their
+                            # mean equals the scheduled rate, so the kāraka arm masks the
+                            # same expected count as a uniform control — isolating the
+                            # *distribution* effect (RQ-A clean causal contrast).
+                            _m = prob_tensor.mean().clamp(min=1e-6)
+                            prob_tensor = (prob_tensor * (mask_prob / _m)).clamp(0.0, 0.95)
                         masked, loss_mask = make_structured_mlm_mask(
                             batch,
                             mask_id=mask_id,
