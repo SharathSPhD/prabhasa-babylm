@@ -81,3 +81,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   approximation (documented; char-offset refinement planned if noise>5% per SPEC 0003 audit).
 - RQ-B remaining code: aux head (ShabdabodhaHead) + multi-task loss in trainer + label cache.
 - next: harvest Arm K when done → launch Arm C; RQ-B head+integration in a later GPU-free cycle.
+
+## [cycle 8 | 2026-06-08] GPU-free: RQ-B aux head + multi-task loss (TDD)
+- GPU busy (Arm K ~49%). Implemented ShabdabodhaHead (MLP token classifier d_model→10) +
+  shabdabodha_aux_loss (token CE, IGNORE_INDEX-aware) in shabdabodha_head.py. 4 TDD tests
+  PASS (shape, finite scalar loss, ignore_index exactness, λ-combine). ruff clean.
+- RQ-B status: target builder ✓ (c7) + aux head/loss ✓ (c8). Remaining: offline role-label
+  cache generator (parse corpus → role .bin aligned with token .bin) + train_submission_model
+  multi-task wiring (--shabdabodha-aux λ). Then it's launch-ready (after Arm K/Arm C).
+- next: harvest Arm K when done → launch Arm C; RQ-B label-cache + wiring next idle cycles.
