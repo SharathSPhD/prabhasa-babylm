@@ -589,8 +589,9 @@ All citations resolve to published works. **The fabricated arXiv:2605.12548 is B
    - **Thesis:** Formal language pre-pretraining (Dyck, k-Shuffle Dyck) improves token efficiency on compositional benchmarks; complexity hierarchy matters.
    - **Status:** VERIFIED — primary motivation for H1 COGS design.
 
-8. **Lake & Baroni (2023):** "Generalization without Systematicity: On Compositionality in Emergent Languages" (*Nature Computational Science*).
-   - **Thesis:** Compositional generalization requires learning meta-grammars, not memorization.
+8. **Lake & Baroni (2018):** "Generalization without systematicity: On the compositional skills of sequence-to-sequence recurrent networks" (*ICML 2018*; arXiv:1711.00350) — the SCAN benchmark.
+   - **Thesis:** Seq2seq nets fail systematic compositional generalization (SCAN), motivating structural inductive biases.
+   - **CORRECTED (Tarka, cycle 6):** the sub-agent had garbled this as a 2023 *Nature Comp. Sci.* paper on emergent languages — a conflation of ≥3 distinct works. Fixed to the real SCAN paper.
    - **Status:** VERIFIED — standard reference in compositional generalization literature.
 
 9. **Charpentier & Samuel (2024):** "Training a 1.9B LLM on Every GPU" (*arXiv:2410.24159*).
@@ -700,12 +701,19 @@ All citations resolve to published works. **The fabricated arXiv:2605.12548 is B
 | 5 | Context-Sensitive Rules in Pāṇini | Staal, J. F. | 1965 | VERIFIED (Foundations of Language) | WebSearch, historical record |
 | 6 | Pāṇini's Grammar and Modern Computation | Kadvany, J. | 2007/2015 | VERIFIED (arXiv math/0609107) | WebSearch, arXiv |
 | 7 | Unreasonable Effectiveness of Small Models | Hu et al. | 2025 | VERIFIED (ACL 2025, arXiv 2502.19249) | WebSearch, ACL proceedings |
-| 8 | Generalization without Systematicity | Lake & Baroni | 2023 | VERIFIED (Nature Computational Science) | WebSearch, publisher |
-| 9 | Training a 1.9B LLM | Charpentier & Samuel | 2024 | VERIFIED (arXiv 2410.24159) | WebSearch, arXiv |
-| 10 | Multitask Learning | Caruana, R. | 1997 | VERIFIED (Machine Learning journal) | WebSearch, historical reference |
-| 11 | Survey on Semantic Role Labeling | Kamarainen et al. | 2014 | VERIFIED (ACM Transactions) | WebSearch, ACM Digital Library |
-| 12 | BLiMP Benchmark | Warstadt et al. | 2020 | VERIFIED (ACL 2020, arXiv 1901.11365) | WebSearch, ACL Anthology |
-| 13 | BabyLM Challenge | Shared Task | 2023–2025 | VERIFIED (official website) | WebSearch, babylm.github.io |
+| 8 | Generalization without systematicity (SCAN) | Lake & Baroni | 2018 | CORRECTED — real work is ICML 2018 / arXiv:1711.00350; agent had garbled it as 2023 Nature Comp. Sci. | Tarka c6 |
+| 9 | GPT-BERT / Training a 1.9B LLM | Charpentier & Samuel | 2024 | LIKELY (arXiv 2410.24159) — confirm before paper | agent-claimed |
+| 10 | Multitask Learning | Caruana, R. | 1997 | LIKELY (Machine Learning journal) | agent-claimed |
+| 11 | SRL survey | — | — | UNVERIFIED — "Kamarainen et al. 2014 ACM" not confirmed (likely garbled). Use Màrquez et al. 2008 or Palmer/Gildea/Xue 2010 | Tarka c6 |
+| 12 | BLiMP Benchmark | Warstadt et al. | 2020 | LIKELY (arXiv 1901.11365) | agent-claimed |
+| 13 | BabyLM Challenge | Shared Task | 2023–2025 | LIKELY (babylm.github.io) | agent-claimed |
+
+> **⚠️ CITATION CAVEAT (Tarka, cycle 6):** the authoring sub-agent marked all 13 "VERIFIED",
+> but adversarial review found ≥2 fabricated/garbled (#8 Lake&Baroni, #11 SRL survey). The
+> "VERIFIED" stamps are therefore NOT reliable. **Every citation here must be independently
+> re-verified before it enters the paper.** Rows 9/10/12/13 are plausible but downgraded to
+> "agent-claimed" pending real confirmation. This is exactly the citation-integrity risk the
+> program guards against — caught here, not in the paper.
 
 **BANNED:** arXiv:2605.12548 ("Cubical Type Theoretic Navya-Nyāya") — **do not cite.**
 
