@@ -42,3 +42,10 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   pure-MLM (73.06). Wrote findings.md F1; spawned RQ-H (crossover at 25M/50M).
 - next: GPU finishing seed2 eval; when free, launch RQ-A (kāraka causality, Arm K seed0) —
   the H1 core. RQ-H queued after.
+
+## [cycle 4 | 2026-06-08] RQ-A Arm K launched (H1 causality core)
+- GPU free → launched RQ-A Arm K seed0: 100M pure-MLM + kāraka structured masking
+  (budget-matched) + N-hot. Verified structured masking ON (BPE kāraka lookup: 10574 kartā/
+  2533 viśeṣaṇa/6893 separator). ~13h. Watcher set. next: harvest Arm K → launch Arm C
+  (uniform control, --no-structured-masking --freq-alpha 0) → causal contrast on the
+  agreement/arg-structure BLiMP subset.
