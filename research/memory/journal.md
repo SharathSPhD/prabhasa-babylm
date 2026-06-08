@@ -90,3 +90,13 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   cache generator (parse corpus → role .bin aligned with token .bin) + train_submission_model
   multi-task wiring (--shabdabodha-aux λ). Then it's launch-ready (after Arm K/Arm C).
 - next: harvest Arm K when done → launch Arm C; RQ-B label-cache + wiring next idle cycles.
+
+## [cycle 9 | 2026-06-09] GPU-free: RQ-B role-label cache generator (real, aligned)
+- GPU busy (Arm K ~57%). Refactored alignment into align_pieces_to_role_ids (shared by
+  builder + generator). Built scripts/build_shabdabodha_cache.py: spaCy-parses corpus
+  (batched nlp.pipe) → uint8 role .bin positionally 1:1 with the token .bin. VERIFIED on a
+  sample: role labels (19) == tokens (19). 9 TDD tests pass, ruff clean. Kicked off the real
+  10M (strict_small) parse in background (CPU, nice -10; won't disturb Arm K).
+- RQ-B now: target builder ✓ + aux head/loss ✓ + label cache generator ✓ (10M parsing).
+  Remaining: train_submission_model --shabdabodha-aux wiring (load role .bin, add λ·aux loss).
+- next: harvest Arm K → launch Arm C; then RQ-B trainer wiring + launch (after Arm K/C).
