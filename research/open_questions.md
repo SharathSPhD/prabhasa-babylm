@@ -41,3 +41,10 @@ The harness pulls from the top; findings spawn new RQs (append below).
 
 ## Appended by the harness (self-directed)
 <!-- new RQs spawned by findings go here, dated -->
+
+## Appended by harness
+- **RQ-H** (from F1, 2026-06-08): At what corpus scale does pure-MLM overtake hybrid, and
+  WHY? Hypothesis: the CLM head competes for capacity; at small data both objectives
+  underfit (neutral), at larger data the MLM signal saturates faster and the CLM steps
+  waste half the gradient. Test: 25M + 50M intermediate scales, pure-MLM vs hybrid,
+  3 seeds, locate the crossover. Cheap (≤2h each) and scientifically clean.

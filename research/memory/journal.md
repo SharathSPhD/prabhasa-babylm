@@ -34,3 +34,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   ruff clean; flag wired. This converts the would-be confounded contrast into a clean causal test.
 - next (unchanged): harvest SS 3-seed CI when seed2 done → record; then launch RQ-A (1 seed
   each directional) when GPU frees.
+
+## [cycle 3 | 2026-06-08] HARVEST → F1 (first validated harness finding)
+- SS pure-MLM seed2 done (62.20). 3-seed CI = 63.58±1.73 (md5-distinct, real). Adversarial
+  verdict CONFIRM-with-correction: the 10M pure-MLM "win" was seed luck; objective effect is
+  SCALE-DEPENDENT (neutral @10M, +5.49 @100M). SS submission stays hybrid (64.09); Strict =
+  pure-MLM (73.06). Wrote findings.md F1; spawned RQ-H (crossover at 25M/50M).
+- next: GPU finishing seed2 eval; when free, launch RQ-A (kāraka causality, Arm K seed0) —
+  the H1 core. RQ-H queued after.
