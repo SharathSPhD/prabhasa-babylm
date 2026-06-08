@@ -280,3 +280,11 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
   (driven by entity +9.68) → likely beats the baseline on the leaderboard zero-shot metric.
 - This is the locked Small/Strict submission candidate (prabhasa-b_s, pure-MLM). 3-seed CI + checkpoint
   sweep next to firm up + chase the BLiMP gap.
+
+## Checkpoint sweep (overfit check) — monotonic, no early peak
+- pure-MLM 100M BLiMP: elc_150M 68.50 → elc_200M 70.40 → final 73.06. Monotonic ↑ with training;
+  no overfit peak. Final checkpoint is best → 73.06 locked. (Overfit hypothesis rejected.)
+- Strict model LOCKED: prabhasa-b_s pure-MLM 100M final (73.06 / TextAvg 55.99), single seed (per s:1-seed directive).
+
+## Strict-Small → pure-MLM (prabhasa-b_ss-0.2), 3-seed
+- Apply the pure-MLM lesson to SS. seed-0 = probe_mlm_10m (65.22). Launching seeds 1+2 for CI.
