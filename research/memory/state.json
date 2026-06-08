@@ -1,0 +1,20 @@
+{
+  "harness": "PRAJNA",
+  "spec": "research/specs/0001-autonomous-harness.md",
+  "cycle": 0,
+  "phase": "BOOTSTRAP",
+  "started": "2026-06-08",
+  "branch": "integration/data-engine-v2",
+  "signoff": "DEFERRED_1_WEEK (findings staged sign-off-pending; no merge-to-main)",
+  "gpu_note": "single GB10; never launch GPU work while occupied (check nvidia-smi)",
+  "current_rq": null,
+  "next_action": "CLOSE current plan: finish SS 3-seed CI (seed2 running), record real CI, then reconcile git + HF/Colab/Pages staging, then begin RQ-A.",
+  "validated_findings": {
+    "strict_100M_pure_mlm": {"blimp": 73.06, "text_avg": 55.99, "supp": 67.46, "entity": 33.26, "comps": 54.51, "note": "single seed; beats Strict baseline on supp+entity+TextAvg"},
+    "objective_ablation": {"hybrid_100M": 67.57, "pure_mlm_100M": 73.06, "delta": 5.49, "10M": {"hybrid": 64.09, "pure_mlm_seed0": 65.22}},
+    "ss_baseline_3seed_hybrid": {"blimp_mean": 64.09, "ci": 0.26}
+  },
+  "documented_nulls": ["causal_scoring(63.92<67.57)", "geglu_rmsnorm(64.45<65.22)", "real_engines_10M(62.08<64.09)", "H2_nyaya_114M(52.75 chance)", "torch_compile_sm121", "H1_COGS_dose(ADR-0017)"],
+  "open_questions_file": "research/open_questions.md",
+  "bugs_fixed_by_verification": ["numpy_shadow_crash", "geglu_rmsnorm_dead_flags", "seed_collapse_fake_CI", "glue_name_truncation"]
+}
