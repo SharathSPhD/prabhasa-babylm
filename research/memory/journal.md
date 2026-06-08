@@ -49,3 +49,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   2533 viśeṣaṇa/6893 separator). ~13h. Watcher set. next: harvest Arm K → launch Arm C
   (uniform control, --no-structured-masking --freq-alpha 0) → causal contrast on the
   agreement/arg-structure BLiMP subset.
+
+## [cycle 5 | 2026-06-08] GPU-free: paper F1 + Pages refresh (verified)
+- GPU busy (Arm K ~14%). Dispatched paper-smith: added F1 (scale-dependent objective,
+  SS pure-MLM 63.58±1.73 vs hybrid 64.09, seed-luck correction) to the paper; refreshed
+  the BADLY-STALE Pages (was old arm A/B/C/D dose n=1) → current honest results (Strict
+  73.06/55.99, SS hybrid 64.09, GLUE 58.07, nulls); npm rebuilt 5 pages. Committed afc31c9
+  (worktree branch). Independently verified: real numbers present, stale data gone, banned
+  cite only guard-comment, dist rebuilt. next: harvest Arm K when done → launch Arm C.
