@@ -297,3 +297,9 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 - Fix (ec1f6d4): re-seed torch with args.seed AFTER build (init stays fixed-seed-0 for fair cross-arm
   comparison; training stochasticity now varies by seed). Re-running SS seeds 1,2 with md5 verification.
 - Strict 73.06 UNAFFECTED (single seed 0; the fix doesn't change seed-0 behavior).
+
+## F1 (harness cycle 3) — objective effect is SCALE-DEPENDENT; SS pure-MLM 3-seed
+- SS pure-MLM 3-seed BLiMP **63.58 ± 1.73** (65.22/63.31/62.20, md5-distinct) vs hybrid
+  64.09 ± 0.26 → NO significant difference @10M (overlapping CIs). The single-seed 65.22
+  was seed luck. At 100M pure-MLM = 73.06 vs hybrid 67.57 (+5.49). → CLM dilution is
+  scale-dependent. SS submission stays HYBRID prabhasa-b_ss-0.1 (64.09); Strict = pure-MLM.

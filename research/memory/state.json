@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 2,
+  "cycle": 3,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "HARVEST SS 3-seed CI when seed2 done (logs/pbss_mlm_fix_queue.log). RQ-A is now LAUNCH-CLEAN (--karaka-budget-match implemented; arms in SPEC 0002). When GPU frees: launch RQ-A Arm K then Arm C, 1 seed each (directional), then expand to 3 seeds. paper-smith folds SS CI + Strict story (GPU-free) meanwhile.",
+  "next_action": "GPU finishing seed2 eval. When FREE: launch RQ-A (SPEC 0002) Arm K seed0 (k\u0101raka budget-matched) \u2014 the H1 mechanism-causality core, the priority experiment; 1 seed directional first (~13h) + tracked watcher. Then Arm C. RQ-H (crossover 25M/50M, cheap) queued after. paper-smith should fold F1 (honest scale-dependent framing) when doing GPU-free work.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md"
   ],
@@ -32,6 +32,12 @@
         "pure_mlm_seed1": 63.31,
         "note": "10M pure-MLM ~64.5\u00b11 = within hybrid noise; the 100M +5.49 is the real large effect"
       }
+    },
+    "F1_scale_dependent_objective": {
+      "ss_pure_mlm_3seed": "63.58\u00b11.73 (md5-distinct)",
+      "vs_hybrid": "64.09\u00b10.26 (no sig diff @10M)",
+      "strict_100M": "+5.49",
+      "verdict": "10M win was seed luck; effect scale-dependent; SS submission stays hybrid"
     }
   },
   "documented_nulls": [
