@@ -57,3 +57,17 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   73.06/55.99, SS hybrid 64.09, GLUE 58.07, nulls); npm rebuilt 5 pages. Committed afc31c9
   (worktree branch). Independently verified: real numbers present, stale data gone, banned
   cite only guard-comment, dist rebuilt. next: harvest Arm K when done → launch Arm C.
+
+## [cycle 6 | 2026-06-08] GPU-free: RQ-B spec (0003) + Tarka caught fabricated citations
+- GPU busy (Arm K ~27%). Dispatched shabdabodha-vyutpatti agent → SPEC 0003 (RQ-B: a
+  śābdabodha verbal-cognition auxiliary objective — 10-class kāraka-grounded token labels
+  built from REAL spaCy+kāraka parses; aux head multi-tasked with pure-MLM; pre-registered
+  +1.0pp threshold on BLiMP arg-structure; TDD plan). Strong, tradition-faithful design.
+- ADVERSARIAL REVIEW (Tarka) on its citations: agent marked all 13 "VERIFIED" but ≥2 were
+  FABRICATED/garbled — #8 Lake&Baroni (claimed 2023 Nature Comp.Sci.; real = SCAN ICML 2018
+  /arXiv:1711.00350) and #11 SRL survey ("Kamarainen et al. 2014" — not a real SRL survey).
+  CORRECTED both; downgraded the rest to "agent-claimed, re-verify before paper". Banned
+  arXiv:2605.12548 only in guard comments (OK). This is the citation-integrity rule working:
+  caught in the spec, not the paper.
+- next: harvest Arm K when done → launch Arm C. RQ-B is design-ready (code TBD) but its
+  citations must be independently re-verified before any paper use.
