@@ -288,3 +288,12 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
 
 ## Strict-Small → pure-MLM (prabhasa-b_ss-0.2), 3-seed
 - Apply the pure-MLM lesson to SS. seed-0 = probe_mlm_10m (65.22). Launching seeds 1+2 for CI.
+
+## 🐛 SEED BUG (caught by verification) — fixed
+- 3-seed pure-MLM SS first attempt: seeds 1,2 byte-identical (md5 90f722d9), BLiMP all 65.22 → a FAKE CI (std=0).
+- Root cause: build_elc_encoder (elc_trainer.py:82) pins init via torch.manual_seed(0); train_submission_model
+  seeded args.seed BEFORE build, so the reset to 0 erased it and the training loop never re-seeded → every
+  --seed identical. Caught by checking md5/loss across seeds (not trusting the identical numbers).
+- Fix (ec1f6d4): re-seed torch with args.seed AFTER build (init stays fixed-seed-0 for fair cross-arm
+  comparison; training stochasticity now varies by seed). Re-running SS seeds 1,2 with md5 verification.
+- Strict 73.06 UNAFFECTED (single seed 0; the fix doesn't change seed-0 behavior).
