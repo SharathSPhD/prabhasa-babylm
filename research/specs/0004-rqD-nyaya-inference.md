@@ -52,5 +52,18 @@ on inferential representation, the honest residue of the H2 ambition.
 - (Do NOT cite arXiv:2605.12548 — fabricated.)
 
 ## Feasibility / cost
-Small LoRA fine-tune + probe, ≤1h GPU per arm. Data construction is CPU (perturbation rules over
-the pramana chains). Build the perturbation generator TDD-first; audit 50 examples for label fidelity.
+Small LoRA fine-tune + probe, ≤1h GPU per arm.
+
+## Existing assets — REUSE, do NOT rebuild (cycle 19 inspection)
+- **Labeled data already exists:** `psalm.domain.nyaya_generator.PanchaAvayavaGenerator.generate(n, seed)`
+  yields labeled examples — valid + 4 hetvābhāsa types (SAVYABHICHARA, VIRUDDHA, ASIDDHA,
+  SATPRATIPAKSHA), each constructed by its DEFINITION (savyabhicāra = hetu not pervaded by sādhya;
+  viruddha = proves ¬sādhya; asiddha = pakṣa lacks the hetu; satpratipakṣa = equal counter-inference).
+  This IS the principled, logic-faithful construction RQ-D needs — no separate perturbation generator.
+  NOTE: bādhita is NOT generated → RQ-D is a **5-way** task {valid + 4 fallacies}, not 6-way. (Adding
+  bādhita = one new `_generate_fallacy_badhita` method if 6-way is wanted later.)
+- **Fine-tune harness exists:** `scripts/run_nyaya_h2_finetune.py` (LoRA + classification head + accuracy).
+  Currently a 3-way NLI head — RQ-D's ONLY new code is: swap to a **5-way fallacy-type head**, feed the
+  chain text → `fallacy_type` label (valid=class 0), and add the sample-efficiency curve (#examples→F1).
+- So RQ-D ≈ ready: generate() → 5-way fine-tune (adapt run_nyaya_h2_finetune) → macro-F1, ≥3 seeds,
+  Pāṇinian-mechanism arm vs matched baseline. Audit 50 generated examples for label fidelity first.
