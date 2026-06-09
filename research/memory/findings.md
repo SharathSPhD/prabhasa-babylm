@@ -18,3 +18,18 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
 - **Consequence:** SS-track submission stays **hybrid prabhasa-b_ss-0.1 (64.09±0.26)**;
   Strict-track recipe is **pure-MLM (73.06)**. Spawns RQ-H (characterise the crossover).
 - **Status:** VALIDATED · sign-off pending.
+
+## F2 — kāraka-masking causality at matched budget: NULL (pre-registered)
+- **Claim:** At MATCHED mask budget (Arm K budget-matched kāraka vs Arm C uniform, both N-hot+RoPE,
+  100M, 1 seed each), kāraka role-stratification of masking has **no significant causal effect** on
+  the agreement+argument-structure BLiMP subset.
+- **Evidence (real, pre-registered cycle 21):** targeted 20-paradigm means — Arm K 82.03 vs Arm C
+  81.93 → **ΔK−C = +0.10, 95%CI (−0.99, +1.2)** (paired bootstrap over paradigms). Full BLiMP:
+  Arm K 71.77 vs Arm C 70.49. NOT significant; falls in the pre-registered NULL branch.
+- **Adversarial verdict: CONFIRM (real, fair, pre-registered).** The masking-DISTRIBUTION lever is
+  neutral. → the 73.06 model's apparent kāraka contribution (+1.23pp seen earlier) is attributable
+  to CONFOUNDS (freq_alpha 0.5, non-budget-matched higher effective rate), NOT role structure per se.
+  Coherent with the 10M real-engine null (62.08<64.09) and F1 (the real wins were RoPE + pure-MLM).
+- **Closure status:** PRELIMINARY NULL — per the contract, ≥2 interventions before final NULL closure:
+  (i) real-deprel kāraka (vs bpe-heuristic) arm; (ii) 3-seed / stronger stratification. Queued.
+  The richer test is RQ-B (kāraka AUX OBJECTIVE — supervised signal, distinct lever) — runs next.

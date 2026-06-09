@@ -303,3 +303,13 @@ Static audit of masking/labels, N-hot wiring, loss reduction, optimizer
   64.09 ± 0.26 → NO significant difference @10M (overlapping CIs). The single-seed 65.22
   was seed luck. At 100M pure-MLM = 73.06 vs hybrid 67.57 (+5.49). → CLM dilution is
   scale-dependent. SS submission stays HYBRID prabhasa-b_ss-0.1 (64.09); Strict = pure-MLM.
+
+## F2 (harness) — kāraka-masking causality NULL at matched budget
+- Arm K (budget-matched kāraka) vs Arm C (uniform), 100M, 1 seed each, N-hot+RoPE+freq0 matched.
+  Targeted 20-paradigm subset: K 82.03 vs C 81.93 → ΔK−C +0.10, 95%CI(−0.99,1.2), NS. Full BLiMP
+  K 71.77 vs C 70.49. PRE-REGISTERED NULL branch. → masking-distribution lever neutral; the 73.06
+  kāraka gain attributable to confounds (freq_alpha, rate), not role structure. Preliminary (≥2
+  interventions for final closure: deprel-kāraka, 3-seed). Coherent with 10M real-engine null + F1.
+- HONEST H1 PICTURE: the real Strict wins were RoPE (architecture) + pure-MLM (objective); the
+  Pāṇinian MASKING mechanisms are causally marginal when properly controlled. RQ-B (kāraka AUX
+  OBJECTIVE — supervised, distinct lever) is the remaining test for a Pāṇinian-mechanism win.
