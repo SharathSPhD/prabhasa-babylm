@@ -281,3 +281,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - GPU: Arm C eval finishing (959786). NEXT GPU run = RQ-B (kāraka AUX OBJECTIVE, distinct lever) —
   the remaining Pāṇinian-mechanism test. RQ-A (masking causality) resolved (preliminary null).
 - next: when GPU free → launch RQ-B 10M (aux=1.0 + matched baseline aux=0); F2 masking-interventions deprioritized.
+
+## [cycle 31 | 2026-06-10] F2 done → RQ-B launched (kāraka AUX objective)
+- GPU free (Arm C harvested: BLiMP 70.49, TextAvg 55.48 via backfill_blimp). Launched RQ-B treatment
+  (aux=1.0, real role cache 14.76M, uniform masking + RoPE pure-MLM 10M) — the remaining Pāṇinian-
+  mechanism test (supervised kāraka signal, distinct from the null masking lever). Chaining watcher
+  watch_rqB: treatment→eval(BLiMP)→reap→baseline(aux=0)→eval→reap→analyze_rqA compare. Uses hardened
+  lessons (BLiMP-only gating, subprocess reaping). ~3h for the A/B.
+- next: RQ-B A/B verdict (does the aux objective causally help where masking didn't?).
