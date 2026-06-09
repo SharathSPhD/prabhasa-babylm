@@ -88,7 +88,7 @@ class RoleStreamPacker:
     batch materialised at a time) and exact (modular wrap mirrors the infinite token stream).
     """
 
-    def __init__(self, roles: "np.ndarray | list[int]", *, seq_len: int) -> None:
+    def __init__(self, roles: np.ndarray | list[int], *, seq_len: int) -> None:
         self._roles = np.asarray(roles, dtype=np.int64).ravel()
         if self._roles.size == 0:
             raise ValueError("RoleStreamPacker: empty role array")
