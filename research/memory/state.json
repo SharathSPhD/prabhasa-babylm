@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Watcher bnd1ilhm0: waits Arm K full summary \u2192 records Arm K \u2192 launches Arm C (uniform control, clean GPU, ~13h). On notification: record Arm K full BLiMP/TextAvg. When Arm C eval done: analyze_rqA --arm-k logs/official/rqA_karaka_seed0__blimp.log --arm-c logs/official/rqA_control_seed0__blimp.log \u2192 F2 (k\u0101raka causality, paired bootstrap 20 paradigms, +1.0pp threshold).",
+  "next_action": "Arm C (uniform control) training ~13h; watcher watch_armC_F2 chains train\u2192eval\u2192analyze_rqA\u2192F2 (k\u0101raka causality, paired bootstrap on 20 targeted paradigms, +1.0pp threshold). On notification: record F2 finding (adversarial review). NOTE summary-writer blimp=None bug \u2014 always backfill blimp from the __blimp.log. GPU-free idle: RQ-D spec, paper, git reconcile.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -69,5 +69,15 @@
   },
   "rqB_progress": "COMPLETE (all 5 pieces, smoke-passed); launch-ready pending 1 real GPU smoke + make-gate full pass",
   "make_gate": "GREEN @c12: 665 passed, 0 failed, coverage 86.66%, ruff/format/mypy clean (incl RQ-B modules)",
-  "armK_partial": "k\u0101raka budget-matched 100M: BLiMP 71.77, supp 68.65, ewok 52.06 (entity/comps pending). Clean-contrast config (freq_alpha 0, budget-matched) \u2260 the 73.06 locked model."
+  "armK_partial": "k\u0101raka budget-matched 100M: BLiMP 71.77, supp 68.65, ewok 52.06 (entity/comps pending). Clean-contrast config (freq_alpha 0, budget-matched) \u2260 the 73.06 locked model.",
+  "armK_final": {
+    "config": "k\u0101raka budget-matched, freq_alpha 0, 100M, seed0",
+    "blimp": 71.77,
+    "supp": 68.65,
+    "ewok": 52.06,
+    "entity": 35.59,
+    "comps": 54.72,
+    "text_avg": 56.56,
+    "note": "summary blimp=None bug backfilled from log"
+  }
 }
