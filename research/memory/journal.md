@@ -132,3 +132,8 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   mypy ✓ (115 files, no issues); full test suite running (all PASSED so far, ~58% through;
   final coverage to confirm next cycle). The shabdabodha modules (cycles 7-11) are gate-clean.
 - next: confirm gate coverage; harvest Arm K when done → record F2 (kāraka causality) → Arm C.
+
+## [cycle 12 confirm] make gate FULLY GREEN — 665 passed, coverage 86.66%
+- Final verdict: ruff+format+mypy green; 665 passed / 3 skipped / 0 failed; coverage 86.66% (≥80).
+  TECHNICAL closure invariant satisfied WITH all RQ-B śābdabodha modules. 17 new tests vs the
+  prior 648 (shabdabodha target/head + RoleStreamPacker + geglu/rmsnorm).
