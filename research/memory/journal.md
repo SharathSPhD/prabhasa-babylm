@@ -156,3 +156,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   (prabhasa_b_s_mlm: 20 targeted, subset mean 82.76). ruff clean. F2 harvest is now a single
   rigorous command once Arm K + Arm C are eval'd.
 - next: harvest Arm K (imminent) → record Arm K BLiMP → launch Arm C → then analyze_rqA → F2.
+
+## [cycle 15 | 2026-06-09] Re-set Arm K watcher + chain Arm C
+- Arm K at step 29401/31909 (~92%, ~54min). The original nohup watcher had died (session
+  restarts) → re-set a tracked watcher (b7ervifv0): waits Arm K DONE → evals Arm K BLiMP →
+  launches Arm C (uniform control: --no-structured-masking --freq-alpha 0, else identical;
+  matched mask budget vs Arm K's --karaka-budget-match) → reports. Chains the causal A/B with
+  no idle GPU.
+- next (auto via watcher b7ervifv0, ~1.5h): Arm K BLiMP recorded + Arm C training (~13h). Then
+  adversarial review + analyze_rqA → F2 (kāraka causality). GPU-free meanwhile: RQ-C/RQ-D spec, etc.

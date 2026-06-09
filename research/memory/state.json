@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 14,
+  "cycle": 15,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Arm K ~88% at c14, ~78min (watcher watch_rqA_armK). HARVEST Arm K BLiMP+TextAvg when DONE (record as the k\u0101raka-budget-matched 100M point). Then launch Arm C (uniform control: identical recipe + --no-structured-masking --freq-alpha 0, seed 0) for the causal contrast. When both eval-ed: uv run python scripts/analyze_rqA.py --arm-k logs/official/rqA_karaka_seed0__blimp.log --arm-c logs/official/rqA_control_seed0__blimp.log \u2192 F2 (k\u0101raka causality, paired bootstrap on 20 targeted paradigms, threshold +1.0pp). Pending: git reconcile #34, RQ-B real GPU smoke.",
+  "next_action": "Watcher b7ervifv0 (tracked) is harvesting Arm K BLiMP + chaining Arm C (uniform control, ~13h). On its completion notification: record Arm K BLiMP/TextAvg (k\u0101raka budget-matched 100M point), confirm Arm C launched. When Arm C eval done (days): uv run python scripts/analyze_rqA.py --arm-k logs/official/rqA_karaka_seed0__blimp.log --arm-c logs/official/rqA_control_seed0__blimp.log \u2192 F2 (paired bootstrap, 20 targeted paradigms, +1.0pp threshold). GPU-free idle cycles: design RQ-D (Nyaya) spec, git reconcile prep, paper polish.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
