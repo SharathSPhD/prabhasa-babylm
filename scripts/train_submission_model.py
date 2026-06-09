@@ -389,7 +389,9 @@ def main() -> None:
             )
 
             nlp = load_spacy_model("en_core_web_sm")
-            karaka_lookup = build_english_karaka_lookup_spacy(nlp, karaka_sample, sp, vocab_size=vocab)
+            karaka_lookup = build_english_karaka_lookup_spacy(
+                nlp, karaka_sample, sp, vocab_size=vocab
+            )
 
             # Count role distribution
             karta_n = sum(1 for r in karaka_lookup._map.values() if r == "karta")

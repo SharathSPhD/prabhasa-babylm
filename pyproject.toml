@@ -147,6 +147,8 @@ fail_under = 80
 target-version = "py311"
 line-length = 100
 src = ["src", "tests"]
+# data/ holds generated artifacts (HF exports auto-emit *.py); never gate-lint them.
+extend-exclude = ["data/", "vendor/", "paper/", "site/"]
 
 [tool.ruff.lint]
 select = [
