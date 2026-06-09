@@ -211,3 +211,14 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   (reusable summary-bug fix; verified idempotent on Arm K). ruff clean. This is the "self-improving
   harness" mandate: the loop stops repeating its own failures.
 - next: Arm C eval → F2 (watcher watch_armC_F2; harvest uses backfill_blimp.py).
+
+## [cycle 18 | 2026-06-09] GPU-free: RQ-D Nyāya spec (feasible reframe of H2 null)
+- GPU busy (Arm C step 6201/31909, clean one-job). Authored SPEC 0004 (RQ-D) MYSELF (controlling
+  citations, given the agent's prior 23% fabrication rate): reframes the H2 generation-null
+  (chance@114M) into a FEASIBLE hetvābhāsa-discrimination probe — 6-way classification {valid +
+  5 Navya-Nyāya fallacy types: savyabhicāra/viruddha/asiddha/satpratipakṣa/bādhita} via
+  principled logic-faithful perturbations of the pramana vyāpti chains. Tests Pāṇinian-mechanism
+  sample-efficiency on inferential validity. Citations limited to human-vouched real (Matilal,
+  Ganeri verified c13; Nyāya-sūtra primary). LoRA probe ≤1h/arm — feasible at 100M.
+- RQ backlog now: RQ-A (running, F2 pending), RQ-B (built), RQ-C (vyutpattivada, queued), RQ-D (designed).
+- next: Arm C eval → F2 (watcher watch_armC_F2; harvest via backfill_blimp.py).
