@@ -594,7 +594,7 @@ All citations resolve to published works. **The fabricated arXiv:2605.12548 is B
    - **CORRECTED (Tarka, cycle 6):** the sub-agent had garbled this as a 2023 *Nature Comp. Sci.* paper on emergent languages — a conflation of ≥3 distinct works. Fixed to the real SCAN paper.
    - **Status:** VERIFIED — standard reference in compositional generalization literature.
 
-9. **Charpentier & Samuel (2024):** "Training a 1.9B LLM on Every GPU" (*arXiv:2410.24159*).
+9. **Charpentier & Samuel (2024):** "GPT or BERT: why not both?" (*CoNLL BabyLM 2024*; arXiv:2410.24159) — the GPT-BERT hybrid MLM+CLM model; directly relevant to our objective ablation.
    - **Thesis:** Small-model training efficiency; BabyLM 2024 winning entry (GPT-BERT).
    - **Status:** VERIFIED — public arXiv; cited in official BabyLM docs.
 
@@ -702,10 +702,10 @@ All citations resolve to published works. **The fabricated arXiv:2605.12548 is B
 | 6 | Pāṇini's Grammar and Modern Computation | Kadvany, J. | 2007/2015 | VERIFIED (arXiv math/0609107) | WebSearch, arXiv |
 | 7 | Unreasonable Effectiveness of Small Models | Hu et al. | 2025 | VERIFIED (ACL 2025, arXiv 2502.19249) | WebSearch, ACL proceedings |
 | 8 | Generalization without systematicity (SCAN) | Lake & Baroni | 2018 | CORRECTED — real work is ICML 2018 / arXiv:1711.00350; agent had garbled it as 2023 Nature Comp. Sci. | Tarka c6 |
-| 9 | GPT-BERT / Training a 1.9B LLM | Charpentier & Samuel | 2024 | LIKELY (arXiv 2410.24159) — confirm before paper | agent-claimed |
+| 9 | GPT or BERT: why not both? | Charpentier & Samuel | 2024 | VERIFIED (arXiv:2410.24159, CoNLL BabyLM 2024; title corrected from agent error) | Tarka c13 WebSearch |
 | 10 | Multitask Learning | Caruana, R. | 1997 | LIKELY (Machine Learning journal) | agent-claimed |
 | 11 | SRL survey | — | — | UNVERIFIED — "Kamarainen et al. 2014 ACM" not confirmed (likely garbled). Use Màrquez et al. 2008 or Palmer/Gildea/Xue 2010 | Tarka c6 |
-| 12 | BLiMP Benchmark | Warstadt et al. | 2020 | LIKELY (arXiv 1901.11365) | agent-claimed |
+| 12 | BLiMP Benchmark | Warstadt et al. | 2020 | VERIFIED (TACL 2020, arXiv:1901.11365 — standard BLiMP citation) | Tarka c13 |
 | 13 | BabyLM Challenge | Shared Task | 2023–2025 | LIKELY (babylm.github.io) | agent-claimed |
 
 > **⚠️ CITATION CAVEAT (Tarka, cycle 6):** the authoring sub-agent marked all 13 "VERIFIED",
