@@ -271,3 +271,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 [cycle 26 | 2026-06-09] HEARTBEAT — Arm C step 27201/31909 (~85%, ~1.7h; seq=192 phase slow at 0.81 step/s); F2 watcher alive; pipeline fully de-risked. Heartbeat; F2 auto-harvests on Arm C completion.
 [cycle 27 | 2026-06-09] HEARTBEAT — Arm C step 28601/31909 (~90%, ~71min train + eval → F2 ~2h); F2 watcher alive (will run analyze_rqA on both blimp logs; F2 uses per-paradigm from logs so the summary-blimp=None bug won't affect it). Heartbeat.
 [cycle 28 | 2026-06-09] HEARTBEAT — Arm C step 30001/31909 (~94%, ~41min train + eval → F2 ~1.5h); F2 watcher alive. Heartbeat; F2 verdict next.
+[cycle 29 | 2026-06-09] HEARTBEAT — Arm C step 31401/31909 (~98%, ~12min to train-done); F2 watcher alive → evals + analyze_rqA → F2 ~1h. Heartbeat; F2 verdict next cycle.
