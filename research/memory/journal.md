@@ -193,3 +193,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   analyze_rqA → F2 (kāraka causality verdict). This was a complication-heavy harvest (contention
   ×2, slow entity_tracking, summary bug) — all caught + fixed; Arm K data is sound.
 - next: Arm C eval → F2.
+
+## [cycle 16 | 2026-06-09] Cleared orphaned eval; Arm C clean
+- GPU had 2 procs: Arm C (training) + an ORPHANED Arm-K-eval subprocess (464412, parent 388155,
+  running an extra wug_adj zero-shot task) that survived the earlier kill → contention. Killed the
+  orphan chain (464412/388155/...). Arm C now ALONE on GPU (one job). Verified Arm C is the only
+  train_submission process. Operational note: official_eval spawns per-task subprocesses; killing
+  the main doesn't always reap children — kill the process group / all eval PIDs.
+- Arm C (uniform control) training (~13h). Watcher watch_armC_F2 will eval + run analyze_rqA → F2.
+- next: Arm C eval → F2 (kāraka causality).
