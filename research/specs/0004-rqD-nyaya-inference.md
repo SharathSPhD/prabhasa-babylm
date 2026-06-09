@@ -54,6 +54,15 @@ on inferential representation, the honest residue of the H2 ambition.
 ## Feasibility / cost
 Small LoRA fine-tune + probe, ≤1h GPU per arm.
 
+## Data validated + dependency (cycle 23)
+- **Unmet dependency (REAL blocker):** `nyaya_generator` imports `pramana.domain.models.nyaya_example`,
+  which is NOT a declared dep. RQ-D runs MUST set `PYTHONPATH=/home/sharaths/projects/pramana/src`
+  (pramana is present there). Before the run, declare it or vendor `NyayaExample`/`Hetvabhasa`.
+- **Data validated:** `generate(n=2000, seed=0)` → 1000 valid + 1000 fallacy, balanced across the 4
+  types (savyabhicāra 253, viruddha 264, asiddha 258, satpratipakṣa 225). Label path is
+  `example.hetvabhasa.fallacies_detected` (a `Hetvabhasa` sub-model), NOT a top-level field.
+  → 5-way classification set is real + balanced; ready once the PYTHONPATH/dep is set.
+
 ## Existing assets — REUSE, do NOT rebuild (cycle 19 inspection)
 - **Labeled data already exists:** `psalm.domain.nyaya_generator.PanchaAvayavaGenerator.generate(n, seed)`
   yields labeled examples — valid + 4 hetvābhāsa types (SAVYABHICHARA, VIRUDDHA, ASIDDHA,

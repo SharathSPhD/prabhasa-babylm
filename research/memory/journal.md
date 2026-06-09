@@ -248,3 +248,13 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   100M corpus + 0.4→0.15 schedule + Muon — differs from Arm K ONLY in kāraka role-stratification.
   F2 contrast confirmed clean (no misconfig). Caught nothing wrong → proceed.
 - next: Arm C eval (~4.5h+eval) → analyze_rqA → F2 (pre-registered cycle 21).
+
+## [cycle 23 | 2026-06-09] RQ-D data validated + pramana dependency caught
+- GPU busy (Arm C step 22001/31909, ~69%). Validated RQ-D's data by generating + auditing:
+  REAL catch — nyaya_generator needs pramana on PYTHONPATH (/home/sharaths/projects/pramana/src;
+  unmet dep, ModuleNotFoundError) → RQ-D launch must set it (documented in SPEC 0004). With it,
+  generate(2000,seed0) = 1000 valid + 1000 fallacy, balanced (savyabhicara 253/viruddha 264/
+  asiddha 258/satpratipaksha 225). Label path = example.hetvabhasa.fallacies_detected (a Hetvabhasa
+  sub-model) — my first audit used the wrong path (false 'all-valid'); caught it by reading the model
+  (adversarial discipline: didn't accept the apparent bug without verifying). RQ-D 5-way data is sound.
+- next: Arm C eval (~3h) → analyze_rqA → F2 (pre-registered).

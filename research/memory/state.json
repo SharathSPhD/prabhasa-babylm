@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 22,
+  "cycle": 23,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -83,5 +83,6 @@
   "harness_hardening": "cycle-runner playbook + scripts/backfill_blimp.py encode cycles 11-16 lessons (eval-gating, subprocess reaping, blimp backfill, md5 seed check)",
   "f2_armK_subset_mean": 82.03,
   "f2_preregistered": "SPEC 0002: POSITIVE (\u0394K\u2212C\u2265+1pp,CI>0) / NULL (within noise) / NEGATIVE (\u2264\u22121pp). Committed before Arm C.",
-  "armC_validated": "uniform control confirmed (no structured masking, freq_alpha 0, N-hot+RoPE matched) \u2014 F2 contrast clean"
+  "armC_validated": "uniform control confirmed (no structured masking, freq_alpha 0, N-hot+RoPE matched) \u2014 F2 contrast clean",
+  "rqD_data": "validated: 1000 valid+1000 fallacy balanced (4 types); needs PYTHONPATH=/home/sharaths/projects/pramana/src (unmet dep, documented in SPEC 0004)"
 }
