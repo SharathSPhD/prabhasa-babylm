@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 10,
+  "cycle": 11,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Arm K ~65% at c10 (~3h, watcher watch_rqA_armK). HARVEST Arm K \u2192 launch Arm C. RQ-B last piece: wire train_submission_model --shabdabodha-aux LAMBDA: load data/corpora/strict_small/shabdabodha_roles_eos.bin \u2192 RoleStreamPacker(seq_len) in lockstep with TokenPacker; instantiate ShabdabodhaHead(d_model) (add params to optimizer); in MLM step add lambda*shabdabodha_aux_loss(head(hidden), role_batch[:,:cur_seq]). Then RQ-B launch-ready (after Arm K/C). Pending: git reconcile #34.",
+  "next_action": "Arm K ~78% at c11 (~2h, watcher watch_rqA_armK). HARVEST Arm K BLiMP when done \u2192 adversarial review \u2192 record F2 (k\u0101raka causality) \u2192 launch Arm C (uniform control). RQ-B COMPLETE+smoke-passed (--shabdabodha-aux): before its full A/B, run ONE real GPU smoke (train_submission_model --objective mlm --shabdabodha-aux 1.0 --base-dir data/corpora/strict_small, ~20 steps) to confirm GPU path. make-gate full pass DUE (run when convenient). Pending: git reconcile #34.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -67,5 +67,5 @@
   "flags": {
     "rqB_citations": "SPEC 0003 citations agent-claimed; \u22652 were fabricated (fixed); re-verify ALL before paper use"
   },
-  "rqB_progress": "target\u2713 head/loss\u2713 cache-gen\u2713 RoleStreamPacker\u2713 (eos-cache parsing); FINAL=trainer --shabdabodha-aux wiring"
+  "rqB_progress": "COMPLETE (all 5 pieces, smoke-passed); launch-ready pending 1 real GPU smoke + make-gate full pass"
 }
