@@ -43,7 +43,8 @@ from psalm.infrastructure.ml.leaderboard_levers import (
     scheduled_mask_prob,
 )
 from psalm.infrastructure.ml.nhot_embeddings import NhotEmbedding, build_nhot_matrix
-from psalm.infrastructure.ml.packing import TokenPacker
+from psalm.infrastructure.ml.packing import RoleStreamPacker, TokenPacker
+from psalm.infrastructure.ml.shabdabodha_head import ShabdabodhaHead, shabdabodha_aux_loss
 from psalm.infrastructure.ml.structured_masking import (
     KarakaRoleLookup,
     SalienceTransfer,
@@ -210,6 +211,18 @@ def main() -> None:
         "Off by default to preserve the validated 73.06 recipe.",
     )
     ap.add_argument(
+        "--shabdabodha-aux",
+        type=float,
+        default=0.0,
+        help="RQ-B (SPEC 0003): weight λ for the śābdabodha role-prediction auxiliary loss "
+        "(multi-task with MLM: total = mlm + λ·aux). 0 = off.",
+    )
+    ap.add_argument(
+        "--shabdabodha-roles",
+        default="data/corpora/strict_small/shabdabodha_roles_eos.bin",
+        help="Path to the --with-eos-role role-label cache (uint8, lockstep with TokenPacker).",
+    )
+    ap.add_argument(
         "--karaka-mode",
         choices=["bpe", "deprel"],
         default="bpe",
@@ -326,6 +339,26 @@ def main() -> None:
     if device == "cuda":
         torch.cuda.manual_seed_all(args.seed)
 
+    # RQ-B (SPEC 0003): śābdabodha auxiliary head + role-label stream. Attached as a
+    # submodule BEFORE the optimizer so its params are optimised too. Off unless λ>0.
+    shabdabodha_roles = None
+    if args.shabdabodha_aux > 0:
+        if args.objective != "mlm":
+            raise SystemExit(
+                "--shabdabodha-aux requires --objective mlm (role-stream lockstep assumes "
+                "every step is MLM; hybrid CLM steps would desync the role iterator)."
+            )
+        model.shabdabodha_head = ShabdabodhaHead(cfg.d_model).to(device)  # type: ignore[assignment]
+        roles_path = Path(args.shabdabodha_roles)
+        if not roles_path.exists():
+            raise SystemExit(f"--shabdabodha-aux set but role cache missing: {roles_path}")
+        shabdabodha_roles = np.memmap(roles_path, dtype=np.uint8, mode="r")
+        print(
+            f"śābdabodha aux: ON (λ={args.shabdabodha_aux}, roles={len(shabdabodha_roles):,} "
+            f"from {roles_path.name})",
+            flush=True,
+        )
+
     # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM)
     karaka_lookup: KarakaRoleLookup | None = None
     salience_transfer: SalienceTransfer | None = None
@@ -436,6 +469,14 @@ def main() -> None:
     ) -> tuple[float, float, float]:
         """Returns (last_loss, best_loss, words_processed_this_stage)."""
         it = packer.packed_batches(stream(lines), batch_size=args.batch_size, device=device)
+        # RQ-B: role-label batches in lockstep with the token packer (same seq_len windowing).
+        role_it = (
+            RoleStreamPacker(shabdabodha_roles, seq_len=args.max_seq_len).packed_batches(
+                n_steps, args.batch_size, device=device
+            )
+            if shabdabodha_roles is not None
+            else None
+        )
         last = best = float("inf")
         ema = None
         t0 = time.time()
@@ -524,6 +565,14 @@ def main() -> None:
                         masked, objective=HybridObjective.MLM, labels=batch, mlm_mask=loss_mask
                     )
                     loss = aux["loss"]
+                    if role_it is not None:
+                        # RQ-B: śābdabodha role-prediction aux loss on the SAME forward's
+                        # hidden states (single forward); total = mlm + λ·aux.
+                        role_batch = next(role_it)[:, :cur_seq]
+                        aux_logits = model.shabdabodha_head(aux["hidden_mlm"])
+                        loss = loss + args.shabdabodha_aux * shabdabodha_aux_loss(
+                            aux_logits, role_batch
+                        )
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             for o in opts:

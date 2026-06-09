@@ -222,6 +222,7 @@ class ElcPsalmEncoder(nn.Module):
             if labels is not None and mlm_mask is not None:
                 aux["mlm_loss"] = _masked_ce(logits, labels, mlm_mask)
             aux["logits_mlm"] = logits
+            aux["hidden_mlm"] = hidden  # for the RQ-B śābdabodha aux head (single forward)
 
         if obj is HybridObjective.CLM or obj is HybridObjective.HYBRID:
             hidden_c = self.encode(idx, attn_mode=_AttnMode.CAUSAL)

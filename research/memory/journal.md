@@ -112,3 +112,15 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - RQ-B: target builder ✓ + head/loss ✓ + cache gen ✓ + RoleStreamPacker ✓. FINAL piece =
   train_submission_model --shabdabodha-aux λ wiring (load eos-cache → RoleStreamPacker → aux loss).
 - next: harvest Arm K → launch Arm C; then the trainer wiring (last RQ-B piece).
+
+## [cycle 11 | 2026-06-09] RQ-B COMPLETE — trainer wiring + smoke pass
+- GPU busy (Arm K ~78%). eos-aligned 10M cache verified (14,761,403 = tokens + per-line eos). Wired
+  train_submission_model: --shabdabodha-aux λ + --shabdabodha-roles; exposed aux['hidden_mlm'] in the
+  model forward (single forward); attached ShabdabodhaHead as a submodule BEFORE the optimizer (params
+  optimised); RoleStreamPacker role iterator in lockstep with TokenPacker; total = mlm + λ·aux in the
+  MLM step. Guard: requires --objective mlm (lockstep). CPU integration SMOKE PASS: 3 steps, aux head
+  trains (nonzero grad), single forward. ruff clean.
+- RQ-B is now COMPLETE (spec→target→head/loss→cache+packer→wiring), all TDD/smoke-validated. Launch-ready
+  pending ONE real GPU smoke (full trainer, ~20 steps, real role cache) before the full A/B (do when GPU free).
+- NOTE: make gate full-pass is DUE (cycles 7-11 added shabdabodha modules + RoleStreamPacker + wiring).
+- next: harvest Arm K → launch Arm C; then a real GPU smoke of RQ-B + make gate pass.
