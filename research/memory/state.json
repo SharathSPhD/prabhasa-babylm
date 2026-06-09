@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 17,
+  "cycle": 18,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Arm C (uniform control) training ~13h, clean (one GPU job). Watcher watch_armC_F2 chains train\u2192eval\u2192analyze_rqA\u2192F2. On notification: adversarial-review + record F2 (k\u0101raka causality: Arm K 71.77 vs Arm C, paired bootstrap 20 targeted paradigms, +1.0pp threshold; backfill blimp from log if summary=None). Watch for orphaned eval subprocesses (kill all eval PIDs, not just main). GPU-free idle: RQ-D spec, paper polish, git reconcile.",
+  "next_action": "Arm C training ~11h (step 6201, clean). Watcher watch_armC_F2: train\u2192eval\u2192analyze_rqA\u2192F2 (k\u0101raka causality vs Arm K 71.77). On notification: backfill_blimp.py both summaries, adversarial-review, record F2. Specs ready: RQ-B (built, needs GPU smoke + run), RQ-D (0004, Nyaya hetvabhasa probe, feasible). GPU-free idle: RQ-C spec / paper / git reconcile (after training).",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
