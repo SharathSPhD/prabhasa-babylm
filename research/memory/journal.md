@@ -183,3 +183,13 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   (budget-matched, freq_alpha 0) = 71.77 is a DIFFERENT clean-contrast config. F2 = Arm K vs
   Arm C (uniform, matched budget) — both freq_alpha 0; isolates kāraka role-distribution effect.
 - next: watcher reports Arm K full + launches Arm C; when Arm C eval'd (days) → analyze_rqA → F2.
+
+## [cycle 15d | 2026-06-09] Arm K FINAL + Arm C clean + summary bug fixed
+- Arm K (kāraka budget-matched, 100M, seed 0) FINAL: BLiMP 71.77, supp 68.65, ewok 52.06,
+  entity 35.59, comps 54.72, TextAvg 56.56. Summary-writer bug: blimp came back None in
+  official_summary.json (TextAvg wrongly 52.755 over 4 tasks) — backfilled blimp 71.77 from the
+  log, recomputed TextAvg 56.56. Lingering eval (on extra wug_adj task) killed → Arm C clean.
+- Arm C (uniform control, matched budget) training (~13h). Watcher watch_armC_F2: train→eval→
+  analyze_rqA → F2 (kāraka causality verdict). This was a complication-heavy harvest (contention
+  ×2, slow entity_tracking, summary bug) — all caught + fixed; Arm K data is sound.
+- next: Arm C eval → F2.
