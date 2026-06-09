@@ -268,3 +268,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   is a supervised lever, distinct from masking, so worth testing at 10M then 100M).
 - next: Arm C eval (~2.7h) → analyze_rqA → F2 (pre-registered). Then RQ-B 10M.
 [cycle 25 | 2026-06-09] HEARTBEAT — Arm C step 25801/31909 (~81%, ~2.2h, clean one-job); F2 watcher alive. De-risking complete (F2 pre-reg, control valid, RQ-D data+dep, RQ-B ready). No non-premature GPU-free work → heartbeat. F2 auto-harvests when Arm C done.
+[cycle 26 | 2026-06-09] HEARTBEAT — Arm C step 27201/31909 (~85%, ~1.7h; seq=192 phase slow at 0.81 step/s); F2 watcher alive; pipeline fully de-risked. Heartbeat; F2 auto-harvests on Arm C completion.
