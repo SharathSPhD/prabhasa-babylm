@@ -222,3 +222,13 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   Ganeri verified c13; Nyāya-sūtra primary). LoRA probe ≤1h/arm — feasible at 100M.
 - RQ backlog now: RQ-A (running, F2 pending), RQ-B (built), RQ-C (vyutpattivada, queued), RQ-D (designed).
 - next: Arm C eval → F2 (watcher watch_armC_F2; harvest via backfill_blimp.py).
+
+## [cycle 19 | 2026-06-09] RQ-D assets already exist (avoided redundant build)
+- GPU busy (Arm C step 10601/31909, clean). Was about to build an RQ-D hetvābhāsa perturbation
+  generator — INSPECTED FIRST and found it redundant: PanchaAvayavaGenerator.generate() already
+  yields labeled valid + 4-fallacy examples (savyabhicara/viruddha/asiddha/satpratipaksha), each
+  constructed by its definition (the logic-faithful construction RQ-D wanted). run_nyaya_h2_finetune.py
+  already does LoRA+classification. Corrected SPEC 0004: RQ-D = REUSE generate() + adapt the fine-tune
+  to a 5-way fallacy-type head (only new code) + sample-efficiency curve. bādhita absent → 5-way not
+  6-way (noted). Good engineering discipline: inspection prevented redundant code.
+- next: Arm C eval → F2. RQ-D is ~ready (5-way readout adaptation when its turn comes).
