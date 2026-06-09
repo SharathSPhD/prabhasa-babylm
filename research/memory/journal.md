@@ -241,3 +241,10 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   BEFORE seeing Arm C — committing the verdict-per-outcome so it can't be rationalised post-hoc
   (adversarial-reviewer discipline). F2 = paired bootstrap ΔK−C on the 20 paradigms.
 - next: Arm C eval (~6h) → analyze_rqA → F2 verdict (already pre-registered).
+
+## [cycle 22 | 2026-06-09] Arm C control validity verified
+- GPU busy (Arm C step 19401/31909, ~61%, ~4.5h). Verified Arm C is a VALID control before it
+  finishes: uniform masking (Structured masking ON count = 0), freq_alpha 0, N-hot ON, RoPE, same
+  100M corpus + 0.4→0.15 schedule + Muon — differs from Arm K ONLY in kāraka role-stratification.
+  F2 contrast confirmed clean (no misconfig). Caught nothing wrong → proceed.
+- next: Arm C eval (~4.5h+eval) → analyze_rqA → F2 (pre-registered cycle 21).
