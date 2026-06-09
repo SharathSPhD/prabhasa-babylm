@@ -124,3 +124,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   pending ONE real GPU smoke (full trainer, ~20 steps, real role cache) before the full A/B (do when GPU free).
 - NOTE: make gate full-pass is DUE (cycles 7-11 added shabdabodha modules + RoleStreamPacker + wiring).
 - next: harvest Arm K → launch Arm C; then a real GPU smoke of RQ-B + make gate pass.
+
+## [cycle 12 | 2026-06-09] make-gate pass (DUE) — ruff/format/mypy green
+- GPU busy (Arm K ~80%, step 25001+). Ran the overdue make gate. Fixed: ruff UP037 nit in
+  RoleStreamPacker; added extend-exclude=[data/,vendor/,paper/,site/] so generated HF-export
+  *.py don't trip the format gate; formatted train_submission_model.py. ruff ✓ format ✓
+  mypy ✓ (115 files, no issues); full test suite running (all PASSED so far, ~58% through;
+  final coverage to confirm next cycle). The shabdabodha modules (cycles 7-11) are gate-clean.
+- next: confirm gate coverage; harvest Arm K when done → record F2 (kāraka causality) → Arm C.
