@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Watcher b3f63hx41 (tracked): waits Arm K FULL eval \u2192 reports Arm K (k\u0101raka budget-matched 100M BLiMP/TextAvg) \u2192 relaunches Arm C (uniform control, one clean GPU job, ~13h). On its notification: record Arm K result. When Arm C eval done: analyze_rqA \u2192 F2 (k\u0101raka causality, paired bootstrap, 20 targeted paradigms). Fixed: watcher chaining now gates on eval-complete (cycle-15 contention lesson).",
+  "next_action": "Watcher bnd1ilhm0: waits Arm K full summary \u2192 records Arm K \u2192 launches Arm C (uniform control, clean GPU, ~13h). On notification: record Arm K full BLiMP/TextAvg. When Arm C eval done: analyze_rqA --arm-k logs/official/rqA_karaka_seed0__blimp.log --arm-c logs/official/rqA_control_seed0__blimp.log \u2192 F2 (k\u0101raka causality, paired bootstrap 20 paradigms, +1.0pp threshold).",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -68,5 +68,6 @@
     "rqB_citations": "re-verified: 3 of 13 agent citations were defective (Lake&Baroni venue, SRL-survey, GPT-BERT title) \u2014 all fixed in spec 0003; remainder confirmed plausible. Re-check Caruana/Kadvany before paper."
   },
   "rqB_progress": "COMPLETE (all 5 pieces, smoke-passed); launch-ready pending 1 real GPU smoke + make-gate full pass",
-  "make_gate": "GREEN @c12: 665 passed, 0 failed, coverage 86.66%, ruff/format/mypy clean (incl RQ-B modules)"
+  "make_gate": "GREEN @c12: 665 passed, 0 failed, coverage 86.66%, ruff/format/mypy clean (incl RQ-B modules)",
+  "armK_partial": "k\u0101raka budget-matched 100M: BLiMP 71.77, supp 68.65, ewok 52.06 (entity/comps pending). Clean-contrast config (freq_alpha 0, budget-matched) \u2260 the 73.06 locked model."
 }

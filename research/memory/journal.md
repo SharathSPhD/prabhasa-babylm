@@ -174,3 +174,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   waits for the FULL eval summary BEFORE relaunching Arm C. Operational lesson: watcher chaining
   must gate on eval-COMPLETE, not a fixed timeout.
 - next: watcher b3f63hx41 reports Arm K full BLiMP/TextAvg + relaunches Arm C (clean). Then F2.
+
+## [cycle 15c | 2026-06-09] Arm K eval (partial) + clean Arm C chain
+- Arm K (kāraka budget-matched, 100M) eval: BLiMP 71.77, supplement 68.65 (>baseline 65.0),
+  EWoK 52.06; entity+comps finishing. Contention fix held (Arm C did NOT relaunch prematurely).
+  Patient watcher bnd1ilhm0 now gates Arm C on the full summary (one clean GPU job).
+- Reference: locked pure-MLM (73.06) used non-budget-matched kāraka + freq_alpha 0.5; Arm K
+  (budget-matched, freq_alpha 0) = 71.77 is a DIFFERENT clean-contrast config. F2 = Arm K vs
+  Arm C (uniform, matched budget) — both freq_alpha 0; isolates kāraka role-distribution effect.
+- next: watcher reports Arm K full + launches Arm C; when Arm C eval'd (days) → analyze_rqA → F2.
