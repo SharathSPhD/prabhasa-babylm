@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Watcher b7ervifv0 (tracked) is harvesting Arm K BLiMP + chaining Arm C (uniform control, ~13h). On its completion notification: record Arm K BLiMP/TextAvg (k\u0101raka budget-matched 100M point), confirm Arm C launched. When Arm C eval done (days): uv run python scripts/analyze_rqA.py --arm-k logs/official/rqA_karaka_seed0__blimp.log --arm-c logs/official/rqA_control_seed0__blimp.log \u2192 F2 (paired bootstrap, 20 targeted paradigms, +1.0pp threshold). GPU-free idle cycles: design RQ-D (Nyaya) spec, git reconcile prep, paper polish.",
+  "next_action": "Watcher b3f63hx41 (tracked): waits Arm K FULL eval \u2192 reports Arm K (k\u0101raka budget-matched 100M BLiMP/TextAvg) \u2192 relaunches Arm C (uniform control, one clean GPU job, ~13h). On its notification: record Arm K result. When Arm C eval done: analyze_rqA \u2192 F2 (k\u0101raka causality, paired bootstrap, 20 targeted paradigms). Fixed: watcher chaining now gates on eval-complete (cycle-15 contention lesson).",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"

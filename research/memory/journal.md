@@ -165,3 +165,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   no idle GPU.
 - next (auto via watcher b7ervifv0, ~1.5h): Arm K BLiMP recorded + Arm C training (~13h). Then
   adversarial review + analyze_rqA → F2 (kāraka causality). GPU-free meanwhile: RQ-C/RQ-D spec, etc.
+
+## [cycle 15b | 2026-06-09] Arm K done; caught+fixed GPU contention
+- Arm K (kāraka budget-matched 100M) training DONE: best_loss 0.405, wall 760min. The cycle-15
+  watcher launched Arm C while Arm K's eval was STILL running → 3 GPU procs (contention, violates
+  one-GPU-job; no OOM on 128GB but inelegant + slows both). CAUGHT it: killed the just-launched
+  Arm C, let the Arm K eval finish on a clean GPU. Re-set a corrected watcher (b3f63hx41) that
+  waits for the FULL eval summary BEFORE relaunching Arm C. Operational lesson: watcher chaining
+  must gate on eval-COMPLETE, not a fixed timeout.
+- next: watcher b3f63hx41 reports Arm K full BLiMP/TextAvg + relaunches Arm C (clean). Then F2.
