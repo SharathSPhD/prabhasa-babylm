@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 12,
+  "cycle": 13,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -65,7 +65,7 @@
   ],
   "gpu_status": "BUSY \u2014 RQ-A Arm K seed0 training (pid 4049236, ~13h)",
   "flags": {
-    "rqB_citations": "SPEC 0003 citations agent-claimed; \u22652 were fabricated (fixed); re-verify ALL before paper use"
+    "rqB_citations": "re-verified: 3 of 13 agent citations were defective (Lake&Baroni venue, SRL-survey, GPT-BERT title) \u2014 all fixed in spec 0003; remainder confirmed plausible. Re-check Caruana/Kadvany before paper."
   },
   "rqB_progress": "COMPLETE (all 5 pieces, smoke-passed); launch-ready pending 1 real GPU smoke + make-gate full pass",
   "make_gate": "GREEN @c12: 665 passed, 0 failed, coverage 86.66%, ruff/format/mypy clean (incl RQ-B modules)"

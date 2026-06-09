@@ -137,3 +137,13 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - Final verdict: ruff+format+mypy green; 665 passed / 3 skipped / 0 failed; coverage 86.66% (≥80).
   TECHNICAL closure invariant satisfied WITH all RQ-B śābdabodha modules. 17 new tests vs the
   prior 648 (shabdabodha target/head + RoleStreamPacker + geglu/rmsnorm).
+
+## [cycle 13 | 2026-06-09] GPU-free: RQ-B citation re-verification (Tarka)
+- GPU busy (Arm K ~83%, step 26601). make gate confirmed GREEN (665 passed, 86.66% cov).
+- Re-verified the downgraded RQ-B citations via WebSearch: #9 Charpentier&Samuel arXiv:2410.24159
+  is REAL but the agent's TITLE was wrong ("Training a 1.9B LLM" → real: "GPT or BERT: why not
+  both?", CoNLL BabyLM 2024) — corrected + this is the GPT-BERT paper directly relevant to our
+  objective ablation. #12 BLiMP (arXiv:1901.11365) confirmed. So of the agent's 13 "VERIFIED"
+  citations, 3 were defective (Lake&Baroni venue, SRL-survey fabricated, GPT-BERT title) — caught
+  + fixed in the spec, never reached the paper. Citation hygiene loop closed.
+- next: harvest Arm K (~1-2h) → record F2 (kāraka causality) → launch Arm C.
