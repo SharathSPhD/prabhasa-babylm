@@ -21,7 +21,10 @@ import sentencepiece as spm
 import spacy
 
 from psalm.domain.linguistics.english_karaka_real import assign_karaka_roles_spacy
-from psalm.infrastructure.ml.shabdabodha_target import align_pieces_to_role_ids
+from psalm.infrastructure.ml.shabdabodha_target import (
+    SHABDABODHA_LABELS,
+    align_pieces_to_role_ids,
+)
 
 
 def main() -> None:
@@ -30,6 +33,12 @@ def main() -> None:
     ap.add_argument("--tokenizer", default="data/tokenizer/strict_small/spm.model")
     ap.add_argument("--out", default=None, help="default: <base-dir>/shabdabodha_roles.bin")
     ap.add_argument("--batch-size", type=int, default=256)
+    ap.add_argument(
+        "--with-eos-role",
+        action="store_true",
+        help="Append a 'separator' role after each line, matching TokenPacker's per-line "
+        "eos_id (use this for the TRAINER-aligned cache; omit for the BinDataset-aligned one).",
+    )
     args = ap.parse_args()
 
     base = Path(args.base_dir)
@@ -51,6 +60,8 @@ def main() -> None:
         role_names = [tr.role for tr in assign_karaka_roles_spacy(doc)]
         pieces = sp.EncodeAsPieces(line)
         labels.extend(align_pieces_to_role_ids(pieces, role_names))
+        if args.with_eos_role:
+            labels.append(SHABDABODHA_LABELS["separator"])  # matches TokenPacker eos_id
         if i % 100_000 == 0 and i > 0:
             print(f"  {i:,} lines, {len(labels):,} labels", flush=True)
 
@@ -60,13 +71,19 @@ def main() -> None:
     fp.flush()
     print(f"wrote {len(arr):,} role labels -> {out}", flush=True)
 
-    # Alignment check vs the token .bin (must match length exactly).
+    # Alignment check vs the token .bin. Without --with-eos-role the role stream matches
+    # BinDataset.build exactly; with it, the role stream has one extra 'separator' per line
+    # (matching TokenPacker's per-line eos_id), so expected = ntok + n_lines.
     if tok_bin.exists():
         ntok = len(np.memmap(tok_bin, dtype="uint16", mode="r"))
-        status = "OK" if ntok == len(arr) else "MISMATCH"
-        print(f"alignment vs {tok_bin.name}: tokens={ntok:,} labels={len(arr):,} -> {status}")
-        if ntok != len(arr):
-            raise SystemExit("role-label cache length != token .bin length (alignment bug)")
+        expected = ntok + len(nonempty) if args.with_eos_role else ntok
+        status = "OK" if expected == len(arr) else "MISMATCH"
+        print(
+            f"alignment vs {tok_bin.name}: tokens={ntok:,} +eos_roles={len(nonempty) if args.with_eos_role else 0:,} "
+            f"expected={expected:,} labels={len(arr):,} -> {status}"
+        )
+        if expected != len(arr):
+            raise SystemExit("role-label cache length mismatch (alignment bug)")
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
 
+import numpy as np
 import torch
 
 
@@ -75,3 +76,32 @@ class TokenPacker:
     def _to_tensors(batch: list[list[int]], device: str) -> tuple[torch.Tensor, torch.Tensor]:
         t = torch.tensor(batch, dtype=torch.long, device=device)
         return t[:, :-1].contiguous(), t[:, 1:].contiguous()
+
+
+class RoleStreamPacker:
+    """Windows a flat role-label array into ``(batch, seq_len)`` tensors in lockstep
+    with ``TokenPacker.packed_batches`` (RQ-B / SPEC 0003).
+
+    The role array must be built with ``--with-eos-role`` so its per-line length equals
+    TokenPacker's ``encode(line)+eos`` stream; then continuous modular ``seq_len`` windowing
+    yields role windows positionally aligned with the token windows. Memory-light (only one
+    batch materialised at a time) and exact (modular wrap mirrors the infinite token stream).
+    """
+
+    def __init__(self, roles: "np.ndarray | list[int]", *, seq_len: int) -> None:
+        self._roles = np.asarray(roles, dtype=np.int64).ravel()
+        if self._roles.size == 0:
+            raise ValueError("RoleStreamPacker: empty role array")
+        self.seq_len = seq_len
+
+    def packed_batches(
+        self, n_steps: int, batch_size: int, *, device: str
+    ) -> Iterator[torch.Tensor]:
+        n = self._roles.size
+        step_len = batch_size * self.seq_len
+        pos = 0
+        for _ in range(n_steps):
+            idx = np.arange(pos, pos + step_len) % n
+            batch = self._roles[idx].reshape(batch_size, self.seq_len)
+            pos = (pos + step_len) % n
+            yield torch.tensor(batch, dtype=torch.long, device=device)

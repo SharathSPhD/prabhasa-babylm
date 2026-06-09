@@ -100,3 +100,15 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - RQ-B now: target builder ✓ + aux head/loss ✓ + label cache generator ✓ (10M parsing).
   Remaining: train_submission_model --shabdabodha-aux wiring (load role .bin, add λ·aux loss).
 - next: harvest Arm K → launch Arm C; then RQ-B trainer wiring + launch (after Arm K/C).
+
+## [cycle 10 | 2026-06-09] GPU-free: RoleStreamPacker + trainer-aligned cache
+- GPU busy (Arm K ~65%). 10M role cache COMPLETE+verified (13,757,590 labels == token .bin, OK).
+- Found: trainer uses TokenPacker (re-encodes lines, adds eos per line, fixed order no shuffle),
+  NOT the .bin. So built RoleStreamPacker (packing.py): windows a flat role array in lockstep
+  with TokenPacker via continuous modular windowing. Added --with-eos-role to the cache generator
+  (separator role per line eos) so the role stream is positionally 1:1 with the token stream.
+  3 TDD tests PASS incl. the core invariant on REAL data: len(tok)==len(role), every EOS↔separator.
+  ruff clean. Re-running the eos-aligned 10M cache in bg (shabdabodha_roles_eos.bin).
+- RQ-B: target builder ✓ + head/loss ✓ + cache gen ✓ + RoleStreamPacker ✓. FINAL piece =
+  train_submission_model --shabdabodha-aux λ wiring (load eos-cache → RoleStreamPacker → aux loss).
+- next: harvest Arm K → launch Arm C; then the trainer wiring (last RQ-B piece).
