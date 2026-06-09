@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 23,
+  "cycle": 24,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -84,5 +84,6 @@
   "f2_armK_subset_mean": 82.03,
   "f2_preregistered": "SPEC 0002: POSITIVE (\u0394K\u2212C\u2265+1pp,CI>0) / NULL (within noise) / NEGATIVE (\u2264\u22121pp). Committed before Arm C.",
   "armC_validated": "uniform control confirmed (no structured masking, freq_alpha 0, N-hot+RoPE matched) \u2014 F2 contrast clean",
-  "rqD_data": "validated: 1000 valid+1000 fallacy balanced (4 types); needs PYTHONPATH=/home/sharaths/projects/pramana/src (unmet dep, documented in SPEC 0004)"
+  "rqD_data": "validated: 1000 valid+1000 fallacy balanced (4 types); needs PYTHONPATH=/home/sharaths/projects/pramana/src (unmet dep, documented in SPEC 0004)",
+  "rqB_launch_cmd": "PYTHONPATH not needed. 10M: uv run python scripts/train_submission_model.py --base-dir data/corpora/strict_small --dose-arms A --dose-epochs 0 --english-epochs 10 --batch-size 256 --max-seq-len 192 --peak-lr 1e-3 --muon-lr 0.01 --mask-start 0.40 --mask-end 0.15 --mask-kind cosine --freq-alpha 0 --objective mlm --pos-encoding rope --shabdabodha-aux 1.0 --shabdabodha-roles data/corpora/strict_small/shabdabodha_roles_eos.bin --require-cuda --seed 0 --out data/checkpoints/rqB_aux/seed_0 ; AND a matched baseline with --shabdabodha-aux 0."
 }
