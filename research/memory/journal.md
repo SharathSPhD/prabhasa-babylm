@@ -258,3 +258,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   sub-model) — my first audit used the wrong path (false 'all-valid'); caught it by reading the model
   (adversarial discipline: didn't accept the apparent bug without verifying). RQ-D 5-way data is sound.
 - next: Arm C eval (~3h) → analyze_rqA → F2 (pre-registered).
+
+## [cycle 24 | 2026-06-09] RQ-B launch-readiness verified (de-risked)
+- GPU busy (Arm C step 24401/31909, ~76%, ~2.7h; F2 watcher alive). Verified RQ-B's launch
+  prerequisites complete: eos-cache 14,761,403 labels (= token.bin 13,757,590 + n_lines, OK,
+  memmap loads), --shabdabodha-aux wired, pure-MLM recipe + CPU smoke passed. RQ-B is launch-ready
+  at 10M (no missing dep, unlike RQ-D's pramana). 100M RQ-B would need a 100M eos-cache (longer parse);
+  10M first for a directional read (note: F1 says objective effects can be scale-dependent — the aux
+  is a supervised lever, distinct from masking, so worth testing at 10M then 100M).
+- next: Arm C eval (~2.7h) → analyze_rqA → F2 (pre-registered). Then RQ-B 10M.
