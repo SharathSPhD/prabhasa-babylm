@@ -233,3 +233,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   6-way (noted). Good engineering discipline: inspection prevented redundant code.
 - next: Arm C eval → F2. RQ-D is ~ready (5-way readout adaptation when its turn comes).
 [cycle 20 | 2026-06-09] HEARTBEAT — Arm C step 14001/31909 (~44%, clean one-job); F2 watcher 585259 ALIVE (will auto-harvest); all RQs built/designed; gate green. No non-premature/non-risky GPU-free work → heartbeat per playbook.
+
+## [cycle 21 | 2026-06-09] F2 pre-registration (anti-post-hoc) + Arm K staged
+- GPU busy (Arm C step 16801/31909, ~53%, clean). Validated analyze_rqA on the REAL Arm K log:
+  20 targeted (agreement+arg) paradigms, Arm K subset mean 82.03. PRE-REGISTERED the F2
+  interpretation in SPEC 0002 (3 outcomes: POSITIVE ≥+1pp / NULL within noise / NEGATIVE ≤−1pp)
+  BEFORE seeing Arm C — committing the verdict-per-outcome so it can't be rationalised post-hoc
+  (adversarial-reviewer discipline). F2 = paired bootstrap ΔK−C on the 20 paradigms.
+- next: Arm C eval (~6h) → analyze_rqA → F2 verdict (already pre-registered).

@@ -29,6 +29,19 @@ difference is *which tokens* get masked — total mask budget held equal.
   across the BLiMP families, p<0.05. Secondary: full BLiMP, Text-Average.
 - NULL allowed only after ≥2 interventions (mask-rate match check; role-quality check).
 
+## Pre-registered interpretation (cycle 21, BEFORE Arm C — anti-post-hoc)
+Arm K targeted-subset mean = **82.03** (20 agreement+arg paradigms, validated on the real log).
+Verdict by the paired-bootstrap ΔK−C on those 20 paradigms (Arm C side pending):
+- **ΔK−C ≥ +1.0pp, 95%CI excludes 0 → POSITIVE (F2):** kāraka role-stratified masking *causally*
+  improves grammatical generalization at matched mask budget. Direct H1_MECHANISM causal support.
+- **|ΔK−C| < 1.0pp OR CI includes 0 → NULL:** at matched budget, role-stratification is neutral —
+  the masking-*distribution* lever does not causally help; the 73.06 model's kāraka contribution is
+  then attributable to confounds (freq_alpha, non-budget-matched rate), not role structure per se.
+  Declare NULL only after ≥2 interventions (role-quality audit; stronger stratification).
+- **ΔK−C ≤ −1.0pp, CI excludes 0 → NEGATIVE:** role-concentrated masking is a *worse* curriculum
+  than uniform at matched budget (consistent with the 10M real-engine null 62.08<64.09). Honest.
+This is committed now so the outcome cannot be rationalised after the fact.
+
 ## Validation (Tarka)
 md5-distinct seeds; matched mask budget verified by logging realized mask fraction per
 arm; fair scoring (same harness + backend); significance via test, not point-delta.
