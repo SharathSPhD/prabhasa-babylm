@@ -67,5 +67,6 @@
   "flags": {
     "rqB_citations": "SPEC 0003 citations agent-claimed; \u22652 were fabricated (fixed); re-verify ALL before paper use"
   },
-  "rqB_progress": "COMPLETE (all 5 pieces, smoke-passed); launch-ready pending 1 real GPU smoke + make-gate full pass"
+  "rqB_progress": "COMPLETE (all 5 pieces, smoke-passed); launch-ready pending 1 real GPU smoke + make-gate full pass",
+  "make_gate": "GREEN @c12: 665 passed, 0 failed, coverage 86.66%, ruff/format/mypy clean (incl RQ-B modules)"
 }
