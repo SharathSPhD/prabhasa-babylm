@@ -147,3 +147,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   citations, 3 were defective (Lake&Baroni venue, SRL-survey fabricated, GPT-BERT title) — caught
   + fixed in the spec, never reached the paper. Citation hygiene loop closed.
 - next: harvest Arm K (~1-2h) → record F2 (kāraka causality) → launch Arm C.
+
+## [cycle 14 | 2026-06-09] GPU-free: F2 analyzer (kāraka-causality, rigorous)
+- GPU busy (Arm K ~88%, step 28001, ~78min left). Built scripts/analyze_rqA.py: extracts
+  per-paradigm BLiMP from the official logs, restricts to the kāraka-targeted subset
+  (agreement + argument_structure = 20 of 74 paradigms), and paired-bootstraps the per-paradigm
+  K−C differences (the pre-registered SPEC 0002 metric). 2 TDD tests pass + real-data sanity
+  (prabhasa_b_s_mlm: 20 targeted, subset mean 82.76). ruff clean. F2 harvest is now a single
+  rigorous command once Arm K + Arm C are eval'd.
+- next: harvest Arm K (imminent) → record Arm K BLiMP → launch Arm C → then analyze_rqA → F2.
