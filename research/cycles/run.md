@@ -41,3 +41,21 @@ ensure the next wake-up is scheduled. Be your own adversarial reviewer. Real run
   without ≥2 interventions. Never fabricate a citation. Keep cycles cheap when idle.
 - If context/session is about to end mid-cycle: finish the current atomic step, update
   state.json with an exact resume pointer, commit, and stop — the next wake-up resumes.
+
+## Operational lessons (hard-won — cycles 11-16; obey these)
+- **Eval-complete gating, not timeouts.** When chaining train→eval→next-run, gate the next
+  GPU launch on the official_summary.json EXISTING (eval fully done), never on a fixed sleep.
+  A premature launch = two GPU jobs contending. (cycle 15 contention bug.)
+- **Reap ALL eval subprocesses.** `official_eval` spawns one subprocess PER zero-shot task;
+  killing the parent leaves orphans (e.g. a lingering wug_adj task) that contend with the next
+  run. To stop an eval: `pkill -f "sentence_zero_shot"` + the official_eval PID, then verify
+  `nvidia-smi` shows only the intended job. (cycle 16 orphan bug.)
+- **Summary `blimp=None` bug.** The eval summary-writer sometimes drops BLiMP from
+  official_summary.json even though the `__blimp.log` has `### AVERAGE ACCURACY`. ALWAYS read
+  BLiMP from the log; if the summary has blimp=None, backfill it and recompute text_average
+  over all 5 tasks before recording. (cycle 15d.)
+- **entity_tracking is slow (~20-50min), not hung.** Check `%CPU`/`nvidia-smi util` before
+  killing a long eval; if active, let it finish rather than waste compute. (cycle 15c.)
+- **Verify seeds by md5.** A "3-seed CI" with identical checkpoint md5s is fake (seed-collapse).
+- **Watchers die across sessions.** nohup watchers don't survive Claude restarts; the cron
+  cycle is the durable poll — re-set a tracked watcher OR rely on the next cycle's HARVEST step.
