@@ -202,3 +202,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   the main doesn't always reap children — kill the process group / all eval PIDs.
 - Arm C (uniform control) training (~13h). Watcher watch_armC_F2 will eval + run analyze_rqA → F2.
 - next: Arm C eval → F2 (kāraka causality).
+
+## [cycle 17 | 2026-06-09] Self-improvement: harden harness with operational lessons
+- GPU busy (Arm C training, clean). Encoded cycles 11-16's hard-won lessons into the cycle-runner
+  playbook (research/cycles/run.md): eval-complete gating (not timeouts), reap ALL eval
+  subprocesses (pkill sentence_zero_shot), summary blimp=None backfill, entity_tracking is slow-
+  not-hung, verify seeds by md5, watchers die across sessions. Added scripts/backfill_blimp.py
+  (reusable summary-bug fix; verified idempotent on Arm K). ruff clean. This is the "self-improving
+  harness" mandate: the loop stops repeating its own failures.
+- next: Arm C eval → F2 (watcher watch_armC_F2; harvest uses backfill_blimp.py).

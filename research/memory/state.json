@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 16,
+  "cycle": 17,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -79,5 +79,6 @@
     "comps": 54.72,
     "text_avg": 56.56,
     "note": "summary blimp=None bug backfilled from log"
-  }
+  },
+  "harness_hardening": "cycle-runner playbook + scripts/backfill_blimp.py encode cycles 11-16 lessons (eval-gating, subprocess reaping, blimp backfill, md5 seed check)"
 }
