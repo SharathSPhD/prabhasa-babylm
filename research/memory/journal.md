@@ -272,3 +272,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 [cycle 27 | 2026-06-09] HEARTBEAT — Arm C step 28601/31909 (~90%, ~71min train + eval → F2 ~2h); F2 watcher alive (will run analyze_rqA on both blimp logs; F2 uses per-paradigm from logs so the summary-blimp=None bug won't affect it). Heartbeat.
 [cycle 28 | 2026-06-09] HEARTBEAT — Arm C step 30001/31909 (~94%, ~41min train + eval → F2 ~1.5h); F2 watcher alive. Heartbeat; F2 verdict next.
 [cycle 29 | 2026-06-09] HEARTBEAT — Arm C step 31401/31909 (~98%, ~12min to train-done); F2 watcher alive → evals + analyze_rqA → F2 ~1h. Heartbeat; F2 verdict next cycle.
+
+## [cycle 30 | 2026-06-09] F2 HARVESTED — kāraka-masking causality NULL (pre-registered)
+- Arm C done (BLiMP 70.49). F2 (analyze_rqA): ΔK−C +0.10, CI(-0.99,1.2), NS → pre-registered NULL.
+  Tarka CONFIRM (real/fair/pre-registered). Masking-distribution lever neutral at matched budget;
+  the 73.06 kāraka gain was confounded. Recorded in findings.md F2 + ledger. Preliminary (interventions
+  queued for final closure). Honest H1: RoPE+pure-MLM were the real wins; Pāṇinian masking is marginal.
+- GPU: Arm C eval finishing (959786). NEXT GPU run = RQ-B (kāraka AUX OBJECTIVE, distinct lever) —
+  the remaining Pāṇinian-mechanism test. RQ-A (masking causality) resolved (preliminary null).
+- next: when GPU free → launch RQ-B 10M (aux=1.0 + matched baseline aux=0); F2 masking-interventions deprioritized.

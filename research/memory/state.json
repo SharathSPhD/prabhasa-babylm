@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 29,
+  "cycle": 30,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Arm C training ~8h (step 10601, clean). Watcher watch_armC_F2 \u2192 eval \u2192 analyze_rqA \u2192 F2. On notification: backfill_blimp.py both, adversarial-review, record F2 (k\u0101raka causality vs Arm K 71.77). RQ-D (SPEC 0004): assets exist (generate() + run_nyaya_h2_finetune) \u2014 only new code = 5-way fallacy head + sample-eff curve, when its GPU turn comes (after F2 + RQ-B run). GPU-free idle: paper, git reconcile (post-training).",
+  "next_action": "GPU busy (Arm C eval 959786 finishing). When FREE: launch RQ-B (k\u0101raka AUX OBJECTIVE, distinct lever \u2014 the remaining P\u0101\u1e47inian-mechanism test) at 10M: aux=1.0 + matched baseline aux=0, per state.rqB_launch_cmd. 2 runs ~67min each, then eval both + compare. RQ-A (masking causality) RESOLVED preliminary-null (F2). F2 masking-interventions (deprel, 3-seed) deprioritized vs RQ-B. Then paper-smith folds F2 honest H1 refinement.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -39,7 +39,8 @@
       "vs_hybrid": "64.09\u00b10.26 (no sig diff @10M)",
       "strict_100M": "+5.49",
       "verdict": "10M win was seed luck; effect scale-dependent; SS submission stays hybrid"
-    }
+    },
+    "F2_karaka_masking_causality": "NULL (pre-registered): \u0394K\u2212C +0.10 NS at matched budget; masking-distribution lever neutral; 73.06 k\u0101raka gain confounded. Preliminary (interventions queued)."
   },
   "documented_nulls": [
     "causal_scoring(63.92<67.57)",
