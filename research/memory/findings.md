@@ -48,3 +48,13 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
 - **Significance:** if confirmed, this is the program's FIRST validated Pāṇinian-mechanism win — and it
   locates the effect in the SUPERVISED objective (śābdabodha role prediction), NOT the masking scheme
   (F2 null) — a coherent, surprising, honest H1 refinement.
+
+## F3 UPDATE (cycle 43) — 2-seed: positive direction but SEED-VARIABLE (seed0 was inflated)
+- 2 seeds now: targeted ΔAux−Base = seed0 +2.65 (sig) / seed1 +0.61 (ns) → **mean +1.63pp**.
+  Overall BLiMP: aux {66.32,64.37}=65.35 vs base {62.45,64.94}=63.70 → +1.65pp, per-seed +3.87/−0.57.
+- The seed0 "preliminary positive" was INFLATED by a low base seed0 (62.45); base seed1 ran high
+  (64.94), shrinking the gap. Honest 2-seed verdict: **positive DIRECTION in both seeds, mean +1.6pp
+  (≥ +1.0 threshold in the mean), but only 1/2 seeds individually significant** → NOT yet robust.
+- Multi-seed discipline (contract ≥3 seeds) CAUGHT a near-overclaim. 3rd seed (seed2) launched to
+  resolve significance. Specificity control (shuffled-role) still pending. F3 status downgraded to
+  WEAK-POSITIVE / inconclusive pending seed2 + specificity.
