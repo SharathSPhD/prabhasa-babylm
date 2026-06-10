@@ -444,3 +444,9 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   pkill-preamble exit1 aborts) — clean isolated nohup after GPU verified free works.
 - next: shuf seed1 → shuf seed2 → 3-seed specificity (real vs shuffled vs base); then paper.
 [cycle 51 | 2026-06-10] HEARTBEAT — shuf seed1 step 2401/2799 (~86%); GPU busy. 3-seed specificity needs shuf seed2 + evals (~2-3 cycles). Holding paper fold until final specificity numbers. Heartbeat.
+
+## [cycle 52 | 2026-06-10] shuf seed1 done (loss 3.01) + eval; 3-seed specificity building
+- shuf seed1 DONE (final_loss 3.01, consistent unlearnable-shuffled signature; md5-distinct from seed0).
+  Eval running (PID 1820269, ~25min). shuf BLiMP {seed0 64.09, seed1 pending}.
+- next: read shuf seed1 BLiMP → launch shuf seed2 → eval → 3-seed specificity verdict (real vs shuffled
+  vs base on targeted; confirm GENERIC vs kāraka-specific). Then paper.
