@@ -450,3 +450,9 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   Eval running (PID 1820269, ~25min). shuf BLiMP {seed0 64.09, seed1 pending}.
 - next: read shuf seed1 BLiMP → launch shuf seed2 → eval → 3-seed specificity verdict (real vs shuffled
   vs base on targeted; confirm GENERIC vs kāraka-specific). Then paper.
+
+## [cycle 53 | 2026-06-10] shuf seed1 BLiMP 63.99/73.81 → 2-seed specificity = GENERIC (targeted)
+- shuf {seed0: 64.09/74.63, seed1: 63.99/73.81}. Targeted: real 74.22 ≈ shuf 74.22 (both +1.5 over
+  base 72.59) → the kāraka-relevant lift is GENERIC (shuffled recovers it all). Overall: real 65.37 >
+  shuf 64.04 (+1.33, within noise); shuf ~base. Launched shuf seed2 (3rd, after clearing eval orphan
+  that blocked --require-cuda). next: eval → 3-seed specificity verdict → paper.
