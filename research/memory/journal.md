@@ -356,3 +356,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   Launched base seed1 (aux=0). next cycle: eval base seed1 → 2-seed F3 aggregate.
 - Provisional: aux{66.32,64.37} mean 65.35 vs base{62.45,?}. seed0 Δ=+3.87. Holding directionally; the
   2-seed mean Δ + the seed1 targeted-subset paired bootstrap will firm it up.
+
+## [cycle 40 | 2026-06-10] GPU contention (orphan evaluation_pipeline workers) → fixed
+- 3 orphaned `evaluation_pipeline` workers (aux seed1 eval, reparented to init, ppid=1) held ~88GB
+  GPU, starving base seed1 (10M words in 60min under contention). My cycle-39 reap killed task
+  subprocesses but the workers respawned/orphaned. ROOT CAUSE: official_eval workers reparent to
+  init + survive partial kills. Killed all 3 directly → base seed1 now ALONE on GPU. Hardened the
+  playbook reap lesson (pkill -9 -f evaluation_pipeline + pgrep sweep + nvidia-smi verify). 3rd
+  occurrence (cycles 15/16/40) — now a first-class guardrail. aux BLiMP {66.32,64.37} safe.
+- next: base seed1 (~40min clean) → eval → 2-seed F3.
