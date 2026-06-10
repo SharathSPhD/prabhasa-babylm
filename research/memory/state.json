@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 46,
+  "cycle": 47,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "base seed2 eval RUNNING (verified, ~25min). NEXT cycle: read rqB_base_seed2 BLiMP \u2192 3-seed F3: aux 65.37{66.32,64.37,65.43} vs base{62.45,64.94,seed2}; per-seed analyze_rqA targeted (seed0 +2.65sig, seed1 +0.61ns, seed2 TBD) + aggregate; resolve significance of ~+1.6pp weak-positive. Then shuffled-role specificity. Launch evals as isolated nohup (no preamble); verify log.",
+  "next_action": "shuffled-role specificity control (rqB_shuf seed0, aux w/ shuffled roles) training ~67min. NEXT: eval shuffled (isolated nohup, verify log) \u2192 compare: aux-real seed0 66.32 vs aux-shuffled vs base 62.45. If shuffled~base \u2192 k\u0101raka-specific; if shuffled~real \u2192 generic regularization. Then decide 100M scale-up / 5-seed for F3, or move to paper (fold F1+F2+F3-suggestive). Reap orphans before each launch; isolated nohup; verify log.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -41,7 +41,7 @@
       "verdict": "10M win was seed luck; effect scale-dependent; SS submission stays hybrid"
     },
     "F2_karaka_masking_causality": "NULL (pre-registered): \u0394K\u2212C +0.10 NS at matched budget; masking-distribution lever neutral; 73.06 k\u0101raka gain confounded. Preliminary (interventions queued).",
-    "F3_karaka_aux_objective": "WEAK-POSITIVE (2-seed): targeted \u0394Aux\u2212Base seed0 +2.65(sig)/seed1 +0.61(ns), mean +1.63; overall +1.65. seed0 was inflated (low base seed0). Positive direction both seeds but only 1/2 sig \u2192 3rd seed (running) to resolve + specificity control pending."
+    "F3_karaka_aux_objective": "SUGGESTIVE WEAK-POSITIVE (3-seed, NOT sig): targeted \u0394 +2.65/+0.61/+1.12, mean +1.46 (CI[-1.18,4.10] incl 0); overall +1.63. Consistent +direction but underpowered at 3 seeds. seed0 was lucky. Not a confirmed win \u2014 needs 5-seed/100M. Specificity (shuffled-role) running."
   },
   "documented_nulls": [
     "causal_scoring(63.92<67.57)",
