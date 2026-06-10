@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 37,
+  "cycle": 38,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "RQ-B confirmation (cron-poll). aux seed1 RUNNING. NEXT: base seed1 \u2192 2-seed F3 (analyze_rqA per seed). Then SPECIFICITY: train aux with --shabdabodha-roles data/corpora/strict_small/shabdabodha_roles_eos_shuffled.bin (seed0) \u2192 eval \u2192 if real-roles(66.32) >> shuffled, k\u0101raka-specific; if \u2248, generic regularization. Reap evals after BLiMP. Then 100M scale-up if confirmed. F1/F2/F3 \u2192 paper.",
+  "next_action": "RQ-B confirmation cron-poll. aux seed1 eval RUNNING (~25min). NEXT cycle: read rqB_aux_seed1 BLiMP; launch base seed1 (--shabdabodha-aux 0, seed 1, out rqB_base/seed_1); eval; then 2-seed F3 (aggregate aux{0,1} vs base{0,1} \u2014 does +2.65 targeted / +3.87 overall hold across seeds?). THEN specificity: aux w/ shabdabodha_roles_eos_shuffled.bin seed0 vs base seed0 (k\u0101raka-specific vs generic-aux). Reap evals post-BLiMP. F3 prelim-positive; confirmations in progress.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"

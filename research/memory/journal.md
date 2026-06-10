@@ -336,3 +336,8 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   Recorded findings.md F3. Launched aux seed1 (replication). Built shuffled-role specificity cache
   (same label multiset, destroyed alignment) for the kāraka-specificity test.
 - next: cron-poll — aux seed1 → base seed1 → 2-seed F3; then specificity run (aux w/ shuffled roles vs base).
+
+## [cycle 38 | 2026-06-10] RQ-B confirmation: aux seed1 done + eval (cron-poll)
+- aux seed1 trained (DONE); md5-distinct from seed0 (seeds vary, no collapse). Eval running (BLiMP ~25min).
+- next: read aux seed1 BLiMP → launch base seed1 → eval → 2-seed F3 (per-seed analyze_rqA, seed-variance
+  check on the +2.65/+3.87 magnitude). Then specificity run (shuffled-role aux). ONE GPU step/cycle.
