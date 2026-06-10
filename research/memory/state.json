@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 43,
+  "cycle": 44,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "aux seed2 training (setsid, PID 1470654, ~67min). NEXT: base seed2 \u2192 3-seed F3 (resolve significance of the ~+1.6pp targeted effect). THEN shuffled-role specificity (aux shuffled vs base seed0). Use setsid+exec+</dev/null for launches; verify real log+ps. Honest: F3 weak-positive, seed-variable.",
+  "next_action": "aux seed2 ~done (elc_50M, ~2-3min). NEXT cycle: verify elc.pt + DONE in train log (NOT ps/pgrep \u2014 false-matches shell); md5 vs seed0; setsid eval (verify via eval LOG: OK HF export + zero_shot); read BLiMP. Then base seed2 (setsid, --shabdabodha-aux 0 seed2). Then 3-seed F3 (per-seed analyze_rqA, aggregate the ~+1.6pp targeted effect). Then shuffled-role specificity. F3 = weak-positive seed-variable pending seed2.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"

@@ -385,3 +385,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   positive-direction but seed-variable, only 1/2 sig. F3 downgraded WEAK-POSITIVE pending seed2.
   Launched aux seed2 (3rd seed, setsid, PID 1470654, verified running). Multi-seed rigor working.
 - next: aux seed2 → base seed2 → 3-seed F3 verdict; then shuffled-role specificity.
+
+## [cycle 44 | 2026-06-10] aux seed2 ~done (cron-poll; ps false-match lesson)
+- aux seed2 training, ~95% (elc_50M @ 50M/52.5M, ~2-3min to DONE). My in-cycle DONE-waits kept
+  landing just short of the 67min run; also re-confirmed ps/pgrep on "rqB_aux_seed2" FALSE-matches
+  my own shell command (PID 1508604 was my bash). RELIABLE signals only: elc.pt existence + DONE
+  grep in the TRAIN log + the EVAL log content — never ps/pgrep on a pattern matching the command.
+  Leaving aux seed2 for next cron-poll to harvest (don't over-poll within a cycle).
+- next: cycle 45 — verify aux seed2 elc.pt+DONE → setsid eval → base seed2 → 3-seed F3.
