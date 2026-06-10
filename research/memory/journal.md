@@ -393,3 +393,10 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   grep in the TRAIN log + the EVAL log content — never ps/pgrep on a pattern matching the command.
   Leaving aux seed2 for next cron-poll to harvest (don't over-poll within a cycle).
 - next: cycle 45 — verify aux seed2 elc.pt+DONE → setsid eval → base seed2 → 3-seed F3.
+
+## [cycle 44b | 2026-06-10] aux seed2 DONE + eval running (3 aux seeds md5-distinct)
+- aux seed2 DONE (final_loss 1.79, elc.pt ✓). All 3 aux seeds md5-distinct (3/3 ✓). Eval launched +
+  VERIFIED alive via log (985 bytes, AutoModel loads, [zero_shot] blimp, PID 1535933). Lesson: launch
+  then immediately confirm the log appears in ~10s (don't assume; setsid silently no-op'd twice, plain
+  nohup + log-check worked). aux BLiMP so far {66.32, 64.37}; seed2 pending.
+- next: read aux seed2 BLiMP → base seed2 → 3-seed F3 verdict.
