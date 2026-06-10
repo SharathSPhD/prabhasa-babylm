@@ -350,3 +350,9 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   Eval now GENUINELY running (past export, on blimp). Lesson (again): DONE-waits must exceed remaining
   wall; verify elc.pt exists before claiming a run is done — don't trust a single pgrep.
 - next: read aux seed1 BLiMP → base seed1 → 2-seed F3.
+
+## [cycle 39 | 2026-06-10] RQ-B 2-seed: aux seed1 64.37, base seed1 launched
+- aux seed1 BLiMP 64.37 (seed0 66.32 → aux mean 65.35; ~2pp seed variance, healthy). base seed0 62.45.
+  Launched base seed1 (aux=0). next cycle: eval base seed1 → 2-seed F3 aggregate.
+- Provisional: aux{66.32,64.37} mean 65.35 vs base{62.45,?}. seed0 Δ=+3.87. Holding directionally; the
+  2-seed mean Δ + the seed1 targeted-subset paired bootstrap will firm it up.
