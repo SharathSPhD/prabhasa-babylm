@@ -434,3 +434,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - next cycle: read shuffled BLiMP → SPECIFICITY verdict vs aux-real seed0 66.32 + base seed0 62.45:
   shuffled≈base → kāraka-specific; shuffled≈real → generic; shuffled<base → noise hurts (→ aux must be
   learnable/meaningful). Then fold F1+F2+F3(+specificity) into paper.
+
+## [cycle 50 | 2026-06-10] Specificity (seed0): hints GENERIC, not kāraka-specific
+- shuffled-aux seed0 BLiMP 64.09 (overall), targeted 74.63 — vs real-aux 74.97 (Δreal−shuf +0.34 ns)
+  and base 72.32. BOTH aux variants ~+2.3-2.6 over base on targeted; real≈shuffled → the F3 lift is
+  largely GENERIC multi-task regularization, NOT kāraka-specific (random labels recover ~all of it).
+  Overall real 66.32 > shuf 64.09 > base 62.45 (within 1-seed noise). Underpowered → launched shuf
+  seed1 (toward 3-seed real-vs-shuffled). Note: several launch retries (eval-orphan blocked GPU +
+  pkill-preamble exit1 aborts) — clean isolated nohup after GPU verified free works.
+- next: shuf seed1 → shuf seed2 → 3-seed specificity (real vs shuffled vs base); then paper.
