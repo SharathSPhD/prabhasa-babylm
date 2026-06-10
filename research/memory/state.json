@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 48,
+  "cycle": 49,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "shuffled-role specificity control (rqB_shuf seed0, aux w/ shuffled roles) training ~67min. NEXT: eval shuffled (isolated nohup, verify log) \u2192 compare: aux-real seed0 66.32 vs aux-shuffled vs base 62.45. If shuffled~base \u2192 k\u0101raka-specific; if shuffled~real \u2192 generic regularization. Then decide 100M scale-up / 5-seed for F3, or move to paper (fold F1+F2+F3-suggestive). Reap orphans before each launch; isolated nohup; verify log.",
+  "next_action": "shuffled-aux eval RUNNING (~25min). NEXT cycle: read rqB_shuf_seed0 BLiMP \u2192 SPECIFICITY verdict: compare aux-real 66.32 vs aux-shuffled vs base 62.45 (shuffled\u2248base\u2192k\u0101raka-specific; \u2248real\u2192generic; <base\u2192noise-hurts). shuffled trained w/ loss 3.04 (unlearnable random roles). Then fold F1(pure-MLM)+F2(masking null)+F3(aux suggestive +1.46 ns)+specificity into paper (paper-smith, vetted citations). Reap orphans + isolated nohup + verify log.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"

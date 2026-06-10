@@ -427,3 +427,10 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - Honest H1: F2 masking NULL; F3 aux suggestive-but-underpowered. Robust wins = RoPE + pure-MLM.
 - next: shuffled-aux eval → specificity (kāraka-real vs shuffled vs base). Then consider 100M / 5-seed.
 [cycle 48 | 2026-06-10] HEARTBEAT — shuffled-role specificity control (rqB_shuf seed0) at step 2401/2799 (~86%, ~13min w/ silent stretch); GPU busy. Specificity verdict (kāraka-specific vs generic) next cycle → then paper fold (F1+F2+F3). Heartbeat.
+
+## [cycle 49 | 2026-06-10] shuffled-role specificity: trained (high loss), eval running
+- shuffled-aux DONE: final_loss 3.04 vs real-aux ~1.8 — the model CAN'T learn random roles, so the
+  aux loss stays high (unlearnable noise gradient). Informative in itself. Eval running (PID 1703900).
+- next cycle: read shuffled BLiMP → SPECIFICITY verdict vs aux-real seed0 66.32 + base seed0 62.45:
+  shuffled≈base → kāraka-specific; shuffled≈real → generic; shuffled<base → noise hurts (→ aux must be
+  learnable/meaningful). Then fold F1+F2+F3(+specificity) into paper.
