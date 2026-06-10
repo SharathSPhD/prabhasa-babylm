@@ -327,3 +327,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - Baseline (aux=0) trained (DONE); eval running (BLiMP ~25min). Treatment 66.32 captured.
 - next cycle: read baseline BLiMP → backfill_blimp both → analyze_rqA (treatment vs baseline, targeted
   subset) → F3 (kāraka aux-objective effect, pre-registered +1.0pp threshold). Then adversarial review + record.
+
+## [cycle 37 | 2026-06-10] F3 POSITIVE — first Pāṇinian-mechanism win (preliminary)
+- RQ-B harvested: aux (66.32) vs baseline (62.45) BLiMP. F3 targeted-subset ΔAux−Base = +2.65,
+  CI(1.13,4.19), SIGNIFICANT (>+1.0pp pre-registered threshold); overall +3.87pp. The SUPERVISED
+  kāraka aux objective helps where the MASKING lever was null (F2). Tarka: PRELIMINARY POSITIVE —
+  2 confirmations required: (1) ≥3 seeds (seed variance); (2) specificity control (kāraka vs generic aux).
+  Recorded findings.md F3. Launched aux seed1 (replication). Built shuffled-role specificity cache
+  (same label multiset, destroyed alignment) for the kāraka-specificity test.
+- next: cron-poll — aux seed1 → base seed1 → 2-seed F3; then specificity run (aux w/ shuffled roles vs base).

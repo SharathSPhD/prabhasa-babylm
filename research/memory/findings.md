@@ -33,3 +33,18 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
 - **Closure status:** PRELIMINARY NULL — per the contract, ≥2 interventions before final NULL closure:
   (i) real-deprel kāraka (vs bpe-heuristic) arm; (ii) 3-seed / stronger stratification. Queued.
   The richer test is RQ-B (kāraka AUX OBJECTIVE — supervised signal, distinct lever) — runs next.
+
+## F3 — kāraka AUXILIARY OBJECTIVE: PRELIMINARY POSITIVE (first Pāṇinian-mechanism win)
+- **Claim:** Adding a supervised śābdabodha kāraka-role-prediction auxiliary objective (λ=1.0) to
+  pure-MLM significantly improves BLiMP at 10M, where the kāraka MASKING lever was null (F2).
+- **Evidence (real, 1 seed each, clean contrast — ONLY --shabdabodha-aux 1.0 vs 0):**
+  targeted 20-paradigm subset aux 74.97 vs base 72.32 → **ΔAux−Base = +2.65, 95%CI (1.13, 4.19),
+  significant** (paired bootstrap over paradigms; >+1.0pp pre-registered threshold). Overall BLiMP
+  aux 66.32 vs base 62.45 = +3.87pp. Baseline 62.45 in the pure-MLM SS seed range (62.20–65.22).
+- **Adversarial verdict: PRELIMINARY POSITIVE.** Two confirmations REQUIRED before a strong claim:
+  (1) **≥3 seeds** — 1 seed each captures paradigm variance, not seed variance (magnitude may vary);
+  (2) **specificity control** — the win could be generic multi-task regularization, not kāraka-specific;
+  need a shuffled-role (or POS) aux control. If kāraka-real > shuffled-aux, the Pāṇinian claim holds.
+- **Significance:** if confirmed, this is the program's FIRST validated Pāṇinian-mechanism win — and it
+  locates the effect in the SUPERVISED objective (śābdabodha role prediction), NOT the masking scheme
+  (F2 null) — a coherent, surprising, honest H1 refinement.
