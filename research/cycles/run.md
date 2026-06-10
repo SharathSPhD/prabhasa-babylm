@@ -62,3 +62,9 @@ ensure the next wake-up is scheduled. Be your own adversarial reviewer. Real run
 - **Verify seeds by md5.** A "3-seed CI" with identical checkpoint md5s is fake (seed-collapse).
 - **Watchers die across sessions.** nohup watchers don't survive Claude restarts; the cron
   cycle is the durable poll — re-set a tracked watcher OR rely on the next cycle's HARVEST step.
+- **Use `setsid` for long evals, not bare nohup (cycle 42).** nohup eval processes launched from the
+  Bash tool sometimes die on session churn (training nohups survive, but evals were dying with an
+  empty log). Launch detached: `setsid bash -c 'cd <repo> && uv run python scripts/official_eval.py
+  ... > logs/eval_X.log 2>&1' & disown`. Then VERIFY the log shows `OK HF export` + `[zero_shot]`
+  and a real PID via `ps -eo pid,args | grep [o]fficial_eval` — pgrep on your own command string
+  FALSE-matches your shell (cycle 42); always confirm with a real log + ps, never pgrep alone.

@@ -370,3 +370,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - base seed1 DONE (final_loss 1.62; 111min wall due to cycle-40 contention, but complete; elc.pt ✓).
   md5-distinct from base seed0 (seeds vary ✓). Robust-reaped stragglers, GPU clean, eval running.
 - next cycle: read base seed1 BLiMP → 2-seed F3 (aux{66.32,64.37} mean 65.35 vs base{62.45,seed1}).
+
+## [cycle 42 | 2026-06-10] base seed1 eval died (nohup churn) → setsid fix
+- base seed1 eval (nohup) died on session churn with an EMPTY log (training nohups survive, evals
+  don't). Also caught: pgrep "official_eval.*rqB_base_seed1" FALSE-matched my own shell command
+  ("✓ alive" was bogus). Re-launched with setsid (full detach) → genuinely running (OK HF export,
+  [zero_shot] blimp, real PID 1432399, GPU). Hardened playbook: setsid for evals + verify via real
+  log + ps, never pgrep alone. base seed1 BLiMP ~15-20min → 2-seed F3 next cycle.
+- next: read base seed1 BLiMP → 2-seed F3 (aux 65.35 vs base{62.45,seed1}).
