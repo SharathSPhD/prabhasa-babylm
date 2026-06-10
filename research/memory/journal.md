@@ -308,3 +308,10 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   This cycle: launched treatment eval. Lesson reinforced: don't rely on multi-hour nohup watchers
   across the autonomous session; the cron HARVEST step is the durable driver.
 - next: cycle 35 harvest treatment BLiMP → launch baseline (aux=0); cycle 36 eval baseline; cycle 37 analyze_rqA → F3.
+
+## [cycle 34b | 2026-06-10] Real bug: aux-objective checkpoints couldn't eval (fixed)
+- RQ-B treatment eval FAILED at HF export: strict load_state_dict choked on the training-only
+  shabdabodha_head.* keys (RuntimeError: Unexpected key(s)). FIX (c673c28): load_elc_checkpoint now
+  strips shabdabodha_head.* before the strict base-model load (like the _nhot_emb strip) → aux-objective
+  checkpoints eval/export cleanly. ruff clean. Re-launched treatment eval — past export, on BLiMP now.
+- next: cycle 35 read treatment BLiMP → launch baseline (aux=0) → eval → analyze_rqA → F3.
