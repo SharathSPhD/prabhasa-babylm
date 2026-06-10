@@ -289,3 +289,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   watch_rqB: treatment→eval(BLiMP)→reap→baseline(aux=0)→eval→reap→analyze_rqA compare. Uses hardened
   lessons (BLiMP-only gating, subprocess reaping). ~3h for the A/B.
 - next: RQ-B A/B verdict (does the aux objective causally help where masking didn't?).
+[cycle 32 | 2026-06-10] HEARTBEAT — RQ-B treatment (aux=1.0) step 2601/2799 (~93%, ~5min); total loss ~3 = mlm+λ·aux (aux active). Watcher watch_rqB alive → chains baseline + analyze_rqA (~2.5h). Paper update deferred to fold F1+F2+F3 coherently after F3. Heartbeat.
