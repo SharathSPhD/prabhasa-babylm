@@ -456,3 +456,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   base 72.59) → the kāraka-relevant lift is GENERIC (shuffled recovers it all). Overall: real 65.37 >
   shuf 64.04 (+1.33, within noise); shuf ~base. Launched shuf seed2 (3rd, after clearing eval orphan
   that blocked --require-cuda). next: eval → 3-seed specificity verdict → paper.
+[cycle 54 | 2026-06-10] HEARTBEAT — shuf seed2 step 2601/2799 (~93%, ~9min w/ silent stretch); GPU busy. 2-seed specificity already shows GENERIC (real≈shuffled targeted); seed2 firms it. Next cycle: harvest → 3-seed specificity → paper. Heartbeat.
