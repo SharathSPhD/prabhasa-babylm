@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 49,
+  "cycle": 50,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "shuffled-aux eval RUNNING (~25min). NEXT cycle: read rqB_shuf_seed0 BLiMP \u2192 SPECIFICITY verdict: compare aux-real 66.32 vs aux-shuffled vs base 62.45 (shuffled\u2248base\u2192k\u0101raka-specific; \u2248real\u2192generic; <base\u2192noise-hurts). shuffled trained w/ loss 3.04 (unlearnable random roles). Then fold F1(pure-MLM)+F2(masking null)+F3(aux suggestive +1.46 ns)+specificity into paper (paper-smith, vetted citations). Reap orphans + isolated nohup + verify log.",
+  "next_action": "shuf seed1 training (~67min). NEXT: shuf seed2 \u2192 3-seed specificity: real{74.97,...} vs shuffled{74.63,...} vs base{72.32,...} on targeted; if real\u2248shuffled across seeds \u2192 F3 is GENERIC regularization not k\u0101raka-specific (key honest conclusion). Then fold F1+F2+F3+specificity into paper. Launch: clean isolated nohup AFTER verifying GPU free (orphans block --require-cuda); verify log.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -107,5 +107,14 @@
       62.45,
       64.94
     ]
+  },
+  "rqB_specificity_seed0": {
+    "real": 66.32,
+    "shuffled": 64.09,
+    "base": 62.45,
+    "targeted_real": 74.97,
+    "targeted_shuf": 74.63,
+    "targeted_base": 72.32,
+    "verdict": "hints GENERIC (real\u2248shuffled on targeted, \u0394+0.34 ns); underpowered 1-seed"
   }
 }
