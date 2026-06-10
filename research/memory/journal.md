@@ -411,3 +411,9 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   keeps tripping my in-cycle DONE-waits). NOT hung. aux 3-seed {66.32,64.37,65.43}=65.37; base
   {62.45,64.94,~done}. Leaving for next cron-poll (don't over-poll the silent final stretch).
 - next: cycle 47 — verify base seed2 elc.pt+DONE → eval → 3-seed F3 verdict (resolve ~+1.6pp).
+
+## [cycle 46b | 2026-06-10] base seed2 DONE + eval running (3-seed F3 imminent)
+- base seed2 DONE (final_loss 1.68); base 3 seeds md5-distinct (3/3 ✓). Eval running (verified log,
+  PID 1614131). Lesson: launch evals as a SINGLE isolated nohup (preamble pkill/loops exit-1 + abort
+  the launch). base BLiMP {62.45,64.94,seed2-pending}; aux {66.32,64.37,65.43}=65.37.
+- next: read base seed2 BLiMP → 3-seed F3 verdict.
