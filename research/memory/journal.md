@@ -315,3 +315,10 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   strips shabdabodha_head.* before the strict base-model load (like the _nhot_emb strip) → aux-objective
   checkpoints eval/export cleanly. ruff clean. Re-launched treatment eval — past export, on BLiMP now.
 - next: cycle 35 read treatment BLiMP → launch baseline (aux=0) → eval → analyze_rqA → F3.
+
+## [cycle 35 | 2026-06-10] RQ-B cron-poll: treatment 66.32, baseline launched
+- Treatment (aux=1.0) BLiMP = 66.32 (full eval reaped after BLiMP via [s]entence_zero_shot trick).
+  Reference: this is HIGHER than the pure-MLM SS 3-seed (63.58) — but that used kāraka MASKING
+  (--structured-masking); RQ-B uses --no-structured-masking, so the clean contrast is vs the
+  RQ-B baseline (aux=0, same config), now training. Don't compare 66.32 to 63.58 (different masking).
+- Launched baseline (aux=0, uniform masking, else identical). ~67min. next cycle: eval baseline → F3.
