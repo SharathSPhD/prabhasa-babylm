@@ -417,3 +417,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   PID 1614131). Lesson: launch evals as a SINGLE isolated nohup (preamble pkill/loops exit-1 + abort
   the launch). base BLiMP {62.45,64.94,seed2-pending}; aux {66.32,64.37,65.43}=65.37.
 - next: read base seed2 BLiMP → 3-seed F3 verdict.
+
+## [cycle 47 | 2026-06-10] 3-seed F3 FINAL: suggestive weak-positive (NOT significant)
+- All 6 RQ-B runs done. Targeted Δ per seed: +2.65(sig)/+0.61(ns)/+1.12(ns). 3-seed mean +1.46
+  (sd 1.06, se 0.61), seed-level 95%CI [−1.18,+4.10] INCLUDES 0 → NOT significant. Overall BLiMP
+  +1.63 (aux 65.37 vs base 63.74). F3 = SUGGESTIVE WEAK-POSITIVE: consistent +direction (3/3) but
+  underpowered at 3 seeds; cycle-37 "+2.65 sig" was one lucky seed. Honest: not a confirmed win.
+  Recorded findings.md. Launched shuffled-role specificity control (aux w/ destroyed role alignment).
+- Honest H1: F2 masking NULL; F3 aux suggestive-but-underpowered. Robust wins = RoPE + pure-MLM.
+- next: shuffled-aux eval → specificity (kāraka-real vs shuffled vs base). Then consider 100M / 5-seed.
