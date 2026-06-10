@@ -400,3 +400,8 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   then immediately confirm the log appears in ~10s (don't assume; setsid silently no-op'd twice, plain
   nohup + log-check worked). aux BLiMP so far {66.32, 64.37}; seed2 pending.
 - next: read aux seed2 BLiMP → base seed2 → 3-seed F3 verdict.
+
+## [cycle 45 | 2026-06-10] aux seed2 BLiMP 65.43; base seed2 launched (3-seed)
+- aux 3 seeds BLiMP {66.32, 64.37, 65.43} mean 65.37 (sd~1.0, tight). base {62.45, 64.94}.
+  base seed2 launch needed a retry (1st blocked by an aux-eval orphan holding GPU; reaped +
+  relaunched, verified). base seed2 training CLEAN (GPU shows only it). next: eval → 3-seed F3.
