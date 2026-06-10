@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 33,
+  "cycle": 34,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "RQ-B A/B re-chained (watcher watch_rqB2, ~2h, alive): eval treatment (running) \u2192 baseline aux=0 \u2192 eval \u2192 analyze_rqA \u2192 F3. On notification/next-cycle: backfill_blimp both summaries, adversarial-review, record F3 (k\u0101raka aux-objective effect). Lesson: watcher wait_done >= run wall+buffer.",
+  "next_action": "RQ-B via CRON-POLL (no nohup watcher \u2014 they die on session churn). Treatment eval running now. NEXT cycle: backfill_blimp + read rqB_aux BLiMP, then launch baseline (data/corpora/strict_small, --objective mlm --no-structured-masking --freq-alpha 0 --shabdabodha-aux 0, seed 0, out rqB_base/seed_0). Then eval baseline. Then analyze_rqA --arm-k rqB_aux blimp --arm-c rqB_base blimp \u2192 F3. ONE GPU step per cycle.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"

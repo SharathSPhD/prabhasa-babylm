@@ -300,3 +300,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   matching the current command.)
 - Lesson: watcher timeouts must exceed run wall+buffer (10M=67min → ≥100min).
 - next: RQ-B A/B verdict (F3: kāraka aux-objective effect).
+
+## [cycle 34 | 2026-06-10] RQ-B watcher died (session churn) → switch to cron-poll
+- nohup watcher watch_rqB2 (+ its treatment eval) DIED across session churn — same nohup-watcher-death
+  issue as cycle 15. RQ-B stalled: treatment trained (elc.pt) but not eval'd, baseline not launched.
+  SWITCHED to robust cron-poll: each cycle advances ONE GPU step manually (no fragile long watcher).
+  This cycle: launched treatment eval. Lesson reinforced: don't rely on multi-hour nohup watchers
+  across the autonomous session; the cron HARVEST step is the durable driver.
+- next: cycle 35 harvest treatment BLiMP → launch baseline (aux=0); cycle 36 eval baseline; cycle 37 analyze_rqA → F3.
