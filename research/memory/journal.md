@@ -405,3 +405,9 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - aux 3 seeds BLiMP {66.32, 64.37, 65.43} mean 65.37 (sd~1.0, tight). base {62.45, 64.94}.
   base seed2 launch needed a retry (1st blocked by an aux-eval orphan holding GPU; reaped +
   relaunched, verified). base seed2 training CLEAN (GPU shows only it). next: eval → 3-seed F3.
+
+## [cycle 46 | 2026-06-10] base seed2 finishing (active, silent final stretch)
+- base seed2 active (96% GPU, ~64/67min, silent steps 2601→2799 — no log line in that window, which
+  keeps tripping my in-cycle DONE-waits). NOT hung. aux 3-seed {66.32,64.37,65.43}=65.37; base
+  {62.45,64.94,~done}. Leaving for next cron-poll (don't over-poll the silent final stretch).
+- next: cycle 47 — verify base seed2 elc.pt+DONE → eval → 3-seed F3 verdict (resolve ~+1.6pp).
