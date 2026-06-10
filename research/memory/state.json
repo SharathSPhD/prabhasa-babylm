@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 34,
+  "cycle": 35,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "RQ-B cron-poll. Treatment eval RUNNING now (export bug fixed: load_elc_checkpoint strips shabdabodha_head). NEXT cycle: backfill_blimp + read rqB_aux BLiMP, launch baseline (--objective mlm --no-structured-masking --freq-alpha 0 --shabdabodha-aux 0, seed0, out rqB_base/seed_0). Then eval baseline (aux=0 so no head, exports fine). Then analyze_rqA rqB_aux vs rqB_base \u2192 F3. ONE GPU step/cycle (no nohup watchers).",
+  "next_action": "RQ-B baseline (aux=0) training ~67min. NEXT cycle: wait baseline DONE \u2192 eval baseline (no head, exports fine) \u2192 backfill_blimp \u2192 analyze_rqA --arm-k logs/official/rqB_aux_seed0__blimp.log --arm-c logs/official/rqB_base_seed0__blimp.log \u2192 F3 (k\u0101raka aux-objective effect: treatment 66.32 vs baseline). Pre-register: +1.0pp targeted-subset threshold (same as F2). ONE GPU step/cycle.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -86,5 +86,6 @@
   "f2_preregistered": "SPEC 0002: POSITIVE (\u0394K\u2212C\u2265+1pp,CI>0) / NULL (within noise) / NEGATIVE (\u2264\u22121pp). Committed before Arm C.",
   "armC_validated": "uniform control confirmed (no structured masking, freq_alpha 0, N-hot+RoPE matched) \u2014 F2 contrast clean",
   "rqD_data": "validated: 1000 valid+1000 fallacy balanced (4 types); needs PYTHONPATH=/home/sharaths/projects/pramana/src (unmet dep, documented in SPEC 0004)",
-  "rqB_launch_cmd": "PYTHONPATH not needed. 10M: uv run python scripts/train_submission_model.py --base-dir data/corpora/strict_small --dose-arms A --dose-epochs 0 --english-epochs 10 --batch-size 256 --max-seq-len 192 --peak-lr 1e-3 --muon-lr 0.01 --mask-start 0.40 --mask-end 0.15 --mask-kind cosine --freq-alpha 0 --objective mlm --pos-encoding rope --shabdabodha-aux 1.0 --shabdabodha-roles data/corpora/strict_small/shabdabodha_roles_eos.bin --require-cuda --seed 0 --out data/checkpoints/rqB_aux/seed_0 ; AND a matched baseline with --shabdabodha-aux 0."
+  "rqB_launch_cmd": "PYTHONPATH not needed. 10M: uv run python scripts/train_submission_model.py --base-dir data/corpora/strict_small --dose-arms A --dose-epochs 0 --english-epochs 10 --batch-size 256 --max-seq-len 192 --peak-lr 1e-3 --muon-lr 0.01 --mask-start 0.40 --mask-end 0.15 --mask-kind cosine --freq-alpha 0 --objective mlm --pos-encoding rope --shabdabodha-aux 1.0 --shabdabodha-roles data/corpora/strict_small/shabdabodha_roles_eos.bin --require-cuda --seed 0 --out data/checkpoints/rqB_aux/seed_0 ; AND a matched baseline with --shabdabodha-aux 0.",
+  "rqB_treatment_blimp": 66.32
 }
