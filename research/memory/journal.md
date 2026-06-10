@@ -426,3 +426,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   Recorded findings.md. Launched shuffled-role specificity control (aux w/ destroyed role alignment).
 - Honest H1: F2 masking NULL; F3 aux suggestive-but-underpowered. Robust wins = RoPE + pure-MLM.
 - next: shuffled-aux eval → specificity (kāraka-real vs shuffled vs base). Then consider 100M / 5-seed.
+[cycle 48 | 2026-06-10] HEARTBEAT — shuffled-role specificity control (rqB_shuf seed0) at step 2401/2799 (~86%, ~13min w/ silent stretch); GPU busy. Specificity verdict (kāraka-specific vs generic) next cycle → then paper fold (F1+F2+F3). Heartbeat.
