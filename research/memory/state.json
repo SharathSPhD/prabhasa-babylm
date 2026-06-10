@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 54,
+  "cycle": 55,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "shuf seed2 training (~67min). NEXT: verify elc.pt+DONE \u2192 eval (isolated nohup) \u2192 3-seed specificity: targeted real{74.97,73.47,74.79}=74.41 vs shuf{74.63,73.81,seed2} vs base{72.32,72.86,73.67}=72.95. 2-seed already shows real\u2248shuf on targeted (GENERIC). Confirm at 3 seeds \u2192 RQ-B conclusion: aux effect is weak + generic, NOT k\u0101raka-specific. Then fold F1+F2+F3+specificity into paper (final numbers, vetted citations). Reap orphans (pgrep evaluation_pipeline + kill) + verify GPU free before train launch.",
+  "next_action": "shuf seed2 eval RUNNING (~25min) \u2014 LAST RQ-B run. NEXT cycle: read rqB_shuf_seed2 BLiMP \u2192 3-seed specificity: aux-real targeted {74.97,73.47,74.79}=74.41 vs aux-shuf {74.63,73.81,seed2} vs base {72.32,72.86,73.67}=72.95. Expect real\u2248shuffle (GENERIC). Record RQ-B FINAL (F3 weak-suggestive + generic). THEN PAPER: fold F1(pure-MLM win)+F2(masking null)+F3(aux weak/generic) into paper.tex (worktree, paper-smith or careful manual; vetted citations only). Then GitHub Pages + make gate.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"

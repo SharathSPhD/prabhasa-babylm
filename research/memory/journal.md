@@ -457,3 +457,8 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   shuf 64.04 (+1.33, within noise); shuf ~base. Launched shuf seed2 (3rd, after clearing eval orphan
   that blocked --require-cuda). next: eval → 3-seed specificity verdict → paper.
 [cycle 54 | 2026-06-10] HEARTBEAT — shuf seed2 step 2601/2799 (~93%, ~9min w/ silent stretch); GPU busy. 2-seed specificity already shows GENERIC (real≈shuffled targeted); seed2 firms it. Next cycle: harvest → 3-seed specificity → paper. Heartbeat.
+
+## [cycle 55 | 2026-06-11] shuf seed2 done (3/3 md5-distinct) + eval; 3-seed specificity imminent
+- shuf seed2 DONE; all 3 shuffled seeds md5-distinct. Eval running (PID 1935612, ~25min). Last run
+  of the RQ-B characterization. next cycle: read shuf seed2 BLiMP → full 3-seed specificity (real vs
+  shuffled vs base targeted) → RQ-B conclusion → fold F1+F2+F3+specificity into paper.
