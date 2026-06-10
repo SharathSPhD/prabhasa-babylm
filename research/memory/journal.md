@@ -443,3 +443,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   seed1 (toward 3-seed real-vs-shuffled). Note: several launch retries (eval-orphan blocked GPU +
   pkill-preamble exit1 aborts) — clean isolated nohup after GPU verified free works.
 - next: shuf seed1 → shuf seed2 → 3-seed specificity (real vs shuffled vs base); then paper.
+[cycle 51 | 2026-06-10] HEARTBEAT — shuf seed1 step 2401/2799 (~86%); GPU busy. 3-seed specificity needs shuf seed2 + evals (~2-3 cycles). Holding paper fold until final specificity numbers. Heartbeat.
