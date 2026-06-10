@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 36,
+  "cycle": 37,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "RQ-B: baseline eval RUNNING (BLiMP ~25min). NEXT cycle: read rqB_base BLiMP; backfill_blimp both summaries; uv run python scripts/analyze_rqA.py --arm-k logs/official/rqB_aux_seed0__blimp.log --arm-c logs/official/rqB_base_seed0__blimp.log \u2192 F3 (k\u0101raka aux-objective: treatment 66.32 vs baseline, paired bootstrap 20 paradigms, +1.0pp threshold). Adversarial review + record F3 \u2192 then fold F1+F2+F3 into paper (coherent H1-mechanism pass).",
+  "next_action": "RQ-B confirmation (cron-poll). aux seed1 RUNNING. NEXT: base seed1 \u2192 2-seed F3 (analyze_rqA per seed). Then SPECIFICITY: train aux with --shabdabodha-roles data/corpora/strict_small/shabdabodha_roles_eos_shuffled.bin (seed0) \u2192 eval \u2192 if real-roles(66.32) >> shuffled, k\u0101raka-specific; if \u2248, generic regularization. Reap evals after BLiMP. Then 100M scale-up if confirmed. F1/F2/F3 \u2192 paper.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -40,7 +40,8 @@
       "strict_100M": "+5.49",
       "verdict": "10M win was seed luck; effect scale-dependent; SS submission stays hybrid"
     },
-    "F2_karaka_masking_causality": "NULL (pre-registered): \u0394K\u2212C +0.10 NS at matched budget; masking-distribution lever neutral; 73.06 k\u0101raka gain confounded. Preliminary (interventions queued)."
+    "F2_karaka_masking_causality": "NULL (pre-registered): \u0394K\u2212C +0.10 NS at matched budget; masking-distribution lever neutral; 73.06 k\u0101raka gain confounded. Preliminary (interventions queued).",
+    "F3_karaka_aux_objective": "PRELIMINARY POSITIVE: aux objective +2.65 targeted (CI 1.13-4.19, sig), +3.87 overall BLiMP @10M, 1 seed. First P\u0101\u1e47inian-mechanism win; located in the SUPERVISED objective not masking (F2 null). 2 confirmations pending: 3-seed + shuffled-role specificity."
   },
   "documented_nulls": [
     "causal_scoring(63.92<67.57)",
