@@ -322,3 +322,8 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   (--structured-masking); RQ-B uses --no-structured-masking, so the clean contrast is vs the
   RQ-B baseline (aux=0, same config), now training. Don't compare 66.32 to 63.58 (different masking).
 - Launched baseline (aux=0, uniform masking, else identical). ~67min. next cycle: eval baseline → F3.
+
+## [cycle 36 | 2026-06-10] RQ-B cron-poll: baseline done, eval running
+- Baseline (aux=0) trained (DONE); eval running (BLiMP ~25min). Treatment 66.32 captured.
+- next cycle: read baseline BLiMP → backfill_blimp both → analyze_rqA (treatment vs baseline, targeted
+  subset) → F3 (kāraka aux-objective effect, pre-registered +1.0pp threshold). Then adversarial review + record.
