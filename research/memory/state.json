@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 45,
+  "cycle": 46,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "base seed2 (aux=0) training ~67min CLEAN. NEXT cycle: verify elc.pt+DONE (train log, not ps) \u2192 reap orphans + verify GPU \u2192 eval base seed2 (nohup, verify log in 10s) \u2192 read BLiMP \u2192 3-seed F3: aux 65.37 {66.32,64.37,65.43} vs base {62.45,64.94,seed2}; per-seed analyze_rqA targeted + aggregate; resolve significance of ~+1.6pp. Then shuffled-role specificity.",
+  "next_action": "base seed2 ~done (active, silent final stretch ~2-3min). NEXT cycle: verify elc.pt+DONE \u2192 reap orphans+verify GPU \u2192 eval base seed2 (nohup, verify log 10s) \u2192 read BLiMP \u2192 3-seed F3: aux 65.37{66.32,64.37,65.43} vs base{62.45,64.94,seed2}; per-seed analyze_rqA targeted + aggregate; resolve significance of the ~+1.6pp weak-positive. Then shuffled-role specificity. NOTE: 10M runs have a ~5-7min SILENT final stretch (no log 2601->DONE) \u2014 dont mistake for hung; check elc.pt.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
