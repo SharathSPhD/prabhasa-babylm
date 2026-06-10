@@ -290,3 +290,13 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   lessons (BLiMP-only gating, subprocess reaping). ~3h for the A/B.
 - next: RQ-B A/B verdict (does the aux objective causally help where masking didn't?).
 [cycle 32 | 2026-06-10] HEARTBEAT — RQ-B treatment (aux=1.0) step 2601/2799 (~93%, ~5min); total loss ~3 = mlm+λ·aux (aux active). Watcher watch_rqB alive → chains baseline + analyze_rqA (~2.5h). Paper update deferred to fold F1+F2+F3 coherently after F3. Heartbeat.
+
+## [cycle 33 | 2026-06-10] RQ-B watcher timeout bug → fixed + re-chained
+- RQ-B treatment DONE (final_loss 1.82, elc.pt) but watcher wait_done window (65min) < 67min wall →
+  false TREAT_INCOMPLETE; it gave up before evaling/launching baseline. Re-chained: watch_rqB2
+  (wait_done=200×30s=100min) — eval treatment → baseline (aux=0) → eval → analyze_rqA compare.
+  Verified: watch_rqB2 alive + treatment eval running. (Side note: a `pkill -f watch_rqB` self-matched
+  my shell, exit 144 — same lesson as cycles 15/16; the watcher still launched. Don't pkill patterns
+  matching the current command.)
+- Lesson: watcher timeouts must exceed run wall+buffer (10M=67min → ≥100min).
+- next: RQ-B A/B verdict (F3: kāraka aux-objective effect).
