@@ -46,10 +46,13 @@ ensure the next wake-up is scheduled. Be your own adversarial reviewer. Real run
 - **Eval-complete gating, not timeouts.** When chaining train→eval→next-run, gate the next
   GPU launch on the official_summary.json EXISTING (eval fully done), never on a fixed sleep.
   A premature launch = two GPU jobs contending. (cycle 15 contention bug.)
-- **Reap ALL eval subprocesses.** `official_eval` spawns one subprocess PER zero-shot task;
-  killing the parent leaves orphans (e.g. a lingering wug_adj task) that contend with the next
-  run. To stop an eval: `pkill -f "sentence_zero_shot"` + the official_eval PID, then verify
-  `nvidia-smi` shows only the intended job. (cycle 16 orphan bug.)
+- **Reap ALL eval subprocesses — the `evaluation_pipeline` orphans (cycles 15, 16, 40).**
+  `official_eval` spawns `evaluation_pipeline` workers that REPARENT to init (ppid=1) when the
+  main dies and KEEP ~30GB GPU each, starving the next job (cycle 40: base seed1 did 10M words in
+  60min under contention). Killing one task subprocess is NOT enough. Robust reap (never matches
+  train_submission_model.py): `pkill -9 -f official_eval.py ; pkill -9 -f evaluation_pipeline ;
+  pkill -9 -f sentence_zero_shot`, then `pgrep -f evaluation_pipeline` to sweep stragglers + kill
+  by PID, and VERIFY `nvidia-smi --query-compute-apps` shows ONLY the intended job before launching.
 - **Summary `blimp=None` bug.** The eval summary-writer sometimes drops BLiMP from
   official_summary.json even though the `__blimp.log` has `### AVERAGE ACCURACY`. ALWAYS read
   BLiMP from the log; if the summary has blimp=None, backfill it and recompute text_average
