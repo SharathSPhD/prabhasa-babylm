@@ -341,3 +341,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - aux seed1 trained (DONE); md5-distinct from seed0 (seeds vary, no collapse). Eval running (BLiMP ~25min).
 - next: read aux seed1 BLiMP → launch base seed1 → eval → 2-seed F3 (per-seed analyze_rqA, seed-variance
   check on the +2.65/+3.87 magnitude). Then specificity run (shuffled-role aux). ONE GPU step/cycle.
+
+## [cycle 38b | 2026-06-10] Correction: seed1 wasn't done when I claimed "eval running"
+- SELF-CAUGHT: cycle 38 commit said "aux seed1 eval running" but seed1 was STILL training (no elc.pt,
+  only milestone checkpoints; my 12min DONE-wait timed out before the 67min run finished; "eval running"
+  was a false pgrep match). Verified by checking the actual checkpoint dir + DONE count. Waited for the
+  REAL DONE: aux seed1 final_loss 1.81, wall 67.9min, md5-DISTINCT from seed0 (2/2 ✓, real seed variance).
+  Eval now GENUINELY running (past export, on blimp). Lesson (again): DONE-waits must exceed remaining
+  wall; verify elc.pt exists before claiming a run is done — don't trust a single pgrep.
+- next: read aux seed1 BLiMP → base seed1 → 2-seed F3.
