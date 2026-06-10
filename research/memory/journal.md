@@ -365,3 +365,8 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   playbook reap lesson (pkill -9 -f evaluation_pipeline + pgrep sweep + nvidia-smi verify). 3rd
   occurrence (cycles 15/16/40) — now a first-class guardrail. aux BLiMP {66.32,64.37} safe.
 - next: base seed1 (~40min clean) → eval → 2-seed F3.
+
+## [cycle 41 | 2026-06-10] base seed1 done + eval (2-seed F3 pending)
+- base seed1 DONE (final_loss 1.62; 111min wall due to cycle-40 contention, but complete; elc.pt ✓).
+  md5-distinct from base seed0 (seeds vary ✓). Robust-reaped stragglers, GPU clean, eval running.
+- next cycle: read base seed1 BLiMP → 2-seed F3 (aux{66.32,64.37} mean 65.35 vs base{62.45,seed1}).
