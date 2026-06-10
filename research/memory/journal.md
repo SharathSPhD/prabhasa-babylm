@@ -378,3 +378,10 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   [zero_shot] blimp, real PID 1432399, GPU). Hardened playbook: setsid for evals + verify via real
   log + ps, never pgrep alone. base seed1 BLiMP ~15-20min → 2-seed F3 next cycle.
 - next: read base seed1 BLiMP → 2-seed F3 (aux 65.35 vs base{62.45,seed1}).
+
+## [cycle 43 | 2026-06-10] 2-seed F3: seed0 inflated → weak-positive (multi-seed caught it)
+- All 4 BLiMP: aux{66.32,64.37}=65.35 vs base{62.45,64.94}=63.70 (+1.65). Targeted Δ: seed0 +2.65(sig),
+  seed1 +0.61(ns), mean +1.63. The seed0 +3.87/+2.65 was inflated (low base seed0); 2-seed effect is
+  positive-direction but seed-variable, only 1/2 sig. F3 downgraded WEAK-POSITIVE pending seed2.
+  Launched aux seed2 (3rd seed, setsid, PID 1470654, verified running). Multi-seed rigor working.
+- next: aux seed2 → base seed2 → 3-seed F3 verdict; then shuffled-role specificity.
