@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 32,
+  "cycle": 33,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "RQ-B A/B running (watcher watch_rqB, ~3h): treatment aux=1.0 vs baseline aux=0, 10M, uniform masking. On notification: adversarial-review + record F3 (k\u0101raka aux-objective effect; if positive \u2192 scale 100M; if null \u2192 the P\u0101\u1e47inian mechanisms broadly marginal, strong combined evidence). Arm C harvested. F2 (masking null) recorded.",
+  "next_action": "RQ-B A/B re-chained (watcher watch_rqB2, ~2h, alive): eval treatment (running) \u2192 baseline aux=0 \u2192 eval \u2192 analyze_rqA \u2192 F3. On notification/next-cycle: backfill_blimp both summaries, adversarial-review, record F3 (k\u0101raka aux-objective effect). Lesson: watcher wait_done >= run wall+buffer.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
