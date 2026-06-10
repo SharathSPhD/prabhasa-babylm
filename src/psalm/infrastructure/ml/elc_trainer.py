@@ -209,6 +209,11 @@ def load_elc_checkpoint(path: Path, *, device: str = "cpu") -> tuple[ElcPsalmEnc
         if not cfg.nhot_embeddings:
             cfg = cfg.model_copy(update={"nhot_embeddings": True})
 
+    # Strip training-only auxiliary heads (e.g. the RQ-B śābdabodha role head) — they are
+    # attached to the model only during aux-objective training and are not part of the base
+    # encoder, so they must not block strict loading at eval/export time.
+    sd = {k: v for k, v in sd.items() if not k.startswith("shabdabodha_head.")}
+
     model = ElcPsalmEncoder(cfg, nhot_emb=nhot_emb).to(device)
     model.load_state_dict(sd)
     mask_id = int(payload.get("mask_id", cfg.vocab_size - 1))
