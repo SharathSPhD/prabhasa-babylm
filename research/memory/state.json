@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 57,
+  "cycle": 58,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Paper RQ-A/RQ-B subsection added + overclaim fixed. NEXT: (1) refresh GitHub Pages site/src/data/results.json with F2/F3 honest findings; (2) make gate green (code unchanged but verify); (3) optional adversarial-reviewer pass on the new paper subsection. Then consider 100M RQ-B (needs 100M eos-cache build, CPU ~hours) to resolve F3, OR declare the 10M RQ-B program closed. GPU free.",
+  "next_action": "Pages refreshed (F1/F2/F3), gate ruff/mypy/format green (tests verifying). NEXT: confirm gate tests pass; run adversarial-reviewer (Tarka) on the paper RQ-A/RQ-B subsection for overclaim/accuracy; then assess closure-contract layers (TECHNICAL\u2713 EMPIRICAL\u2713 INTEGRITY=Tarka ARTIFACTS=paper+Pages\u2713 MEMORY\u2713 SIGN-OFF=deferred). 100M RQ-B DECLINED (poor ROI). GPU free/idle \u2014 consider a cheap high-value experiment or consolidate.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"

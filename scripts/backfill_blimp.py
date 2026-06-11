@@ -46,7 +46,9 @@ def main() -> None:
     vals = [a[k] for k in _CORE if a.get(k) is not None]
     d["text_average"] = round(sum(vals) / len(vals), 3) if vals else None
     sp.write_text(json.dumps(d, indent=2), encoding="utf-8")
-    print(f"blimp={a.get('blimp')} text_average={d['text_average']} (over {len(vals)} tasks) -> {sp.name}")
+    print(
+        f"blimp={a.get('blimp')} text_average={d['text_average']} (over {len(vals)} tasks) -> {sp.name}"
+    )
 
 
 if __name__ == "__main__":
