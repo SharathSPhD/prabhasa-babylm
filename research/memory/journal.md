@@ -519,3 +519,7 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   eval-orphan cleared; pkill-preamble launches keep failing). base seed3 training (~67min).
 - next: eval base seed3 → aux seed4 → base seed4 → 5-seed paired t-test (pre-registered).
 [cycle 64 | 2026-06-11] HEARTBEAT — base seed3 step 2601/2799 (~93%); GPU busy. F3 5-seed: aux {66.32,64.37,65.43,64.91} done, base 0-2 done, base seed3 finishing. Next poll: eval base3 → aux/base seed4 → 5-seed verdict. Heartbeat.
+
+## [cycle 65 | 2026-06-11] F3 5-seed: base seed3 done + eval; seed4 pair remains
+- base seed3 DONE, eval running (PID 2321851). aux {0-3} done; base {0-3} (3 eval'd + seed3 evaluating).
+  Pre-registered 5 seeds → still need aux seed4 + base seed4. next: read base3 BLiMP → aux seed4 → base seed4 → 5-seed paired t.
