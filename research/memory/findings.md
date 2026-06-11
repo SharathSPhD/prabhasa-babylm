@@ -58,3 +58,18 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
 - Multi-seed discipline (contract ≥3 seeds) CAUGHT a near-overclaim. 3rd seed (seed2) launched to
   resolve significance. Specificity control (shuffled-role) still pending. F3 status downgraded to
   WEAK-POSITIVE / inconclusive pending seed2 + specificity.
+
+## F3 + SPECIFICITY FINAL (cycle 56, 9 runs: 3 real-aux / 3 base / 3 shuffled-aux @10M)
+- 3-seed targeted means: aux-real 74.41±0.82, aux-shuf 73.53±1.26, base 72.95±0.68.
+  Overall BLiMP: real 65.37±0.98, shuf 63.69±0.61, base 63.74±1.25.
+- Contrasts (targeted / overall): real−base +1.46/+1.63 (NS, F3); **shuf−base +0.58/−0.05** (shuffled
+  roles give ~0 overall benefit — do NOT reproduce the effect); real−shuf +0.88/+1.68.
+- **Adversarial verdict (CORRECTS cycle-50 1-seed "generic"):** the shuffled-role control does NOT
+  reproduce the real-aux effect → it is NOT generic multi-task regularization; the small effect leans
+  KĀRAKA-SPECIFIC. BUT all contrasts are weak + non-significant at 3 seeds (sds ~1). Net RQ-B:
+  **a weak, non-significant, plausibly-kāraka-specific auxiliary-objective effect — not confirmed.**
+  Underpowered at 3 seeds / 10M; resolving it needs more seeds or 100M scale (F1 showed objective
+  effects can be scale-dependent → 100M is the natural next test, not run this cycle).
+- Honest H1 SUMMARY (10M): F1 pure-MLM objective = robust win; F2 kāraka MASKING = NULL; F3 kāraka
+  AUX OBJECTIVE = weak suggestive (likely kāraka-specific, not generic) but underpowered. Robust
+  wins = RoPE (architecture) + pure-MLM (objective). Pāṇinian mechanisms: masking null, aux weak.

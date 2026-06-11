@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 55,
+  "cycle": 56,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "shuf seed2 eval RUNNING (~25min) \u2014 LAST RQ-B run. NEXT cycle: read rqB_shuf_seed2 BLiMP \u2192 3-seed specificity: aux-real targeted {74.97,73.47,74.79}=74.41 vs aux-shuf {74.63,73.81,seed2} vs base {72.32,72.86,73.67}=72.95. Expect real\u2248shuffle (GENERIC). Record RQ-B FINAL (F3 weak-suggestive + generic). THEN PAPER: fold F1(pure-MLM win)+F2(masking null)+F3(aux weak/generic) into paper.tex (worktree, paper-smith or careful manual; vetted citations only). Then GitHub Pages + make gate.",
+  "next_action": "RQ-B experimentally COMPLETE (9 runs). PIVOT TO PAPER: fold F1(pure-MLM robust win)+F2(k\u0101raka masking NULL)+F3(k\u0101raka aux weak/ns/plausibly-specific) into paper.tex (.claude/worktrees/practical-mendel-bf73a8/paper). Honest framing: robust wins=RoPE+pure-MLM; P\u0101\u1e47inian masking null, aux weak-suggestive. Vetted citations only (no arXiv:2605.12548). Then GitHub Pages + make gate. Optional future: 100M RQ-B / 5-seed to resolve F3.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -41,7 +41,7 @@
       "verdict": "10M win was seed luck; effect scale-dependent; SS submission stays hybrid"
     },
     "F2_karaka_masking_causality": "NULL (pre-registered): \u0394K\u2212C +0.10 NS at matched budget; masking-distribution lever neutral; 73.06 k\u0101raka gain confounded. Preliminary (interventions queued).",
-    "F3_karaka_aux_objective": "SUGGESTIVE WEAK-POSITIVE (3-seed, NOT sig): targeted \u0394 +2.65/+0.61/+1.12, mean +1.46 (CI[-1.18,4.10] incl 0); overall +1.63. Consistent +direction but underpowered at 3 seeds. seed0 was lucky. Not a confirmed win \u2014 needs 5-seed/100M. Specificity (shuffled-role) running."
+    "F3_karaka_aux_objective": "WEAK, NON-SIG, plausibly-k\u0101raka-specific (3-seed+specificity, 9 runs): real-base +1.46/+1.63 targeted/overall (ns); shuf-base +0.58/-0.05 (shuffled does NOT reproduce \u2192 NOT generic); real-shuf +0.88/+1.68. Underpowered; needs 100M. Corrects cycle-50 1-seed generic read."
   },
   "documented_nulls": [
     "causal_scoring(63.92<67.57)",
@@ -120,5 +120,6 @@
   "rqB_shuf_blimp": {
     "seed0": 64.09,
     "seed1": 63.99
-  }
+  },
+  "rqB_complete": true
 }
