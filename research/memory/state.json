@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 62,
+  "cycle": 63,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "F3 5-seed cron-poll. aux seed3 eval RUNNING (~25min). NEXT: read rqB_aux_seed3 BLiMP; launch base seed3 (isolated nohup, --shabdabodha-aux 0 seed3); then aux seed4, base seed4. Then 5-seed paired t-test (pre-registered \u03b1=0.05) on targeted \u0394Aux\u2212Base seeds 0-4. Reap orphans + verify GPU free + isolated nohup + verify log each launch.",
+  "next_action": "F3 5-seed cron-poll. base seed3 training (~67min). NEXT: eval base seed3 \u2192 aux seed4 \u2192 base seed4 \u2192 5-seed paired t-test (pre-registered \u03b1=0.05) on targeted \u0394Aux\u2212Base. LAUNCH PATTERN: reap evaluation_pipeline orphans, verify GPU free, then CLEAN ISOLATED nohup (no pkill preamble \u2014 it aborts the launch), verify log in ~15s.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -132,5 +132,11 @@
     "MEMORY": "\u2713 findings/journal/ledger current",
     "SIGN-OFF": "DEFERRED (1-week mandate, no merge to main)"
   },
-  "f3_5seed_prereg": "5 seeds total, paired t-test on per-seed targeted \u0394Aux\u2212Base, \u03b1=0.05, report-as-is (anti-p-hack). 3-seed: \u0394 +2.65/+0.61/+1.12 (mean+1.46, p~0.14)."
+  "f3_5seed_prereg": "5 seeds total, paired t-test on per-seed targeted \u0394Aux\u2212Base, \u03b1=0.05, report-as-is (anti-p-hack). 3-seed: \u0394 +2.65/+0.61/+1.12 (mean+1.46, p~0.14).",
+  "rqB_aux_blimp_5seed": [
+    66.32,
+    64.37,
+    65.43,
+    64.91
+  ]
 }

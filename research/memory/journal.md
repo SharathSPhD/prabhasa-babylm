@@ -513,3 +513,8 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 ## [cycle 62 | 2026-06-11] F3 5-seed: aux seed3 done + eval
 - aux seed3 DONE (md5-distinct), eval running (PID 2206416, ~25min). next: read BLiMP → base seed3 →
   aux seed4 → base seed4 → 5-seed paired t-test (pre-registered).
+
+## [cycle 63 | 2026-06-11] F3 5-seed: aux seed3 64.91; base seed3 launched
+- aux 4 seeds BLiMP {66.32,64.37,65.43,64.91}. base seed3 launched (needed clean isolated nohup after
+  eval-orphan cleared; pkill-preamble launches keep failing). base seed3 training (~67min).
+- next: eval base seed3 → aux seed4 → base seed4 → 5-seed paired t-test (pre-registered).
