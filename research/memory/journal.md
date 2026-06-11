@@ -539,3 +539,7 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   be smaller than the 3-seed +1.46 → F3 likely stays weak/ns, but the pre-registered paired t decides.
 - next: eval base seed4 → 5-seed paired t-test (pre-registered α=0.05) → F3 verdict + paper update.
 [cycle 70 | 2026-06-11] HEARTBEAT — base seed4 (FINAL run) step 2601/2799 (~93%); GPU busy. Next poll: eval base seed4 → 5-seed paired t verdict (pre-registered). Heartbeat.
+
+## [cycle 71 | 2026-06-11] F3 5-seed: base seed4 done + eval (all 10 runs md5-distinct)
+- base seed4 DONE; aux 5/5 + base 5/5 md5-distinct (no seed-collapse). Eval running (PID 2552004, ~25min).
+  aux 5 BLiMP {66.32,64.37,65.43,64.91,63.40}=64.89. next cycle: read base seed4 BLiMP → 5-seed paired t.
