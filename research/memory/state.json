@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 67,
+  "cycle": 68,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "F3 5-seed cron-poll. aux seed4 training (~67min, LAST aux). NEXT: eval aux seed4 \u2192 base seed4 (clean isolated nohup) \u2192 eval \u2192 5-seed paired t-test (pre-registered \u03b1=0.05) on targeted \u0394Aux\u2212Base seeds 0-4. Then update F3 finding + paper with the 5-seed verdict. Reap orphans, clean isolated launch, verify log.",
+  "next_action": "F3 5-seed cron-poll \u2014 FINAL stretch. aux seed4 eval RUNNING (~25min, all 5 aux md5-distinct). NEXT: read rqB_aux_seed4 BLiMP; launch base seed4 (LAST run, clean isolated nohup); eval; then 5-seed paired t-test (pre-registered \u03b1=0.05) on targeted \u0394Aux\u2212Base seeds 0-4 \u2192 update F3 finding + paper with verdict (sig weak-positive OR confirmed weak/ns). Reap orphans, clean isolated launch, verify log.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
