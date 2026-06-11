@@ -508,3 +508,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   "add seeds until significant"). Launched aux seed3 (PID 2130106). GPU free → real BabyLM experiment,
   ~4.5h for 4 runs. This either upgrades F3 to "significant weak-positive" or confirms "weak/ns".
 - next: aux seed3 eval → base seed3 → aux seed4 → base seed4 → 5-seed paired t verdict.
+[cycle 61 | 2026-06-11] HEARTBEAT — aux seed3 step 2601/2799 (~93%); GPU busy. F3 5-seed extension in progress (aux/base seeds 3,4). Next cron-poll harvests. Heartbeat.
