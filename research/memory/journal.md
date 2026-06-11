@@ -500,3 +500,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   single-seed; resolved: claims hedged/conservative, top-line = RoPE+pure-MLM robust, mechanisms
   subordinated). No overclaim. INTEGRITY closure layer satisfied. Contract: 5/6 layers ✓, SIGN-OFF deferred.
 - next: closure summary / GPU-free consolidation (RQ-C spec, docs) or heartbeat; human sign-off pending.
+
+## [cycle 60 | 2026-06-11] F3 5-seed extension (PRE-REGISTERED, anti-p-hack)
+- RQ-B closed at 3 seeds (F3 weak, ns, p~0.14). To resolve significance with more power, extending to
+  EXACTLY 5 seeds (aux+base seeds 3,4). PRE-REGISTERED (before seeds 3,4 evaluated): paired t-test on
+  the per-seed targeted ΔAux−Base across all 5 seeds, α=0.05; report the result whatever it is (NOT
+  "add seeds until significant"). Launched aux seed3 (PID 2130106). GPU free → real BabyLM experiment,
+  ~4.5h for 4 runs. This either upgrades F3 to "significant weak-positive" or confirms "weak/ns".
+- next: aux seed3 eval → base seed3 → aux seed4 → base seed4 → 5-seed paired t verdict.
