@@ -532,3 +532,9 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 ## [cycle 68 | 2026-06-11] F3 5-seed: aux seed4 done (5/5 md5-distinct) + eval; base seed4 remains
 - aux seed4 DONE; all 5 aux seeds md5-distinct. Eval running (PID 2436738). Only base seed4 left.
   next: read aux4 BLiMP → base seed4 → eval → 5-seed paired t (pre-registered).
+
+## [cycle 69 | 2026-06-11] F3 5-seed: aux seed4 63.40 (low); base seed4 launched (FINAL run)
+- aux 5 BLiMP {66.32,64.37,65.43,64.91,63.40}=64.89 (seed4 low, pulls aux down). base seed4 launched
+  (clean isolated nohup after clearing orphans; last of the 10 runs). Interim hints the 5-seed Δ may
+  be smaller than the 3-seed +1.46 → F3 likely stays weak/ns, but the pre-registered paired t decides.
+- next: eval base seed4 → 5-seed paired t-test (pre-registered α=0.05) → F3 verdict + paper update.
