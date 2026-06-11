@@ -509,3 +509,7 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   ~4.5h for 4 runs. This either upgrades F3 to "significant weak-positive" or confirms "weak/ns".
 - next: aux seed3 eval → base seed3 → aux seed4 → base seed4 → 5-seed paired t verdict.
 [cycle 61 | 2026-06-11] HEARTBEAT — aux seed3 step 2601/2799 (~93%); GPU busy. F3 5-seed extension in progress (aux/base seeds 3,4). Next cron-poll harvests. Heartbeat.
+
+## [cycle 62 | 2026-06-11] F3 5-seed: aux seed3 done + eval
+- aux seed3 DONE (md5-distinct), eval running (PID 2206416, ~25min). next: read BLiMP → base seed3 →
+  aux seed4 → base seed4 → 5-seed paired t-test (pre-registered).
