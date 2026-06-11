@@ -479,3 +479,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   the primary driver. No fabricated citations (verified: 2605.12548 only in safeguard COMMENTS, no
   actual \cite). Braces balanced, \ref{sec:rqab}↔\label OK. Committed in worktree b9a0ed0.
 - next: GitHub Pages refresh (F2/F3) + make gate (code clean) + Tarka review of the paper subsection.
+
+## [cycle 58 | 2026-06-11] GitHub Pages refresh (F1/F2/F3) + gate format fix; 100M RQ-B declined
+- Refreshed site/src/data/results.json (was STALE: "training_in_progress"/null) → honest current state:
+  F1 (objective scale-dependent), F2 (kāraka masking causal NULL), F3 (aux weak/ns/plausibly-specific),
+  Strict 100M 73.06, SS 3-seed 64.09 complete. JSON valid. make gate: ruff ✓ mypy ✓; ruff format fixed
+  2 new scripts (analyze_rqA, backfill_blimp); tests running. DECLINED 100M RQ-B: needs strict tokenizer
+  (absent) + multi-hr spaCy parse + ~26h GPU to resolve a weak signal — poor ROI ("don't waste GPU");
+  10M F3 is a complete honest finding, paper frames 100M as future work.
+- next: confirm gate tests green; Tarka review of paper RQ-A/RQ-B subsection; closure-contract status.

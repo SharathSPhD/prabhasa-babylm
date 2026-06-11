@@ -62,10 +62,14 @@ def main() -> None:
     ap.add_argument("--arm-c", required=True)
     args = ap.parse_args()
     r = compare(Path(args.arm_k), Path(args.arm_c))
-    print(f"RQ-A kāraka causality — targeted (agreement+arg) subset ({r['n_targeted_paradigms']} paradigms)")
+    print(
+        f"RQ-A kāraka causality — targeted (agreement+arg) subset ({r['n_targeted_paradigms']} paradigms)"
+    )
     print(f"  Arm K (kāraka) mean = {r['armK_subset_mean']}")
     print(f"  Arm C (control) mean = {r['armC_subset_mean']}")
-    print(f"  ΔK−C = {r['mean_diff_K_minus_C']:.2f}  95%CI {r['ci95']}  significant={r['significant']}")
+    print(
+        f"  ΔK−C = {r['mean_diff_K_minus_C']:.2f}  95%CI {r['ci95']}  significant={r['significant']}"
+    )
     print("  threshold (SPEC 0002): ΔK−C ≥ +1.0pp with CI excluding 0")
 
 
