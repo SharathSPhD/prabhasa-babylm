@@ -523,3 +523,7 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 ## [cycle 65 | 2026-06-11] F3 5-seed: base seed3 done + eval; seed4 pair remains
 - base seed3 DONE, eval running (PID 2321851). aux {0-3} done; base {0-3} (3 eval'd + seed3 evaluating).
   Pre-registered 5 seeds → still need aux seed4 + base seed4. next: read base3 BLiMP → aux seed4 → base seed4 → 5-seed paired t.
+
+## [cycle 66 | 2026-06-11] F3 5-seed: base seed3 63.83; aux seed4 launched (last aux)
+- base 4 seeds BLiMP {62.45,64.94,63.83,63.83}. aux seed4 launched (clean isolated nohup). aux {0-4}
+  will be complete after this; then base seed4 → 5-seed paired t (pre-registered). aux seed4 training ~67min.
