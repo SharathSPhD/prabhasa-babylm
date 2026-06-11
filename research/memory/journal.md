@@ -538,3 +538,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   (clean isolated nohup after clearing orphans; last of the 10 runs). Interim hints the 5-seed Δ may
   be smaller than the 3-seed +1.46 → F3 likely stays weak/ns, but the pre-registered paired t decides.
 - next: eval base seed4 → 5-seed paired t-test (pre-registered α=0.05) → F3 verdict + paper update.
+[cycle 70 | 2026-06-11] HEARTBEAT — base seed4 (FINAL run) step 2601/2799 (~93%); GPU busy. Next poll: eval base seed4 → 5-seed paired t verdict (pre-registered). Heartbeat.
