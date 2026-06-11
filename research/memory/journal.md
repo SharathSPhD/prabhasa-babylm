@@ -462,3 +462,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - shuf seed2 DONE; all 3 shuffled seeds md5-distinct. Eval running (PID 1935612, ~25min). Last run
   of the RQ-B characterization. next cycle: read shuf seed2 BLiMP → full 3-seed specificity (real vs
   shuffled vs base targeted) → RQ-B conclusion → fold F1+F2+F3+specificity into paper.
+
+## [cycle 56 | 2026-06-11] RQ-B COMPLETE — 3-seed specificity (9 runs); weak, leans kāraka-specific
+- 3-seed specificity: real 74.41 / shuf 73.53 / base 72.95 (targeted). shuf−base +0.58/−0.05 →
+  shuffled does NOT reproduce the effect → NOT generic (corrects cycle-50 1-seed read). real−shuf
+  +0.88/+1.68 → leans kāraka-specific, but ALL weak + NS at 3 seeds. RQ-B FINAL: weak, non-sig,
+  plausibly-kāraka-specific aux effect; needs 100M/more-seeds. RQ-B experimentally COMPLETE (9 runs).
+- Tarka: real (9 md5-distinct runs), fair, no overclaim (weak+ns stated). H1: RoPE+pure-MLM robust;
+  masking null; aux weak. → PIVOT to paper (fold F1+F2+F3+specificity, honest, vetted citations).
