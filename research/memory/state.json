@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 56,
+  "cycle": 57,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "RQ-B experimentally COMPLETE (9 runs). PIVOT TO PAPER: fold F1(pure-MLM robust win)+F2(k\u0101raka masking NULL)+F3(k\u0101raka aux weak/ns/plausibly-specific) into paper.tex (.claude/worktrees/practical-mendel-bf73a8/paper). Honest framing: robust wins=RoPE+pure-MLM; P\u0101\u1e47inian masking null, aux weak-suggestive. Vetted citations only (no arXiv:2605.12548). Then GitHub Pages + make gate. Optional future: 100M RQ-B / 5-seed to resolve F3.",
+  "next_action": "Paper RQ-A/RQ-B subsection added + overclaim fixed. NEXT: (1) refresh GitHub Pages site/src/data/results.json with F2/F3 honest findings; (2) make gate green (code unchanged but verify); (3) optional adversarial-reviewer pass on the new paper subsection. Then consider 100M RQ-B (needs 100M eos-cache build, CPU ~hours) to resolve F3, OR declare the 10M RQ-B program closed. GPU free.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -121,5 +121,6 @@
     "seed0": 64.09,
     "seed1": 63.99
   },
-  "rqB_complete": true
+  "rqB_complete": true,
+  "paper_updated": "RQ-A/RQ-B subsection (F2 null, F3 weak/specificity) + overclaim corrected; worktree commit b9a0ed0; no fabricated cites"
 }

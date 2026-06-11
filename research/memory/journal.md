@@ -470,3 +470,12 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   plausibly-kāraka-specific aux effect; needs 100M/more-seeds. RQ-B experimentally COMPLETE (9 runs).
 - Tarka: real (9 md5-distinct runs), fair, no overclaim (weak+ns stated). H1: RoPE+pure-MLM robust;
   masking null; aux weak. → PIVOT to paper (fold F1+F2+F3+specificity, honest, vetted citations).
+
+## [cycle 57 | 2026-06-11] PAPER fold: RQ-A/RQ-B subsection + overclaim correction
+- RQ-B complete → pivoted to paper. Added §"Causal isolation of the Pāṇinian mechanisms (RQ-A, RQ-B)"
+  presenting F2 (kāraka masking causally NULL at matched budget) + F3 (aux weak/ns/plausibly-specific,
+  shuffled control). CORRECTED the prior overclaim ("kāraka masking is the differentiating inductive
+  bias") → honest: robust wins are RoPE+pure-MLM; mechanisms are small/non-harmful/interpretable, not
+  the primary driver. No fabricated citations (verified: 2605.12548 only in safeguard COMMENTS, no
+  actual \cite). Braces balanced, \ref{sec:rqab}↔\label OK. Committed in worktree b9a0ed0.
+- next: GitHub Pages refresh (F2/F3) + make gate (code clean) + Tarka review of the paper subsection.
