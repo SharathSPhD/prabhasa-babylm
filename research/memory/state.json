@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 59,
+  "cycle": 60,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Closure contract 5/6 layers satisfied (TECHNICAL/EMPIRICAL/INTEGRITY/ARTIFACTS/MEMORY \u2713); only SIGN-OFF deferred (human unavailable, no merge to main). GPU free. Options: (a) write RQ-C (vyutpattivada curriculum) spec for future work; (b) consolidate a closure/results summary doc; (c) heartbeat if nothing high-value. RQ-B program CLOSED honest. F1/F2/F3 in paper+Pages, gate green 86.66%.",
+  "next_action": "F3 5-seed extension (cron-poll). aux seed3 training. NEXT: eval aux seed3 \u2192 base seed3 \u2192 aux seed4 \u2192 base seed4 (clean isolated nohup, verify log, reap orphans). Then 5-seed paired t-test (pre-registered \u03b1=0.05) on targeted \u0394Aux\u2212Base across seeds 0-4. Update F3/paper with the 5-seed verdict (significant weak-positive OR confirmed weak/ns). Closure 5/6 layers \u2713; this strengthens EMPIRICAL.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -131,5 +131,6 @@
     "ARTIFACTS": "\u2713 paper RQ-A/RQ-B + Pages refreshed",
     "MEMORY": "\u2713 findings/journal/ledger current",
     "SIGN-OFF": "DEFERRED (1-week mandate, no merge to main)"
-  }
+  },
+  "f3_5seed_prereg": "5 seeds total, paired t-test on per-seed targeted \u0394Aux\u2212Base, \u03b1=0.05, report-as-is (anti-p-hack). 3-seed: \u0394 +2.65/+0.61/+1.12 (mean+1.46, p~0.14)."
 }
