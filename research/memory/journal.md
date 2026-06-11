@@ -492,3 +492,11 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 ## [cycle 58b | 2026-06-11] make gate GREEN confirmed (TECHNICAL closure ✓)
 - make gate exit 0: ruff ✓, mypy ✓ (115 files), format ✓, 667 passed / 3 skipped, coverage 86.66% (≥80%).
   TECHNICAL closure layer satisfied. Pages (F1/F2/F3) + paper (RQ-A/RQ-B subsection) committed.
+
+## [cycle 59 | 2026-06-11] Tarka review of paper RQ-A/RQ-B → INTEGRITY layer closed
+- Verified ALL paper F2/F3 numbers exact vs logs (82.03/81.93/+0.10/71.77/70.49; 74.41/72.95/73.53;
+  65.37/63.74/63.69). Tarka finding: RQ-A single-seed not disclosed → added caveat + honest bound.
+  Wrote docs/memory/tarka_rqA_rqB.md (strongest objection: F3 specificity may over-read noise + F2
+  single-seed; resolved: claims hedged/conservative, top-line = RoPE+pure-MLM robust, mechanisms
+  subordinated). No overclaim. INTEGRITY closure layer satisfied. Contract: 5/6 layers ✓, SIGN-OFF deferred.
+- next: closure summary / GPU-free consolidation (RQ-C spec, docs) or heartbeat; human sign-off pending.

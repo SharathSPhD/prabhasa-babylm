@@ -1,7 +1,7 @@
 {
   "harness": "PRAJNA",
   "spec": "research/specs/0001-autonomous-harness.md",
-  "cycle": 58,
+  "cycle": 59,
   "phase": "FOUNDATION_BUILT \u2192 CLOSURE+RQA",
   "started": "2026-06-08",
   "branch": "integration/data-engine-v2",
@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "Pages refreshed (F1/F2/F3), gate ruff/mypy/format green (tests verifying). NEXT: confirm gate tests pass; run adversarial-reviewer (Tarka) on the paper RQ-A/RQ-B subsection for overclaim/accuracy; then assess closure-contract layers (TECHNICAL\u2713 EMPIRICAL\u2713 INTEGRITY=Tarka ARTIFACTS=paper+Pages\u2713 MEMORY\u2713 SIGN-OFF=deferred). 100M RQ-B DECLINED (poor ROI). GPU free/idle \u2014 consider a cheap high-value experiment or consolidate.",
+  "next_action": "Closure contract 5/6 layers satisfied (TECHNICAL/EMPIRICAL/INTEGRITY/ARTIFACTS/MEMORY \u2713); only SIGN-OFF deferred (human unavailable, no merge to main). GPU free. Options: (a) write RQ-C (vyutpattivada curriculum) spec for future work; (b) consolidate a closure/results summary doc; (c) heartbeat if nothing high-value. RQ-B program CLOSED honest. F1/F2/F3 in paper+Pages, gate green 86.66%.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -127,7 +127,7 @@
   "closure_contract": {
     "TECHNICAL": "\u2713 gate green 86.66%",
     "EMPIRICAL": "\u2713 F1/F2/F3 with interpretations",
-    "INTEGRITY": "Tarka pending on paper subsection",
+    "INTEGRITY": "\u2713 Tarka memo (docs/memory/tarka_rqA_rqB.md); numbers verified, single-seed F2 disclosed, no overclaim",
     "ARTIFACTS": "\u2713 paper RQ-A/RQ-B + Pages refreshed",
     "MEMORY": "\u2713 findings/journal/ledger current",
     "SIGN-OFF": "DEFERRED (1-week mandate, no merge to main)"
