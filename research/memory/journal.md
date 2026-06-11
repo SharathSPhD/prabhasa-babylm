@@ -518,3 +518,4 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 - aux 4 seeds BLiMP {66.32,64.37,65.43,64.91}. base seed3 launched (needed clean isolated nohup after
   eval-orphan cleared; pkill-preamble launches keep failing). base seed3 training (~67min).
 - next: eval base seed3 → aux seed4 → base seed4 → 5-seed paired t-test (pre-registered).
+[cycle 64 | 2026-06-11] HEARTBEAT — base seed3 step 2601/2799 (~93%); GPU busy. F3 5-seed: aux {66.32,64.37,65.43,64.91} done, base 0-2 done, base seed3 finishing. Next poll: eval base3 → aux/base seed4 → 5-seed verdict. Heartbeat.
