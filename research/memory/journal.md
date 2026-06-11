@@ -488,3 +488,7 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   (absent) + multi-hr spaCy parse + ~26h GPU to resolve a weak signal — poor ROI ("don't waste GPU");
   10M F3 is a complete honest finding, paper frames 100M as future work.
 - next: confirm gate tests green; Tarka review of paper RQ-A/RQ-B subsection; closure-contract status.
+
+## [cycle 58b | 2026-06-11] make gate GREEN confirmed (TECHNICAL closure ✓)
+- make gate exit 0: ruff ✓, mypy ✓ (115 files), format ✓, 667 passed / 3 skipped, coverage 86.66% (≥80%).
+  TECHNICAL closure layer satisfied. Pages (F1/F2/F3) + paper (RQ-A/RQ-B subsection) committed.

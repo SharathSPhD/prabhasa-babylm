@@ -122,5 +122,14 @@
     "seed1": 63.99
   },
   "rqB_complete": true,
-  "paper_updated": "RQ-A/RQ-B subsection (F2 null, F3 weak/specificity) + overclaim corrected; worktree commit b9a0ed0; no fabricated cites"
+  "paper_updated": "RQ-A/RQ-B subsection (F2 null, F3 weak/specificity) + overclaim corrected; worktree commit b9a0ed0; no fabricated cites",
+  "gate": "GREEN: 667 passed/3 skipped, coverage 86.66%",
+  "closure_contract": {
+    "TECHNICAL": "\u2713 gate green 86.66%",
+    "EMPIRICAL": "\u2713 F1/F2/F3 with interpretations",
+    "INTEGRITY": "Tarka pending on paper subsection",
+    "ARTIFACTS": "\u2713 paper RQ-A/RQ-B + Pages refreshed",
+    "MEMORY": "\u2713 findings/journal/ledger current",
+    "SIGN-OFF": "DEFERRED (1-week mandate, no merge to main)"
+  }
 }
