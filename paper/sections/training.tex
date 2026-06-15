@@ -3,70 +3,39 @@
 % site/src/data/results.json (strict_track, submission_track), configs/ (base.yaml, phase2/),
 % CLAUDE.md (hardware spec), experiment ledger
 
-\section{Training Stages and Protocol}
+Prabhāsa training combines a hardware platform optimized for small-scale pretraining, a carefully constructed corpus spanning English and Sanskrit, and three distinct stages: a frozen pre-pretraining dose exploration, a main MLM pipeline with integrated linguistic mechanisms, and an out-of-scope post-training phase. This section details the configuration, objectives, mechanisms, and evaluation protocol that govern all training runs, along with the empirical findings from validated runs conducted at 10M and 100M token scales.
 
 \subsection{Hardware and Infrastructure}
 
-The PSALM training pipeline operates on a single NVIDIA DGX Spark system (GB10 Grace-Blackwell processor, 128GB unified GPU memory, aarch64 platform). Code execution uses NGC PyTorch containers (PyTorch 2.4+, CUDA 13.3, arm64 architecture). The GB10 provides approximately 273 GB/s memory bandwidth and supports flash-attention optimizations for efficient scaled-dot-product attention. Training time per 100M-token run is approximately 111 minutes (excluding I/O and evaluation); the 10M-token runs complete in 67 minutes.
+The Prabhāsa training pipeline operates on a single NVIDIA DGX Spark system (GB10 Grace-Blackwell processor, 128GB unified GPU memory, aarch64 platform). Code execution uses NGC PyTorch containers (PyTorch 2.4+, CUDA 13.3, arm64 architecture). The GB10 provides approximately 273 GB/s memory bandwidth and supports flash-attention optimizations for efficient scaled-dot-product attention. Training time per 100M-token run is approximately 111 minutes; the 10M-token runs complete in approximately 67 minutes, excluding I/O and evaluation overhead.
 
-Both the Strict-Small (10M token budget) and Strict (100M token budget) models employ a 14-layer ELC encoder architecture with 768-dimensional hidden states, 12 attention heads, and feed-forward inner dimension of 3072. The Strict-Small model (prabhasa-b\_s-0.1) has approximately 114M parameters; the Strict model (prabhasa-b\_s) has approximately 100M parameters. Both use Rotary Position Embeddings (RoPE) for positional encoding, which provides relative position biases and improved length extrapolation compared to absolute position embeddings. The primary optimizer is Muon, which applies Newton-Schulz orthogonalization to the momentum accumulator to improve sample efficiency in small-budget settings.
+Both models employ a 14-layer encoder architecture with 768-dimensional hidden states, 12 attention heads, and feed-forward inner dimension of 3072. The Strict-Small model (prabhasa-b\_s-0.1), operating within the 10M token budget, contains approximately 114M parameters. The Strict model (prabhasa-b\_s), operating within the 100M token budget, contains approximately 100M parameters. Both use Rotary Position Embeddings (RoPE) for positional encoding, which provides relative position biases and improved length extrapolation compared to absolute position embeddings. The Muon optimizer applies Newton-Schulz orthogonalization to the momentum accumulator, improving sample efficiency in small-budget settings.
 
 \subsection{Training Budget and Corpus Preparation}
 
-The main pretraining stage is governed by the official BabyLM constraint: strictly 10M words (Strict-Small) or 100M words (Strict), applied over a fixed number of training steps. The corpus comprises two components:
+The main pretraining stage is governed by the official BabyLM constraint: strictly 10M words (Strict-Small) or 100M words (Strict), applied over a fixed number of training steps. The corpus combines English from BabyLM sources (Wikipedia, news, and high-frequency public corpora) with Sanskrit from the Digital Corpus of Sanskrit (DCS, Jawaharlal Nehru University) and the GRETIL archive. All text is tokenized via SentencePiece with a 32K vocabulary trained jointly on English and Sanskrit to ensure consistent subword segmentation across languages.
 
-\begin{itemize}
-\item \textbf{English (BabyLM).} Real English text from Wikipedia, news, and high-frequency public corpora, tokenized via SentencePiece (32K vocabulary, trained jointly on English and Sanskrit to ensure consistent subword segmentation across languages).
-\item \textbf{Sanskrit (DCS/GRETIL).} Real Sanskrit text from the Digital Corpus of Sanskrit (DCS, Jawaharlal Nehru University) and the GRETIL archive, preprocessed to remove formatting and align with token budgets.
-\end{itemize}
+The corpus is not stratified by language; English comprises approximately 95\% of the final pretraining tokens, with Sanskrit contributing the remainder. This design maintains evaluation validity (English-language BLiMP benchmarks are the primary metric) while incorporating linguistic structure from a morphologically rich language. Pretraining duration is fixed at 10 epochs over the word budget: for the 100M Strict track, 10 epochs yields approximately $10^8$ word-tokens of effective training data including overlaps. The sequence length is 512 tokens; the batch size is 512 tokens per batch, yielding 96 training steps per epoch in official BabyLM mode. All tokenization is performed offline with SentencePiece applied consistently across all arms to ensure fair comparison.
 
-\noindent The corpus is not stratified by language; English comprises approximately 95\% of the final pretraining tokens, with Sanskrit contributing the remainder. This design ensures that the evaluation remains valid (English-language BLiMP benchmarks are the primary metric) while incorporating linguistic structure from a morphologically rich language.
+\subsection{Pre-Pretraining and Dose Ablation}
 
-The pretraining duration is fixed at 10 epochs over the word budget. For the 100M Strict track, 10 epochs yields approximately $10^7 \times 10 = 10^8$ word-tokens of effective training data (with overlaps). The sequence length is 512 tokens; the batch size is fixed at 512 tokens per batch (96 training steps per model update in official BabyLM mode, enforcing a soft constraint on total steps). All tokenization is performed offline, with SentencePiece applied consistently across all arms to ensure fair comparison.
+A preliminary pre-pretraining phase was conducted at the proxy scale (60M tokens, 1 epoch) to explore the effect of synthetic Pāṇinian data injection before the main pretraining stage. Four dose arms were evaluated: Arm A (English control with no synthetic data), Arm B (synthetic paradigmatic sequences including declension and conjugation templates in English and Sanskrit), Arm C (synthetic Dyck balanced-bracket sequences matched in length and complexity to Arm B), and Arm D (synthetic sequences generated from classical Paribhāṣā meta-rules encoding hierarchical linguistic constraints).
 
-\subsection{Pre-Pretraining and Dose Ablation (Frozen Arms)}
-
-A preliminary pre-pretraining phase was conducted at the proxy scale (60M tokens, 1 epoch) to explore the effect of synthetic Pāṇinian data injection. Four dose arms were evaluated:
-
-\begin{itemize}
-\item \textbf{Arm A (English control):} No synthetic data; random English BabyLM text.
-\item \textbf{Arm B (Pāṇinian paradigms):} Synthetic paradigmatic sequences (declension, conjugation templates in both English and Sanskrit).
-\item \textbf{Arm C (Dyck bracket control):} Synthetic Dyck balanced-bracket sequences, matched in length and complexity to Arm B.
-\item \textbf{Arm D (Paribhāṣā rules):} Synthetic sequences generated from classical Paribhāṣā (meta-rules) encoding hierarchical linguistic constraints.
-\end{itemize}
-
-\noindent Single-seed results at 60M tokens were: Arm A 64.15 BLiMP, Arm B 63.54, Arm C 63.85, Arm D 63.77 (all within $\ensuremath{\pm} 1.5$ percentage points). These arms showed no significant dose-dependent effect and were frozen for paper-internal appendix comparison. The absence of a dose effect at the proxy scale, combined with the pre-registered finding H$1_{\text{COGS}}$ null (documented in ADR-0017), indicated that explicit pre-pretraining injection was unlikely to yield the target $\geq 20\%$ token-savings gain or $\geq 3$-point BLiMP lift. Consequently, the main Strict track does not use pre-pretraining, applying resources instead to the mechanisms that are integrated directly into the main pretraining pipeline.
+Single-seed results at 60M tokens were Arm A 64.15 BLiMP, Arm B 63.54, Arm C 63.85, Arm D 63.77, all within approximately 1.5 percentage points of one another. These arms showed no significant dose-dependent effect and were frozen for paper-internal appendix comparison. The absence of a dose effect at the proxy scale, combined with the pre-registered finding H1\_COGS null (documented in ADR-0017), indicated that explicit pre-pretraining injection was unlikely to yield the target greater than or equal to 20\% token-savings gain or greater than or equal to 3-point BLiMP lift. Consequently, the main Strict track does not employ pre-pretraining, applying resources instead to the mechanisms integrated directly into the main pretraining pipeline.
 
 \subsection{Main Pretraining: Objectives and Scale-Dependent Effects}
 
-Two primary training objectives are evaluated, differing in the composition of the loss function:
+Two primary training objectives are evaluated. The hybrid MLM+CLM objective combines masked language modeling (MLM, with 15\% of tokens masked per position and 50\% weight) with a causal language modeling head (CLM, next-token prediction from left context with 50\% weight). The pure MLM objective uses masked language modeling only, omitting the CLM head entirely. Finding F1 (documented in findings.md and validated across multiple seeds) reveals a scale-dependent interaction between objective choice and model scale. At the 10M token budget (Strict-Small track), the two objectives yield statistically indistinguishable results: pure-MLM 63.58 ± 1.73 BLiMP versus hybrid 64.09 ± 0.26 across 3 seeds each with distinct MD5-verified checkpoints. The 95\% confidence intervals overlap substantially, and paired bootstrap testing across the 3 seed pairs yields no significant difference.
 
-\begin{itemize}
-\item \textbf{Hybrid MLM+CLM:} A composite objective combining masked language modeling (MLM, 15\% of tokens masked per position; 50\% weight) with a causal language modeling head (CLM, next-token prediction from left context; 50\% weight). This configuration is standard in recent small-model pretraining.
-\item \textbf{Pure MLM:} The masked language modeling objective only; the CLM head is entirely omitted.
-\end{itemize}
-
-\noindent Finding F1 (findings.md, validated) reveals a scale-dependent interaction between objective choice and model scale. At the 10M token budget (Strict-Small track), the two objectives yield statistically indistinguishable results:
-
-\begin{equation}
-\text{Pure-MLM: } 63.58 \ensuremath{\pm} 1.73 \text{ BLiMP} \quad \text{vs} \quad \text{Hybrid: } 64.09 \ensuremath{\pm} 0.26 \text{ (3 seeds each, md5-distinct)}.
-\end{equation}
-
-\noindent The 95\% confidence intervals overlap substantially, and a paired bootstrap test across the 3 seed pairs yields no significant difference (details in Results section). At the 100M token budget (Strict track), pure MLM achieves a substantial gain:
-
-\begin{equation}
-\text{Pure-MLM: } 73.06 \text{ BLiMP} \quad \text{vs} \quad \text{Hybrid: } 67.57 \text{ BLiMP} \quad (\Delta = +5.49 \text{ pp, single seed each}).
-\end{equation}
-
-\noindent This 5.49 percentage point difference indicates that the CLM head's gradient signal becomes increasingly incompatible with MLM optimization as model scale increases and the MLM objective begins to dominate learning. For the Strict-Small submission, the hybrid configuration is retained (for conservative statistical footing on small seed variance), while the Strict-track model adopts pure MLM.
+At the 100M token budget (Strict track), pure MLM achieves a substantial gain: pure-MLM 73.06 BLiMP versus hybrid 67.57 BLiMP, a difference of 5.49 percentage points with single-seed runs each. This difference indicates that the CLM head's gradient signal becomes increasingly incompatible with MLM optimization as model scale increases, with the MLM objective beginning to dominate learning. For the Strict-Small submission, the hybrid configuration is retained for conservative statistical footing given small seed variance, while the Strict-track model adopts pure MLM.
 
 \subsection{Masking Schedule and Learning Dynamics}
 
-The masking schedule decays from an initial rate of 0.40 to a final rate of 0.15 via cosine annealing over all 10 epochs. At the beginning of pretraining, 40\% of non-special tokens are selected for masking; by the end, this fraction decreases to 15\%. The cosine function provides smooth, non-linear decay: the learning rate follows the same pattern (cosine annealing from peak to minimum).
+The masking schedule decays from an initial rate of 0.40 to a final rate of 0.15 via cosine annealing across all 10 epochs. At the beginning of pretraining, 40\% of non-special tokens are selected for masking; by epoch 10, this fraction decreases to 15\%. Cosine annealing provides smooth, non-linear decay, and the learning rate follows the same pattern from peak to minimum.
 
-The peak learning rate for the embedding and transformer layers is set to $10^{-3}$ (1e-3 in standard notation). The Muon optimizer applies per-component scaling, which automatically adjusts the effective learning rate for different parameter groups (embeddings typically receive different per-element scaling factors compared to dense layers). Muon's per-component scaling adapts to the Frobenius norms of the natural gradient estimate, implicitly implementing a form of adaptive learning-rate scheduling on top of the cosine schedule.
+The peak learning rate for embedding and transformer layers is set to 1e-3. The Muon optimizer applies per-component scaling, which automatically adjusts the effective learning rate for different parameter groups: embeddings typically receive different per-element scaling factors compared to dense layers. Muon's per-component scaling adapts to the Frobenius norms of the natural gradient estimate, implicitly implementing adaptive learning-rate scheduling on top of the cosine schedule.
 
-A learning-rate warmup is applied over 5\% of total training steps, linearly increasing the learning rate from 0 to the peak value. This standard practice helps stabilize the early phases of training and reduces the risk of divergence on small-budget runs. Figure~\ref{fig:devcurve} displays the BLiMP score evolution over the 10-epoch training duration, illustrating the trajectory of linguistic competence acquisition as training progresses.
+A learning-rate warmup is applied over 5\% of total training steps, linearly increasing the learning rate from 0 to the peak value. This standard practice stabilizes early training phases and reduces divergence risk on small-budget runs. Figure~\ref{fig:devcurve} displays the BLiMP score evolution over the 10-epoch training duration, illustrating the trajectory of linguistic competence acquisition as training progresses.
 
 \begin{figure}[t]\centering\includegraphics[width=0.85\linewidth]{figures/fig_dev_curve.pdf}
 \caption{Developmental BLiMP progression across pretraining checkpoints. The curve shows BLiMP performance evaluated at each epoch boundary, tracking the model's acquisition of linguistic structure throughout the 10-epoch training schedule. The curve demonstrates monotonic improvement up to epoch 10, with steeper gains in early epochs as the model acquires foundational linguistic patterns.}
@@ -74,57 +43,39 @@ A learning-rate warmup is applied over 5\% of total training steps, linearly inc
 
 \subsection{Kāraka-Aware Mechanisms}
 
-The Pāṇinian-inspired contributions to the training pipeline consist of three distinct mechanisms, each integrated at different points in the forward and backward passes:
+The Pāṇinian-inspired contributions to the training pipeline consist of three distinct mechanisms, each integrated at different points in the forward and backward passes.
 
-\paragraph{Mechanism 1: Vidyut N-Hot Morpheme-Boundary Embeddings}
+Mechanism 1 consists of Vidyut N-hot morpheme-boundary embeddings. For each SentencePiece token in the corpus, a 10-dimensional sparse binary (N-hot) vector is assigned, encoding the token's morpheme-boundary class and kāraka role. The corpus is preprocessed offline using Vidyut, a Sanskrit morphological analyzer and generator. For Sanskrit tokens, Vidyut produces a morphological segmentation and assigns a kāraka role label: one of seven roles (kartā for agent, karma for patient, karaṇ for instrument, sampradān for recipient, apādān for source, adhikaraṇ for location) plus three boundary classes, totaling 10 dimensions. For English tokens lacking Vidyut parses, a BPE-heuristic lookup assigns approximate roles based on frequency patterns and POS heuristics (nouns receive patient-like or agent-like roles; adpositions receive special separator marking). The resulting 10-dimensional one-hot vector is projected to 768 dimensions via a learned linear layer:
 
-For each SentencePiece token in the corpus, a 10-dimensional sparse binary (N-hot) vector is assigned, encoding the token's morpheme-boundary class and kāraka role:
-
-\begin{enumerate}
-\item The corpus is preprocessed offline using Vidyut (a Sanskrit morphological analyzer and generator; Kulkarni et al., 2015). For Sanskrit tokens, Vidyut produces a morphological segmentation (root, affixes, case markers) and assigns a kāraka role label: one of {kartā (agent), karma (patient), karaṇ (instrument), sampradān (recipient), apādān (source), adhikaraṇ (location), or a separator/unknown class} (7 roles total, plus 3 boundary classes, totaling 10 dimensions).
-\item For English tokens, which lack Vidyut parses, a BPE-heuristic lookup assigns approximate roles based on frequency patterns and POS heuristics (e.g., nouns are assigned patient-like or agent-like roles; adpositions receive special separator marking).
-\item The resulting 10-dimensional one-hot vector is projected to 768 dimensions via a learned linear layer:
 \begin{equation}
 \mathbf{e}\_{\text{kāraka}}(t) = W\_{\text{N-hot}} \cdot \mathbf{v}\_{\text{N-hot}}(t) \quad \in \mathbb{R}^{768},
 \end{equation}
-where $\mathbf{v}_{\text{N-hot}}(t) \in \{0,1\}^{10}$ and $W_{\text{N-hot}} \in \mathbb{R}^{768 \times 10}$ is a learned projection matrix.
-\item The projected N-hot embedding is added to the SentencePiece embedding before encoding:
+
+where $\mathbf{v}_{\text{N-hot}}(t) \in \{0,1\}^{10}$ and $W_{\text{N-hot}} \in \mathbb{R}^{768 \times 10}$ is a learned projection matrix. The projected N-hot embedding is added to the SentencePiece embedding before encoding via element-wise addition:
+
 \begin{equation}
-\mathbf{x}(t) = \text{Embed}(t) + \mathbf{e}\_{\text{kāraka}}(t),
+\mathbf{x}(t) = \text{Embed}(t) + \mathbf{e}\_{\text{kāraka}}(t).
 \end{equation}
-where the addition is element-wise. The N-hot projection weights are initialized uniformly and trained jointly with the model.
-\end{enumerate}
 
-\noindent This design provides explicit morphological and role structure without modifying the core transformer architecture (no additional layers or attention mechanisms).
+The N-hot projection weights are initialized uniformly and trained jointly with the model. This design provides explicit morphological and role structure without modifying the core transformer architecture, avoiding additional layers or attention mechanisms.
 
-\paragraph{Mechanism 2: Kāraka Role-Stratified Masking (Budget-Matched)}
-
-During pretraining, the standard random masking procedure is replaced with role-aware masking. Instead of selecting tokens uniformly at random for masking, tokens are partitioned by their kāraka role, and a role-specific mask probability is applied:
+Mechanism 2 consists of kāraka role-stratified masking with budget matching. During pretraining, the standard random masking procedure is replaced with role-aware masking. Instead of selecting tokens uniformly at random for masking, tokens are partitioned by their kāraka role, and a role-specific mask probability is applied:
 
 \begin{equation}
 p\_{\text{mask}}(t) = p\_{\text{base}} + \delta\_{r(t)},
 \end{equation}
 
-\noindent where $p_{\text{base}}$ is the target overall mask rate (e.g., 0.30 after the 0.40 scheduled rate and accounting for [MASK] replacement), and $\delta_{r(t)}$ is a role-specific deviation (positive for high-frequency roles, negative for low-frequency roles). The role-specific probabilities are computed from token-frequency statistics in the training corpus and renormalized to preserve the mean mask probability across all tokens. This budget-matching correction is critical for causal attribution: by ensuring that the total number of masked tokens equals that of a uniform-random baseline, any performance difference can be attributed to the distribution of masked tokens across roles, not to confounded mask-rate differences.
+where $p_{\text{base}}$ is the target overall mask rate (e.g., 0.30 after the 0.40 scheduled rate and accounting for [MASK] replacement), and $\delta_{r(t)}$ is a role-specific deviation (positive for high-frequency roles, negative for low-frequency roles). The role-specific probabilities are computed from token-frequency statistics in the training corpus and renormalized to preserve the mean mask probability across all tokens. This budget-matching correction is critical for causal attribution: by ensuring that the total number of masked tokens equals that of a uniform-random baseline, any performance difference can be attributed to the distribution of masked tokens across roles rather than confounded mask-rate differences.
 
-Finding F2 (findings.md) directly tests this mechanism using a carefully controlled comparison:
+Finding F2 directly tests this mechanism using a carefully controlled comparison. Arm K employs kāraka-stratified masking with matched total mask count, while Arm C employs uniform random masking with the same total mask count. Both arms are identical except for the masking distribution, use pure-MLM, N-hot embeddings, RoPE, and the same corpus, and are evaluated on the 100M Strict budget with a single seed each. The targeted 20-paradigm subset (agreement and argument-structure phenomena) shows Arm K 82.03 BLiMP versus Arm C 81.93, a difference of 0.10 percentage points with 95\% confidence interval (−0.99, +1.20) from paired bootstrap over paradigms. This difference is not statistically significant. Finding F2 concludes that the kāraka masking distribution, when applied at matched budget, has no causal effect on agreement and argument-structure tasks.
 
-\begin{itemize}
-\item \textbf{Arm K (kāraka-stratified, budget-matched):} Role-specific masking with matched total mask count.
-\item \textbf{Arm C (uniform random, budget-matched):} Uniform random masking with the same total mask count.
-\end{itemize}
-
-\noindent Both arms are identical except for the masking distribution. Both use pure-MLM, N-hot embeddings, RoPE, and the same corpus, evaluated on the 100M Strict budget with a single seed each. The result is: targeted 20-paradigm subset (agreement + argument-structure phenomena) Arm K 82.03 BLiMP vs Arm C 81.93, a difference of 0.10 percentage points with 95\% confidence interval [$-$0.99, +1.20] (paired bootstrap over paradigms). This difference is not statistically significant. Finding F2 concludes that the kāraka masking distribution, when applied at matched budget, has no causal effect on agreement and argument-structure agreement tasks.
-
-\paragraph{Mechanism 3: Śābdabodha Auxiliary Objective (Supervised Kāraka Prediction)}
-
-A supervised auxiliary objective predicts kāraka roles at the token level, trained jointly with the MLM head. The auxiliary loss is a multi-class logistic cross-entropy, applied to a 10-class classification head stacked on the model's final hidden layer:
+Mechanism 3 consists of the śābdabodha auxiliary objective for supervised kāraka prediction. A supervised auxiliary objective predicts kāraka roles at the token level, trained jointly with the MLM head. The auxiliary loss is multi-class logistic cross-entropy, applied to a 10-class classification head stacked on the model's final hidden layer:
 
 \begin{equation}
 \mathcal{L}\_{\text{aux}} = -\sum\_{t} \sum\_{r=1}^{10} y\_r(t) \log \hat{p}\_r(t),
 \end{equation}
 
-\noindent where $y_r(t) \in \{0,1\}$ is the ground-truth indicator for role $r$ at token $t$ (multi-label, since a token can carry multiple roles), and $\hat{p}_r(t)$ is the predicted probability from the auxiliary head. Tokens without role annotations (e.g., English tokens in non-Sanskrit contexts) contribute zero loss via masking (PyTorch IGNORE\textunderscore INDEX convention). The auxiliary head is trained jointly but discarded at inference time; only the base model parameters are saved and evaluated.
+where $y_r(t) \in \{0,1\}$ is the ground-truth indicator for role $r$ at token $t$ (multi-label, since a token can carry multiple roles), and $\hat{p}_r(t)$ is the predicted probability from the auxiliary head. Tokens without role annotations (e.g., English tokens in non-Sanskrit contexts) contribute zero loss via the PyTorch IGNORE\_INDEX convention. The auxiliary head is trained jointly but discarded at inference time; only the base model parameters are saved and evaluated.
 
 The total loss is a weighted combination:
 
@@ -132,73 +83,53 @@ The total loss is a weighted combination:
 \mathcal{L}\_{\text{total}} = \mathcal{L}\_{\text{MLM}} + \lambda \cdot \mathcal{L}\_{\text{aux}},
 \end{equation}
 
-\noindent where $\lambda$ is a scalar weight (typically 1.0, equal-weight combination; or 0.0, disabling the auxiliary objective). This auxiliary objective is distinct from the masking mechanism; it introduces a supervised signal that directly constrains the learned representations to align with kāraka structure.
+where $\lambda$ is a scalar weight (typically 1.0 for equal-weight combination or 0.0 for disabling the auxiliary objective). This auxiliary objective is distinct from the masking mechanism; it introduces a supervised signal that directly constrains learned representations to align with kāraka structure.
 
-Finding F3 (findings.md, 5-seed validation) evaluates this mechanism on the 10M Strict-Small budget, comparing auxiliary-enabled (λ = 1.0) against the baseline (λ = 0.0). Pre-registered 5-seed paired t-test on the targeted 20-paradigm subset yields:
-
-\begin{equation}
-\text{Aux (target): } 74.02 \text{ BLiMP} \quad \text{vs} \quad \text{Base (target): } 73.26 \text{ BLiMP}, \quad \Delta = +0.76 \text{ pp}.
-\end{equation}
-
-\noindent The 95\% confidence interval is [$-$0.74, +2.27], t-statistic 1.41 (not significant at $\alpha = 0.05$). Per-seed deltas were +2.65, +0.61, +1.12, $-$0.22, $-$0.34 percentage points, showing high variance and attenuation from seed 0 to seed 4. A specificity control (shuffled-role auxiliary objective) confirmed that the effect, if present, is role-specific (shuffled-role control did not reproduce the gain). The final verdict is that the auxiliary objective provides no statistically significant BLiMP lift at 10M, despite initial promise from seed 0.
+Finding F3 evaluates this mechanism on the 10M Strict-Small budget through 5-seed validation, comparing auxiliary-enabled (λ = 1.0) against baseline (λ = 0.0) via pre-registered paired t-test on the targeted 20-paradigm subset. The result shows aux 74.02 BLiMP versus base 73.26 BLiMP, a difference of 0.76 percentage points. The 95\% confidence interval is (−0.74, +2.27) with t-statistic 1.41, which is not significant at the α = 0.05 level. Per-seed deltas were +2.65, +0.61, +1.12, −0.22, and −0.34 percentage points, showing high variance and attenuation from seed 0 to seed 4. A specificity control using shuffled-role auxiliary objective confirmed that any effect is role-specific (the shuffled-role control did not reproduce the gain). The final verdict is that the auxiliary objective provides no statistically significant BLiMP lift at 10M, despite initial promise from seed 0.
 
 \subsection{Reproducibility and Seed Protocol}
 
-All trained models are assigned unique random seeds, verified post-hoc via checkpoint file MD5 hashes. For the 10M track (Strict-Small), the standard protocol is 3 independent training runs with distinct seeds; the reported metric is the mean and 95\% confidence interval (bootstrapped or analytic, as appropriate). For the 100M track (Strict), mechanism-ablation arms (Arm K vs Arm C, F2 causal isolation) are run with 1 seed each, with the understanding that single-seed results are treated as provisional and require ≥2 confirmatory interventions before a strong claim. When a result is elevated to higher seed count (e.g., F3 extended to 5 seeds, cycle 71), the exact seed indices and per-seed results are logged in the experiment ledger alongside a pre-registered statistical test.
+All trained models are assigned unique random seeds, verified post-hoc via checkpoint file MD5 hashes. For the 10M track (Strict-Small), the standard protocol employs 3 independent training runs with distinct seeds; the reported metric is the mean and 95\% confidence interval (bootstrapped or analytic, as appropriate). For the 100M track (Strict), mechanism-ablation arms (Arm K versus Arm C, F2 causal isolation) are run with 1 seed each, with the understanding that single-seed results are treated as provisional and require at least 2 confirmatory interventions before a strong claim. When a result is elevated to higher seed count (e.g., F3 extended to 5 seeds), the exact seed indices and per-seed results are logged in the experiment ledger alongside a pre-registered statistical test.
 
-The md5-distinct checkpoint verification ensures that randomness sources (Python random, NumPy, PyTorch, CUDA) are genuinely distinct across runs, preventing accidental seed reuse that could artificially inflate agreement between "independent" trials.
+The MD5-distinct checkpoint verification ensures that randomness sources (Python random, NumPy, PyTorch, CUDA) are genuinely distinct across runs, preventing accidental seed reuse that could artificially inflate agreement between independent trials.
 
 \subsection{Evaluation Protocol: BabyLM Official Suite}
 
-All models are evaluated on the official BabyLM benchmark suite, applied identically to all arms and seeds:
+All models are evaluated on the official BabyLM benchmark suite, applied identically to all arms and seeds. BLiMP (Benchmark of Linguistic Minimal Pairs) comprises 74 syntactic acceptability-judgment tasks covering agreement, reflexives, argument structure, garden-path effects, and control phenomena; the metric is multi-choice accuracy (fraction of minimal pairs correctly ranked) and serves as the primary metric for go/no-go decisions and comparisons. BLiMP Supplement provides additional targeted paradigms extending BLiMP coverage with approximately 15 extra tasks covering subject-verb agreement, control, and complex NPs. EWoK (Evaluation without Knowledge) is a semantic evaluation probing referent disambiguation and word-order sensitivity on novel words in wug-test style, with accuracy as the metric. Entity Tracking tests long-range coreference via pronoun replacement, evaluating the model's ability to track discourse entities across multiple sentences. COMPS (Compositional Morphology) comprises token-level morphological prediction tasks assessing compositional understanding of affixation and inflection. Text Average is a macro-average of BLiMP, BLiMP Supplement, COMPS, Entity Tracking, and EWoK, excluding WuG past tense (which uses a lower-is-better metric, making macro-averaging ambiguous); Text Average serves as a secondary overall metric. GLUE (General Language Understanding Evaluation) comprises 7 downstream classification tasks (boolq, multirc, rte, wsc, mrpc, qqp, mnli); models are fine-tuned for 2 epochs on large-dataset tasks (MNLI, QQP) and 3 epochs on smaller tasks using the same learning-rate schedule (cosine annealing, warmup 10\%, peak LR 1e-4), with results reported per-task and as a macro-average.
 
-\begin{enumerate}
-\item \textbf{BLiMP (Benchmark of Linguistic Minimal Pairs; Warstadt et al., 2020).} 74 syntactic acceptability-judgment tasks covering agreement, reflexives, argument structure, garden-path effects, and control phenomena. The metric is multi-choice accuracy (fraction of minimal pairs correctly ranked). BLiMP is the primary metric used for go/no-go decisions and comparison.
+Evaluation is performed once per trained model with no ensemble. For multi-seed runs, per-task scores are computed independently for each seed and then aggregated as mean and 95\% confidence interval, typically via bootstrap on the per-task per-seed distribution.
 
-\item \textbf{BLiMP Supplement.} Additional targeted paradigms extending BLiMP coverage (approximately 15 extra tasks, covering subject-verb agreement, control, complex NPs, etc.).
+When comparing two arms (e.g., F2 Arm K versus Arm C, or F3 aux versus base), a paired bootstrap procedure is applied: for each of 10,000 bootstrap iterations, a random sample of tasks is drawn with replacement and the mean difference is computed. The 95\% CI is the 2.5th and 97.5th percentiles of the bootstrap distribution. Where multiple contrasts are tested in a family, Holm-Bonferroni correction is applied to control family-wise Type I error at α = 0.05.
 
-\item \textbf{EWoK (Evaluation without Knowledge; Ueoka et al., 2023).} A semantic evaluation probing referent disambiguation and word-order sensitivity on novel words (wug-test style). Metric is accuracy.
+\subsection{H2 Post-Training: Navya-Nyāya Fine-Tuning}
 
-\item \textbf{Entity Tracking.} Long-range coreference via pronoun replacement; tests the model's ability to track discourse entities across multiple sentences.
+Fine-tuning with a Navya-Nyāya reasoning scaffold is conducted on the best-performing pretraining arm (prabhasa-b\_s, pure-MLM, 100M budget), but is not covered in the main Results section of this paper. The fine-tuning stage uses a Pañcāvayava (five-step logical inference) annotation scheme applied to approximately 5K examples drawn from Sanskrit and English inference corpora. LoRA (Low-Rank Adaptation) with rank 8 and α = 16 is applied to the transformer layers, enabling efficient parameter-efficient fine-tuning. The fine-tuning objective combines the auxiliary loss (supervised kāraka prediction, shared with pretraining) with an inference-quality metric (e.g., fallacious-reasoning detection or argument-validity judgment). Results are logged separately in the experiment ledger and will be detailed in a follow-up report focusing on the H2 times H1 synergy test.
 
-\item \textbf{COMPS (Compositional Morphology).} Token-level morphological prediction tasks, assessing compositional understanding of affixation and inflection.
-
-\item \textbf{Text Average.} A macro-average of BLiMP, BLiMP Supplement, COMPS, Entity Tracking, and EWoK, excluding WuG past tense (which uses a lower-is-better metric, making macro-averaging ambiguous). Text Average serves as a secondary overall metric.
-
-\item \textbf{GLUE (General Language Understanding Evaluation; Wang et al., 2019).} 7 downstream classification tasks: boolq, multirc, rte, wsc, mrpc, qqp, mnli. Models are fine-tuned for 2 epochs on large-dataset tasks (MNLI, QQP) and 3 epochs on smaller tasks, using the same learning-rate schedule (cosine, warmup 10\%, peak LR 1e-4). Results are reported per-task and as a macro-average.
-\end{enumerate}
-
-\noindent Evaluation is performed once per trained model (no ensemble). For multi-seed runs, per-task scores are computed independently for each seed, and then aggregated (mean and 95\% CI, typically via bootstrap on the per-task per-seed distribution).
-
-When comparing two arms (e.g., F2 Arm K vs Arm C, or F3 aux vs base), a paired bootstrap procedure is applied: for each of 10,000 bootstrap iterations, a random sample of tasks (with replacement) is drawn, and the mean difference is computed. The 95\% CI is the 2.5th and 97.5th percentiles of the bootstrap distribution. Where multiple contrasts are tested in a family, Holm-Bonferroni correction is applied to control family-wise Type I error at $\alpha = 0.05$.
-
-\subsection{H2 Post-Training: Navya-Nyāya Fine-Tuning (Out of Main Scope)}
-
-Fine-tuning with a Navya-Nyāya reasoning scaffold is conducted on the best-performing pretraining arm (prabhasa-b\_s, pure-MLM, 100M budget), but is not covered in the main Results section of this paper. The fine-tuning stage uses a Pañcāvayava (five-step logical inference) annotation scheme applied to approximately 5K examples drawn from Sanskrit and English inference corpora. LoRA (Low-Rank Adaptation; rank 8, $\alpha = 16$) is applied to the transformer layers, enabling efficient parameter-efficient fine-tuning. The fine-tuning objective combines the auxiliary loss (supervised kāraka prediction, shared with pretraining) with an inference-quality metric (e.g., fallacious-reasoning detection or argument-validity judgment). Results are logged separately in the experiment ledger and will be detailed in a follow-up report focusing on the H2×H1 synergy test.
-
-\begin{table}[H]
+\begin{table}[t]
 \centering
-\caption{Complete training configuration table. All models use SentencePiece tokenization (32K vocabulary), cosine mask schedule (0.40 to 0.15), Muon optimizer, RoPE, and sequence length 512 tokens. The Strict-Small submission model (prabhasa-b\_s-0.1, hybrid MLM+CLM) and Strict leaderboard model (prabhasa-b\_s, pure MLM) are highlighted. Causal-isolation arms (F2, F3) are listed separately with their control counterparts.}
+\caption{Training configuration summary. All models use SentencePiece tokenization (32K vocabulary), cosine mask schedule (0.40 to 0.15), Muon optimizer, RoPE, and sequence length 512 tokens. The submission model (prabhasa-b\_s-0.1) and leaderboard model (prabhasa-b\_s) use N-hot + RoPE mechanisms. Mechanism-ablation arms (F2 causal isolation and F3 validation) are listed with their control counterparts.}
 \label{tab:training_config_full}
-{\small
-\begin{tabular}{lcccccccc}
+{\footnotesize
+\begin{tabular}{lrllrlr}
 \toprule
-\textbf{Model / Arm} & \textbf{Scale} & \textbf{Objective} & \textbf{Mechanisms} & \textbf{Muon LR} & \textbf{Batch} & \textbf{Epochs} & \textbf{Seeds} & \textbf{BLiMP} \\
+Model / Arm & Scale & Objective & Seeds & Mechanisms & LR & BLiMP \\
 \midrule
-prabhasa-b\_s-0.1 & 10M & Hybrid & N-hot + RoPE & 1e-3 & 512 & 10 & 3 & 64.09 ± 0.26 \\
-prabhasa-b\_s (Strict) & 100M & Pure-MLM & N-hot + RoPE & 1e-3 & 512 & 10 & 1 & 73.06 \\
-\multicolumn{9}{c}{\textit{F2 Causal-Isolation Pair (100M, Pure-MLM, N-hot + RoPE):}} \\
-Arm K (kāraka masking) & 100M & Pure-MLM & Budget-matched stratified & 1e-3 & 512 & 10 & 1 & 71.77 \\
-Arm C (uniform masking) & 100M & Pure-MLM & Budget-matched uniform & 1e-3 & 512 & 10 & 1 & 70.49 \\
-\multicolumn{9}{c}{\textit{F3 Auxiliary Objective (10M, 5-seed validation):}} \\
-Aux $\lambda$=1.0 (real roles) & 10M & Hybrid & N-hot, kāraka aux & 1e-3 & 512 & 10 & 5 & 64.89 ± 1.40 \\
-Aux $\lambda$=0.0 (baseline) & 10M & Hybrid & N-hot, no aux & 1e-3 & 512 & 10 & 5 & 63.88 ± 1.62 \\
-Aux $\lambda$=1.0 (shuffled roles) & 10M & Hybrid & N-hot, shuffled aux & 1e-3 & 512 & 10 & 3 & 63.69 ± 0.78 \\
+prabhasa-b\_s-0.1 (Submission) & 10M & Hybrid & 3 & N-hot + RoPE & 1e-3 & 64.09 ± 0.26 \\
+prabhasa-b\_s (Leaderboard) & 100M & Pure-MLM & 1 & N-hot + RoPE & 1e-3 & 73.06 \\
+\midrule
+\multicolumn{7}{c}{F2 Causal Isolation (100M, Pure-MLM):} \\
+Arm K (kāraka masking) & 100M & Pure-MLM & 1 & Budget-matched stratified & 1e-3 & 71.77 \\
+Arm C (uniform masking) & 100M & Pure-MLM & 1 & Budget-matched uniform & 1e-3 & 70.49 \\
+\midrule
+\multicolumn{7}{c}{F3 Auxiliary Validation (10M, Hybrid):} \\
+Aux real roles & 10M & Hybrid & 5 & N-hot + kāraka aux & 1e-3 & 64.89 ± 1.40 \\
+Aux baseline & 10M & Hybrid & 5 & N-hot, no aux & 1e-3 & 63.88 ± 1.62 \\
+Aux shuffled roles & 10M & Hybrid & 3 & N-hot + shuffled aux & 1e-3 & 63.69 ± 0.78 \\
 \bottomrule
 \end{tabular}
 }
 \end{table}
 
-\noindent All training runs respect the official BabyLM step and word budgets. The maximum step count per training run is 96 steps (BabyLM official limit), allowing a maximum of approximately 49K tokens per run under the 512-token batch-size constraint. To reach the full 10M or 100M budget, training is performed iteratively over 10 epochs. Checkpoints are saved at epoch boundaries and after the final epoch. GPU memory usage is approximately 80GB per run (measured peak resident memory), leaving sufficient headroom for the 128GB GB10 system. Wall-clock time per 100M run is approximately 111 minutes (including model loading, data iteration, backward pass, and optimizer step).
+All training runs respect the official BabyLM step and word budgets. The maximum step count per training run is 96 steps (BabyLM official limit), allowing approximately 49K tokens per run under the 512-token batch-size constraint. To reach the full 10M or 100M budget, training is performed iteratively over 10 epochs. Checkpoints are saved at epoch boundaries and after the final epoch. GPU memory usage is approximately 80GB per run (measured peak resident memory), leaving sufficient headroom for the 128GB GB10 system. Wall-clock time per 100M run is approximately 111 minutes, including model loading, data iteration, backward pass, and optimizer step.
 
-Training is implemented in PyTorch 2.4+ using the Hugging Face Transformers library (Wolf et al., 2020), with custom data loaders and loss-aggregation code to ensure BabyLM budget compliance. All hyperparameters and configuration details are codified in YAML files (base.yaml and arm-specific configs in configs/phase2/), loaded and validated at runtime by the psalm.config.settings module.
+Training is implemented in PyTorch 2.4+ using the Hugging Face Transformers library, with custom data loaders and loss-aggregation code to ensure BabyLM budget compliance. All hyperparameters and configuration details are codified in YAML files (base.yaml and arm-specific configs in configs/phase2/), loaded and validated at runtime by the configuration module.
