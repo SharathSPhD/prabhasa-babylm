@@ -549,3 +549,20 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   seed0 was luck; pre-registration prevented p-hacked positive. F3 FINAL = null/very-weak. Updated
   paper RQ-B subsection + synthesis + Pages results.json to the 5-seed verdict. Human returned →
   sign-off granted → merging to main. Harness ran cycles 0-71 autonomously.
+
+## [closure | 2026-06-11] Human-directed closure underway (8-part directive)
+- DONE: (1) repo prabhasa-babylm created, ALL 269 commits → single identity qbz506@york.ac.uk
+  (no wrong contributor), purged .claude/.cursor/.serena/docs from history, force-pushed, PUBLIC.
+  (2a) HF: prabhasa-b_ss-0.1 + prabhasa-b_s uploaded PUBLIC w/ honest model cards (F1/F2/F3).
+  Baseline reframe: prabhasa-b_s Text-Avg 55.99 > ~54 baseline (+supp +2.46, entity +9.68).
+  BabyLM 2026 direct-submission deadline July 15 2026 (OPEN). Both tracks to submit.
+- REMAINING mandatory: (2b) intermediate checkpoints + grammar dataset to HF; (3) leaderboard
+  predictions + submit (Chrome); (5) paper PDF + OpenReview submit (Chrome, July 15); (6) colab demos.
+  Final submits via Chrome (user logged in), confirm before each irreversible click.
+
+## [closure-final | 2026-06-11] Ralph closure — artifacts complete (user submits)
+- prabhasa-babylm PUBLIC, single contributor, clean (cruft purged). Paper de-LLM-ified (0 em-dashes,
+  ActiveCircuitDiscovery style), compiles clean 16pp. HF: prabhasa-b_ss-0.1 + prabhasa-b_s (public) +
+  prabhasa-babylm-grammar dataset (public) + intermediate checkpoints uploading as revisions. Colab
+  -> public HF. Leaderboard submission package assembled (both tracks, honest framing). F3 5-seed final
+  (null, +0.76 ns). User performs the final leaderboard + OpenReview submits (deadline July 15).
