@@ -1,0 +1,78 @@
+\documentclass[symmetry,article,submit,pdftex]{Definitions/mdpi}
+
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2026}
+\copyrightyear{2026}
+
+\usepackage{pgfplots}
+\usetikzlibrary{shapes.geometric, shapes.misc, arrows.meta, positioning, fit,
+                decorations.pathreplacing, calc, backgrounds, matrix, chains, scopes}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\usepackage{adjustbox}
+\usepackage{booktabs}
+\usepackage[hyphens]{url}
+\setlength{\emergencystretch}{3em}
+\sloppy
+
+% Unicode -> LaTeX (IAST diacritics and math symbols) so pdflatex compiles cleanly.
+\usepackage{newunicodechar}
+\newunicodechar{−}{\ensuremath{-}}\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≤}{\ensuremath{\leq}}\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{±}{\ensuremath{\pm}}\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{β}{\ensuremath{\beta}}\newunicodechar{Δ}{\ensuremath{\Delta}}
+\newunicodechar{λ}{\ensuremath{\lambda}}\newunicodechar{μ}{\ensuremath{\mu}}
+\newunicodechar{σ}{\ensuremath{\sigma}}\newunicodechar{–}{--}
+\newunicodechar{ā}{\=a}\newunicodechar{Ā}{\=A}\newunicodechar{ī}{\={\i}}\newunicodechar{ū}{\=u}
+\newunicodechar{ṛ}{\d r}\newunicodechar{ṇ}{\d n}\newunicodechar{ṣ}{\d s}\newunicodechar{ś}{\'s}
+\newunicodechar{ṅ}{\.n}\newunicodechar{ñ}{\~n}\newunicodechar{ṭ}{\d t}\newunicodechar{ḍ}{\d d}
+\newunicodechar{ṃ}{\d m}\newunicodechar{ḥ}{\d h}\newunicodechar{ḷ}{\d l}
+
+\Title{Prabh\=asa: P\=a\d{n}inian Structured Pretraining for Small Language Models}
+
+\Author{Sharath Sathish $^{1}$}
+\AuthorNames{Sharath Sathish}
+\address{%
+$^{1}$ \quad Department of Computer Science, University of York, York YO10 5GH, UK (alumnus)}
+\corres{sharath.sathish@gmail.com}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+\input{sections_short/introduction}
+
+\section{Related Work}\label{sec:related}
+\input{sections_short/related_work}
+
+\section{Methods}\label{sec:methods}
+\input{sections_short/methods}
+
+\section{Experiments and Results}\label{sec:results}
+\input{sections_short/results}
+
+\section{Discussion and Conclusions}\label{sec:discussion}
+\input{sections_short/discussion}
+
+\appendix
+\section{Data, Curriculum, and Dose Arms}\label{app:data}
+\input{sections/data_curriculum}
+\section{Training and Evaluation Protocol}\label{app:training}
+\input{sections/training}
+\section{Reproducibility Details and Per-Seed Tables}\label{app:repro}
+\input{sections/appendix}
+
+\vspace{6pt}
+\dataavailability{Code: \url{https://github.com/SharathSPhD/prabhasa-babylm}; models and checkpoints: \url{https://huggingface.co/qbz506/prabhasa-b_s}, \url{https://huggingface.co/qbz506/prabhasa-b_ss-0.1}; data: \url{https://huggingface.co/datasets/qbz506/prabhasa-babylm-grammar}.}
+\conflictsofinterest{The author declares no conflict of interest.}
+\reftitle{References}
+\bibliographystyle{mdpi}
+\bibliography{references_new}
+\end{document}
