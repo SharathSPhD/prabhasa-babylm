@@ -41,6 +41,12 @@ A learning-rate warmup is applied over 5\% of total training steps, linearly inc
 \caption{Developmental BLiMP progression across pretraining checkpoints. The curve shows BLiMP performance evaluated at each epoch boundary, tracking the model's acquisition of linguistic structure throughout the 10-epoch training schedule. The curve demonstrates monotonic improvement up to epoch 10, with steeper gains in early epochs as the model acquires foundational linguistic patterns.}
 \label{fig:devcurve}\end{figure}
 
+The optimisation dynamics are summarised by the masked-language-modelling training loss. Figure~\ref{fig:trainloss} plots the training loss against optimisation steps for the production runs, showing smooth convergence under the Muon optimiser and the cosine masking schedule, with the final loss values reported in the configuration table.
+
+\begin{figure}[t]\centering\includegraphics[width=0.85\linewidth]{figures/fig_trainloss.pdf}
+\caption{Masked-language-modelling training loss against optimisation steps for the Strict (100M) and Strict-Small (10M) production runs. Loss decreases smoothly under the Muon optimiser and the cosine masking schedule, without instability or divergence.}
+\label{fig:trainloss}\end{figure}
+
 \subsection{Kāraka-Aware Mechanisms}
 
 The Pāṇinian-inspired contributions to the training pipeline consist of three distinct mechanisms, each integrated at different points in the forward and backward passes.
