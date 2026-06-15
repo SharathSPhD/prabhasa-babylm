@@ -73,3 +73,15 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
 - Honest H1 SUMMARY (10M): F1 pure-MLM objective = robust win; F2 kāraka MASKING = NULL; F3 kāraka
   AUX OBJECTIVE = weak suggestive (likely kāraka-specific, not generic) but underpowered. Robust
   wins = RoPE (architecture) + pure-MLM (objective). Pāṇinian mechanisms: masking null, aux weak.
+
+## F3 5-SEED FINAL (cycle 71, pre-registered) — kāraka aux objective: NO significant effect
+- Pre-registered 5-seed paired t-test on per-seed targeted ΔAux−Base: seeds +2.65/+0.61/+1.12/−0.22/−0.34.
+  5-seed: aux 74.02 vs base 73.26 → **meanΔ +0.76, sd 1.21, se 0.54, t=1.41, 95%CI [−0.74, +2.27],
+  NOT significant** (df=4, tcrit 2.776). Overall BLiMP: aux 64.89 vs base 63.88 (+1.01).
+- The effect ATTENUATED with power: +2.65 (seed0) → +1.46 (3-seed) → +0.76 (5-seed), losing significance.
+  The seed-0 result was seed luck. The pre-registration (fixed 5 seeds, committed test) prevented a
+  p-hacked positive. FINAL: the kāraka auxiliary objective provides NO statistically significant benefit
+  at 10M. Combined with F2 (masking null), the Pāṇinian MECHANISMS are not significant levers.
+- DEFINITIVE H1 PICTURE: robust validated wins = RoPE (architecture) + pure-MLM (objective). Pāṇinian
+  kāraka masking = causal NULL (F2); kāraka aux objective = non-significant (F3, 5-seed +0.76). The
+  honest contribution of the Pāṇinian framing is interpretability + the mechanism design, not a BLiMP lift.

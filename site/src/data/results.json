@@ -1,21 +1,65 @@
 {
   "arms": [
-    { "arm": "A", "dose": "English (control)" },
-    { "arm": "B", "dose": "Pāṇinian" },
-    { "arm": "C", "dose": "Dyck (control)" },
-    { "arm": "D", "dose": "Paribhāṣā" }
+    {
+      "arm": "A",
+      "dose": "English (control)"
+    },
+    {
+      "arm": "B",
+      "dose": "P\u0101\u1e47inian"
+    },
+    {
+      "arm": "C",
+      "dose": "Dyck (control)"
+    },
+    {
+      "arm": "D",
+      "dose": "Paribh\u0101\u1e63\u0101"
+    }
   ],
   "blimp_pll": {
-    "A": { "mean": 0.6415, "std": 0.0, "n": 1 },
-    "B": { "mean": 0.6354, "std": 0.0, "n": 1 },
-    "C": { "mean": 0.6385, "std": 0.0, "n": 1 },
-    "D": { "mean": 0.6377, "std": 0.0, "n": 1 }
+    "A": {
+      "mean": 0.6415,
+      "std": 0.0,
+      "n": 1
+    },
+    "B": {
+      "mean": 0.6354,
+      "std": 0.0,
+      "n": 1
+    },
+    "C": {
+      "mean": 0.6385,
+      "std": 0.0,
+      "n": 1
+    },
+    "D": {
+      "mean": 0.6377,
+      "std": 0.0,
+      "n": 1
+    }
   },
   "dose_best_loss": {
-    "A": { "mean": 1.4324, "std": 0.0, "n": 1 },
-    "B": { "mean": 1.4948, "std": 0.0, "n": 1 },
-    "C": { "mean": 1.4136, "std": 0.0, "n": 1 },
-    "D": { "mean": 0.8985, "std": 0.0, "n": 1 }
+    "A": {
+      "mean": 1.4324,
+      "std": 0.0,
+      "n": 1
+    },
+    "B": {
+      "mean": 1.4948,
+      "std": 0.0,
+      "n": 1
+    },
+    "C": {
+      "mean": 1.4136,
+      "std": 0.0,
+      "n": 1
+    },
+    "D": {
+      "mean": 0.8985,
+      "std": 0.0,
+      "n": 1
+    }
   },
   "text_average": {},
   "glue_average": {},
@@ -24,25 +68,25 @@
       "id": "F1",
       "title": "The objective effect is scale-dependent",
       "status": "validated",
-      "summary": "Pure-MLM vs hybrid MLM+CLM: neutral at 10M (3-seed 63.58±1.73 vs 64.09±0.26, overlapping CIs) but +5.49pp at 100M (73.06 vs 67.57). The CLM head's dilution of MLM is a scale-dependent bottleneck."
+      "summary": "Pure-MLM vs hybrid MLM+CLM: neutral at 10M (3-seed 63.58\u00b11.73 vs 64.09\u00b10.26, overlapping CIs) but +5.49pp at 100M (73.06 vs 67.57). The CLM head's dilution of MLM is a scale-dependent bottleneck."
     },
     {
       "id": "F2",
-      "title": "Kāraka masking is causally null at matched budget",
+      "title": "K\u0101raka masking is causally null at matched budget",
       "status": "null_pre-registered",
-      "summary": "Arm K (kāraka-stratified masking) vs Arm C (uniform random) at identical mask budget, 100M, N-hot/RoPE/objective/corpus fixed. Targeted 20-paradigm subset: 82.03 vs 81.93 (ΔK−C +0.10, 95% CI [−0.99, +1.20], ns). Full BLiMP 71.77 vs 70.49. The masking distribution has no causal effect; the apparent gain was a freq-weighting / mask-rate confound."
+      "summary": "Arm K (k\u0101raka-stratified masking) vs Arm C (uniform random) at identical mask budget, 100M, N-hot/RoPE/objective/corpus fixed. Targeted 20-paradigm subset: 82.03 vs 81.93 (\u0394K\u2212C +0.10, 95% CI [\u22120.99, +1.20], ns). Full BLiMP 71.77 vs 70.49. The masking distribution has no causal effect; the apparent gain was a freq-weighting / mask-rate confound."
     },
     {
       "id": "F3",
-      "title": "Kāraka auxiliary objective: weak, plausibly-specific lever",
-      "status": "weak_not-significant",
-      "summary": "Śābdabodha aux head (predict kāraka roles, λ=1.0) vs matched no-aux baseline, 3 seeds, uniform masking. Targeted 74.41±0.82 vs 72.95±0.68 (Δ+1.46); overall BLiMP 65.37 vs 63.74 (+1.63). Consistent direction across seeds but not significant at 3 seeds. A shuffled-role specificity control (3 seeds) does NOT reproduce the effect (shuf−base +0.58/−0.05), arguing against generic regularization and weakly favouring a kāraka-specific mechanism. Needs more seeds / 100M to resolve."
+      "title": "K\u0101raka auxiliary objective: no significant benefit (5-seed)",
+      "status": "null_very-weak",
+      "summary": "Pre-registered 5-seed paired t-test on targeted \u0394Aux\u2212Base: seeds +2.65/+0.61/+1.12/\u22120.22/\u22120.34, mean +0.76 (95% CI [\u22120.74,+2.27], t=1.41, NS). Effect attenuated with power (+2.65 seed0 \u2192 +1.46 3-seed \u2192 +0.76 5-seed); seed-0 was luck. Overall BLiMP aux 64.89 vs base 63.88 (+1.01). Shuffled-role control did not reproduce it. FINAL: no statistically significant BLiMP lift from the k\u0101raka aux objective at 10M."
     }
   ],
   "strict_track": {
     "model": "prabhasa-b_s",
     "params_M": 100,
-    "objective": "pure-MLM (RoPE, Vidyut N-hot, kāraka masking, Muon)",
+    "objective": "pure-MLM (RoPE, Vidyut N-hot, k\u0101raka masking, Muon)",
     "seeds": 1,
     "blimp_pll": 73.06,
     "blimp_supplement": 67.46,
@@ -51,7 +95,7 @@
     "comps": 54.51,
     "text_average": 55.99,
     "strict_baseline_blimp": 74.53,
-    "note": "Robust wins attributed to objective (pure-MLM) + architecture (RoPE); Pāṇinian mechanisms are small, non-harmful, interpretable additions (see F2/F3), not the primary driver."
+    "note": "Robust validated wins = objective (pure-MLM) + architecture (RoPE). P\u0101\u1e47inian k\u0101raka masking causally null (F2); k\u0101raka aux objective non-significant at 5 seeds (F3, +0.76 ns). Mechanisms contribute interpretability + design, not a BLiMP lift."
   },
   "submission_track": {
     "model": "prabhasa-b_ss-0.1 (ELC-PSALM-S)",
@@ -62,11 +106,11 @@
     "total_epochs": 10,
     "word_budget_M": 10,
     "mechanisms": [
-      "Vidyut N-hot morpheme-boundary embeddings (10-dim → 768d projection)",
-      "BPE-heuristic kāraka masking",
+      "Vidyut N-hot morpheme-boundary embeddings (10-dim \u2192 768d projection)",
+      "BPE-heuristic k\u0101raka masking",
       "RoPE positional encoding",
       "Muon optimizer (Newton-Schulz orthogonalized momentum)",
-      "Cosine mask decay (0.40 → 0.15)"
+      "Cosine mask decay (0.40 \u2192 0.15)"
     ],
     "status": "complete",
     "seeds_complete": 3,
