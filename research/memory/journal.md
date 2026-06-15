@@ -543,3 +543,9 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
 ## [cycle 71 | 2026-06-11] F3 5-seed: base seed4 done + eval (all 10 runs md5-distinct)
 - base seed4 DONE; aux 5/5 + base 5/5 md5-distinct (no seed-collapse). Eval running (PID 2552004, ~25min).
   aux 5 BLiMP {66.32,64.37,65.43,64.91,63.40}=64.89. next cycle: read base seed4 BLiMP → 5-seed paired t.
+
+## [cycle 71b | 2026-06-11] F3 5-SEED FINAL (pre-registered) + paper/Pages updated; HUMAN RETURNED
+- 5-seed paired t: meanΔ +0.76 (CI [-0.74,2.27], t=1.41, ns). Effect attenuated +2.65→+1.46→+0.76;
+  seed0 was luck; pre-registration prevented p-hacked positive. F3 FINAL = null/very-weak. Updated
+  paper RQ-B subsection + synthesis + Pages results.json to the 5-seed verdict. Human returned →
+  sign-off granted → merging to main. Harness ran cycles 0-71 autonomously.

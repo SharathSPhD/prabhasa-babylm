@@ -9,7 +9,7 @@
   "keepalive": "in-app cron 1053c52f (hourly :26, while session alive); OS-cron auth-blocked (401, needs ANTHROPIC_API_KEY \u2014 see research/keepalive/README.md)",
   "gpu_note": "single GB10; never launch GPU work while occupied (nvidia-smi). One job at a time.",
   "gpu_status_at_cycle1": "BUSY \u2014 SS pure-MLM seed2 training (pid 3906449)",
-  "next_action": "F3 5-seed FINAL: base seed4 eval RUNNING (~25min). NEXT cycle: read rqB_base_seed4 BLiMP \u2192 compute 5-seed paired t-test (PRE-REGISTERED \u03b1=0.05) on per-seed targeted \u0394Aux\u2212Base seeds 0-4 (use analyze_rqA per seed + paired t on the 5 deltas) \u2192 adversarial review \u2192 record F3 FINAL verdict (sig OR confirmed weak/ns) \u2192 update findings.md + paper RQ-B subsection with 5-seed numbers. All 10 runs md5-distinct verified.",
+  "next_action": "HUMAN RETURNED \u2014 sign-off granted. Merge integration/data-engine-v2 + paper worktree \u2192 main, push. Then summary/harness-report/readiness.",
   "ready_experiments": [
     "research/specs/0002-rqA-karaka-causality.md (RUNNING Arm K)",
     "research/specs/0003-rqB-shabdabodha-objective.md (design-ready; needs aux-head code + citation re-verify)"
@@ -41,7 +41,7 @@
       "verdict": "10M win was seed luck; effect scale-dependent; SS submission stays hybrid"
     },
     "F2_karaka_masking_causality": "NULL (pre-registered): \u0394K\u2212C +0.10 NS at matched budget; masking-distribution lever neutral; 73.06 k\u0101raka gain confounded. Preliminary (interventions queued).",
-    "F3_karaka_aux_objective": "WEAK, NON-SIG, plausibly-k\u0101raka-specific (3-seed+specificity, 9 runs): real-base +1.46/+1.63 targeted/overall (ns); shuf-base +0.58/-0.05 (shuffled does NOT reproduce \u2192 NOT generic); real-shuf +0.88/+1.68. Underpowered; needs 100M. Corrects cycle-50 1-seed generic read."
+    "F3_karaka_aux_objective": "NULL/VERY-WEAK (5-seed pre-registered): mean\u0394 +0.76 targeted (CI [-0.74,2.27], t=1.41, ns); attenuated +2.65\u2192+1.46\u2192+0.76. No significant BLiMP lift. Robust wins=RoPE+pure-MLM."
   },
   "documented_nulls": [
     "causal_scoring(63.92<67.57)",
