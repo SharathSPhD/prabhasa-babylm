@@ -1,0 +1,85 @@
+{
+  "track": "Strict",
+  "model_name": "prabhasa-b_s",
+  "model_hf_repo": "qbz506/prabhasa-b_s",
+  "data_size_words": 100000000,
+  "data_size_tokens": "156.8M (official BabyLM-2026 Strict budget)",
+  "architecture": "ELC (Encoder-only, RoPE, pure-MLM)",
+  "params_approx": "114.6M",
+  "vocab_size": 20000,
+  "max_seq_len": 192,
+  "hidden_size": 768,
+  "num_layers": 14,
+  "num_heads": 12,
+  "ffn_hidden": 3072,
+  "position_encoding": "rope",
+  "objective": "pure_mlm (100% MLM, no CLM)",
+  "mlm_probability": 0.4,
+  "learning_rate_peak": "1e-3",
+  "optimizer": "Muon (0.01) + AdamW",
+  "batch_size": 256,
+  "epochs": 10,
+  "mechanisms_enabled": {
+    "nhot_embeddings": true,
+    "karak_masking": true,
+    "masking_schedule": "cosine decay 0.40→0.15"
+  },
+  "seeds": 1,
+  "seed_note": "Single seed 0 (pre-registered F2-F3 closure track); 3-seed CI pending",
+  "eval_harness": "babylm-2026",
+  "metrics": {
+    "blimp": 73.06,
+    "blimp_supplement": 67.46,
+    "comps": 54.51,
+    "ewok": 51.66,
+    "entity_tracking": 33.26,
+    "text_average_leaderboard": 55.99,
+    "glue_average": "pending"
+  },
+  "baseline": {
+    "gpt2_blimp": 74.53,
+    "gpt2_text_average": "~54",
+    "gpt2_blimp_supplement": 65.00,
+    "gpt2_entity_tracking": 23.58
+  },
+  "performance_vs_baseline": {
+    "blimp_delta": "-1.47pp (near-baseline, competitive)",
+    "text_average_delta": "+2.0pp (BEATS)",
+    "blimp_supplement_delta": "+2.46pp (BEATS)",
+    "entity_tracking_delta": "+9.68pp (BEATS)"
+  },
+  "source_eval_logs": {
+    "seed_0": "/home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_b_s_mlm_seed0/official_summary.json"
+  },
+  "key_interventions": {
+    "hybrid_mlm_clm_100m": {
+      "blimp": 67.57,
+      "note": "baseline hybrid model; weak scaling"
+    },
+    "pure_mlm_100m": {
+      "blimp": 73.06,
+      "delta_vs_hybrid": "+5.49pp",
+      "insight": "CLM head severely dilutes MLM quality at scale; pure-MLM is the lever"
+    },
+    "pure_mlm_10m_probe": {
+      "blimp": 65.22,
+      "delta_vs_10m_hybrid": "+1.13pp",
+      "note": "validated pure-MLM lever before 100M run"
+    }
+  },
+  "key_findings": {
+    "h1_mechanism_status": "null (causal nullity; F2 matched-budget arm K vs C showed ΔK-C +0.10, NS; real-engine trials null at 10M)",
+    "validated_wins": [
+      "RoPE position encoding (fixed entity tracking OOB crashes)",
+      "pure-MLM objective (super-linear scale: +1.13pp at 10M → +5.49pp at 100M)"
+    ],
+    "honest_claim": "Text-Average competitive (beats baseline +2.0pp); BLiMP -1.47pp vs gpt2; strong entity tracking (+9.68pp) and supplement (+2.46pp)"
+  },
+  "checkpoint_sweep": {
+    "elc_150m": 68.50,
+    "elc_200m": 70.40,
+    "final": 73.06,
+    "note": "monotonic improvement, no overfit peak; final checkpoint is best"
+  },
+  "closure_status": "EMPIRICAL layer complete (3-seed CI pending per RQ-B); INTEGRITY/MEMORY/SIGN-OFF in progress"
+}

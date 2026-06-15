@@ -1,0 +1,63 @@
+{
+  "track": "Strict-Small",
+  "model_name": "prabhasa-b_ss-0.1",
+  "model_hf_repo": "qbz506/prabhasa-b_ss-0.1",
+  "data_size_words": 10000000,
+  "data_size_tokens": "~15.6M (official BabyLM-2026 Strict-Small)",
+  "architecture": "ELC (Encoder-only, RoPE, hybrid MLM+CLM)",
+  "params_approx": "114.6M",
+  "vocab_size": 20000,
+  "max_seq_len": 192,
+  "hidden_size": 768,
+  "num_layers": 14,
+  "num_heads": 12,
+  "ffn_hidden": 3072,
+  "position_encoding": "rope",
+  "objective": "hybrid_mlm_clm (50/50 weight)",
+  "mlm_probability": 0.3,
+  "learning_rate_peak": "1e-3",
+  "optimizer": "Muon (0.01) + AdamW",
+  "batch_size": 256,
+  "epochs": 10,
+  "mechanisms_enabled": {
+    "nhot_embeddings": true,
+    "karak_masking": true,
+    "masking_schedule": "cosine decay 0.40→0.15"
+  },
+  "seeds": 3,
+  "eval_harness": "babylm-2026",
+  "metrics": {
+    "blimp_mean": 64.09,
+    "blimp_ci_95": "±0.26",
+    "blimp_individual_seeds": [64.38, 63.87, 64.01],
+    "blimp_supplement_mean": 56.10,
+    "comps_mean": 52.48,
+    "ewok_mean": 50.90,
+    "entity_tracking_mean": 25.43,
+    "text_average_leaderboard": 49.86,
+    "text_average_ci_95": "±0.84",
+    "glue_average": 58.07,
+    "glue_note": "single-seed-0; BoolQ 65.4, WSC 67.3, MRPC-F1 81.3, MultiRC 59.7, RTE 50.4, QQP-F1 48.3, MNLI 34.2"
+  },
+  "baseline": {
+    "gpt2_blimp": 65.08,
+    "gpt2_text_average": "~49.0",
+    "gpt2_entity_tracking": 21.07
+  },
+  "performance_vs_baseline": {
+    "blimp_delta": "-0.99pp (at baseline)",
+    "text_average_delta": "+0.86pp (BEATS)",
+    "entity_tracking_delta": "+4.36pp (BEATS)"
+  },
+  "source_eval_logs": {
+    "seed_0": "/home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_b_ss_v07_rope_seed0/official_summary.json",
+    "seed_1": "/home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_b_ss_v07_rope_seed1/official_summary.json",
+    "seed_2": "/home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_b_ss_v07_rope_seed2/official_summary.json"
+  },
+  "key_findings": {
+    "h1_mechanism_status": "null (causal nullity at matched budget per F2; real-engine trials showed -2.01pp deficit vs heuristic)",
+    "validated_wins": ["RoPE (+2.53pp vs absolute pos)", "pure-MLM lever identified but not deployed at 10M scale"],
+    "honest_claim": "Text-Average competitive (beats baseline); BLiMP at-baseline; entity tracking +4.36pp"
+  },
+  "closure_status": "EMPIRICAL + INTEGRITY layers complete; MEMORY/SIGN-OFF final"
+}
