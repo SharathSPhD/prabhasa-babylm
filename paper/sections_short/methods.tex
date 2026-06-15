@@ -1,14 +1,40 @@
-Prabhasa is a controlled, pre-registered evaluation of whether Paninian morphosyntactic structure improves pretraining efficiency in small language models. The study integrates morpheme and karaka role information via Vidyut morpheme-boundary embeddings and tests role-aware masking and auxiliary objectives against matched baselines on the BabyLM fixed-budget corpus (10M and 100M word variants) across the official BLiMP benchmark suite and GLUE downstream tasks.
+Prabhāsa is a controlled, pre-registered evaluation of whether Pāṇinian morphosyntactic structure improves pretraining efficiency in small language models. The study integrates morpheme and kāraka role information via Vidyut morpheme-boundary embeddings and tests role-aware masking and auxiliary objectives against matched baselines on the BabyLM fixed-budget corpus (10M and 100M word variants) across the official BLiMP benchmark suite and GLUE downstream tasks.
 
 \subsection{Architecture and Baseline}
 
 The core model is a 14-layer Transformer encoder with a hidden dimension of 768, 12 attention heads, and a feed-forward inner dimension of 3072, comprising approximately 114 million parameters at the Strict-Small variant (10M tokens) and 100 million parameters at the Strict variant (100M tokens) following N-hot projection. Positional encoding employs Rotary Position Embedding (RoPE; \cite{Su2021RoPE}), selected for compositional generalization on synthetic tasks. The model is optimized using Muon (Newton-Schulz orthogonalized momentum; \cite{Jordan2024Muon}), chosen for sample efficiency on small-budget pretraining. The learning rate schedule follows cosine annealing with warmup over 5\% of total training steps, and each training batch contains 512 tokens. Figure~\ref{fig:arch} illustrates the complete pretraining pipeline from corpus annotation through evaluation.
 
-\subsection{Vidyut Morpheme-Boundary Embeddings and Karaka-Aware Masking}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=1.05cm,
+  every node/.style={align=center, font=\footnotesize, minimum width=2.4cm, minimum height=0.55cm, draw, rounded corners}
+]
+  \node (corpus) {Corpus (Sanskrit + BabyLM)};
+  \node (vidyut) [below of=corpus] {Vidyut morpheme \& role};
+  \node (tokenize) [below of=vidyut] {SentencePiece tokenization};
+  \node (nhot) [below of=tokenize] {N-hot embedding \& projection};
+  \node (mask) [below of=nhot] {Adaptive masking (role or uniform)};
+  \node (encoder) [below of=mask] {Transformer encoder (14L-768d-12h, RoPE)};
+  \node (combine) [below of=encoder] {Loss combine (MLM + $\lambda\cdot$Aux)};
+  \node (eval) [below of=combine] {BabyLM evaluation};
+  \draw [->] (corpus) -- (vidyut);
+  \draw [->] (vidyut) -- (tokenize);
+  \draw [->] (tokenize) -- (nhot);
+  \draw [->] (nhot) -- (mask);
+  \draw [->] (mask) -- (encoder);
+  \draw [->] (encoder) -- (combine);
+  \draw [->] (combine) -- (eval);
+\end{tikzpicture}
+\caption{ELC-Prabh\=asa pretraining pipeline: corpus annotation via Vidyut, N-hot morpheme embedding, adaptive masking stratified by kāraka role, a Transformer encoder, and multi-task training combining masked language modeling with an optional auxiliary role-prediction objective that is discarded after training.}
+\label{fig:arch}
+\end{figure}
 
-For each token, Vidyut produces a morpheme boundary annotation and a karaka-role label (one of kartā, karm, karaṇ, sampradan, apādān, adhikaraṇ, or a separator class for non-role tokens). An N-hot (sparse binary) 10-dimensional vector encodes these roles, projected to 768 dimensions via a learned linear layer and added to the standard token embedding. This design encodes morphosyntactic information without explicit architectural modifications, integrating directly into standard Transformer pretraining.
+\subsection{Vidyut Morpheme-Boundary Embeddings and Kāraka-Aware Masking}
 
-The masking strategy adapts based on karaka role according to $p_{\text{mask}}(t) = \alpha \cdot p_{\text{base}} + (1-\alpha) \cdot p_{\text{role}}(r(t))$, where $p_{\text{base}} = 0.15$ and $\alpha = 0.5$. High-frequency roles receive higher mask rates, reflecting the hypothesis that roles with richer distributional signal benefit from more masked context. The role-specific probabilities are rescaled to maintain a constant mean mask rate, ensuring that any effect is attributable to the distribution of masked tokens across roles, not to total masked volume. An auxiliary objective predicts karaka roles at the token level via a 10-class logistic regression head, combining with the main MLM loss via a learned weight parameter $\lambda$ (typically 1.0). The auxiliary head is discarded before evaluation, allowing supervised karaka signal to improve pretraining representations without requiring external role labels at test time. See Appendix~\ref{app:training} for full configuration details.
+For each token, Vidyut produces a morpheme boundary annotation and a kāraka-role label (one of kartā, karm, karaṇ, sampradan, apādān, adhikaraṇ, or a separator class for non-role tokens). An N-hot (sparse binary) 10-dimensional vector encodes these roles, projected to 768 dimensions via a learned linear layer and added to the standard token embedding. This design encodes morphosyntactic information without explicit architectural modifications, integrating directly into standard Transformer pretraining.
+
+The masking strategy adapts based on kāraka role according to $p_{\text{mask}}(t) = \alpha \cdot p_{\text{base}} + (1-\alpha) \cdot p_{\text{role}}(r(t))$, where $p_{\text{base}} = 0.15$ and $\alpha = 0.5$. High-frequency roles receive higher mask rates, reflecting the hypothesis that roles with richer distributional signal benefit from more masked context. The role-specific probabilities are rescaled to maintain a constant mean mask rate, ensuring that any effect is attributable to the distribution of masked tokens across roles, not to total masked volume. An auxiliary objective predicts kāraka roles at the token level via a 10-class logistic regression head, combining with the main MLM loss via a learned weight parameter $\lambda$ (typically 1.0). The auxiliary head is discarded before evaluation, allowing supervised kāraka signal to improve pretraining representations without requiring external role labels at test time. See Appendix~\ref{app:training} for full configuration details.
 
 \subsection{Pretraining Objectives}
 
@@ -16,5 +42,5 @@ Two objective configurations are evaluated. The hybrid MLM+CLM configuration com
 
 \subsection{Evaluation Protocol}
 
-All models are evaluated on the official BabyLM benchmark suites. The BLiMP benchmark comprises 74 linguistically minimal pair tasks testing agreement, reflexives, argument structure, garden-path effects, and other morphosyntactic phenomena; metric is multi-choice accuracy. EWoK provides knowledge-free semantic evaluation. Compositional generalization is assessed using CFQ, SCAN, and COGS. GLUE serves as a diagnostic benchmark covering seven downstream tasks. All reported results present mean plus or minus 95\% confidence interval over multiple seeds (typically 3 to 5 seeds for the main model, 1 seed for exploratory arms). Comparisons use paired bootstrap resampling over per-task subsets with Holm-Bonferroni family-wise error correction. The Strict-track baseline achieves 74.53 BLiMP, while the Strict-Small baseline is 65.08 BLiMP. Pretraining proceeds for 10 epochs over the fixed word budget in compliance with BabyLM requirements, implemented in PyTorch using the Hugging Face Transformers library. For full experimental specifications, code, and configuration details, see Appendix~\ref{app:training} and Appendix~\ref{app:repro}.
+All models are evaluated on the official BabyLM benchmark suites. The BLiMP benchmark comprises 74 linguistically minimal pair tasks testing agreement, reflexives, argument structure, garden-path effects, and other morphosyntactic phenomena; metric is multi-choice accuracy. EWoK provides knowledge-free semantic evaluation. Compositional generalization is assessed using CFQ, SCAN, and COGS. GLUE serves as a diagnostic benchmark covering seven downstream tasks. All reported results present mean plus or minus 95\% confidence interval over multiple seeds (typically 3 to 5 seeds for the main model, 1 seed for exploratory arms). Comparisons use paired bootstrap resampling over per-task subsets with Holm-Bonferroni family-wise error correction. The Strict-track baseline achieves 74.53 BLiMP, while the Strict-Small baseline is 65.08 BLiMP~\cite{Hu2024BabyLM}. Pretraining proceeds for 10 epochs over the fixed word budget in compliance with BabyLM requirements, implemented in PyTorch using the Hugging Face Transformers library. For full experimental specifications, code, and configuration details, see Appendix~\ref{app:training} and Appendix~\ref{app:repro}.
 

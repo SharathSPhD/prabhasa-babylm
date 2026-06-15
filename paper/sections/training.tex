@@ -9,7 +9,7 @@ Prabhāsa training combines a hardware platform optimized for small-scale pretra
 
 The Prabhāsa training pipeline operates on a single NVIDIA DGX Spark system (GB10 Grace-Blackwell processor, 128GB unified GPU memory, aarch64 platform). Code execution uses NGC PyTorch containers (PyTorch 2.4+, CUDA 13.3, arm64 architecture). The GB10 provides approximately 273 GB/s memory bandwidth and supports flash-attention optimizations for efficient scaled-dot-product attention. Training time per 100M-token run is approximately 111 minutes; the 10M-token runs complete in approximately 67 minutes, excluding I/O and evaluation overhead.
 
-Both models employ a 14-layer encoder architecture with 768-dimensional hidden states, 12 attention heads, and feed-forward inner dimension of 3072. The Strict-Small model (prabhasa-b\_s-0.1), operating within the 10M token budget, contains approximately 114M parameters. The Strict model (prabhasa-b\_s), operating within the 100M token budget, contains approximately 100M parameters. Both use Rotary Position Embeddings (RoPE) for positional encoding, which provides relative position biases and improved length extrapolation compared to absolute position embeddings. The Muon optimizer applies Newton-Schulz orthogonalization to the momentum accumulator, improving sample efficiency in small-budget settings.
+Both models employ a 14-layer encoder architecture with 768-dimensional hidden states, 12 attention heads, and feed-forward inner dimension of 3072. The Strict-Small model (prabhasa-b\_ss-0.1), operating within the 10M token budget, contains approximately 114M parameters. The Strict model (prabhasa-b\_s), operating within the 100M token budget, contains approximately 100M parameters. Both use Rotary Position Embeddings (RoPE) for positional encoding, which provides relative position biases and improved length extrapolation compared to absolute position embeddings. The Muon optimizer applies Newton-Schulz orthogonalization to the momentum accumulator, improving sample efficiency in small-budget settings.
 
 \subsection{Training Budget and Corpus Preparation}
 
@@ -35,16 +35,12 @@ The masking schedule decays from an initial rate of 0.40 to a final rate of 0.15
 
 The peak learning rate for embedding and transformer layers is set to 1e-3. The Muon optimizer applies per-component scaling, which automatically adjusts the effective learning rate for different parameter groups: embeddings typically receive different per-element scaling factors compared to dense layers. Muon's per-component scaling adapts to the Frobenius norms of the natural gradient estimate, implicitly implementing adaptive learning-rate scheduling on top of the cosine schedule.
 
-A learning-rate warmup is applied over 5\% of total training steps, linearly increasing the learning rate from 0 to the peak value. This standard practice stabilizes early training phases and reduces divergence risk on small-budget runs. Figure~\ref{fig:devcurve} displays the BLiMP score evolution over the 10-epoch training duration, illustrating the trajectory of linguistic competence acquisition as training progresses.
+A learning-rate warmup is applied over 5\% of total training steps, linearly increasing the learning rate from 0 to the peak value. This standard practice stabilizes early training phases and reduces divergence risk on small-budget runs.
 
-\begin{figure}[t]\centering\includegraphics[width=0.85\linewidth]{figures/fig_dev_curve.pdf}
-\caption{Developmental BLiMP progression across pretraining checkpoints. The curve shows BLiMP performance evaluated at each epoch boundary, tracking the model's acquisition of linguistic structure throughout the 10-epoch training schedule. The curve demonstrates monotonic improvement up to epoch 10, with steeper gains in early epochs as the model acquires foundational linguistic patterns.}
-\label{fig:devcurve}\end{figure}
-
-The optimisation dynamics are summarised by the masked-language-modelling training loss. Figure~\ref{fig:trainloss} plots the training loss against optimisation steps for the production runs, showing smooth convergence under the Muon optimiser and the cosine masking schedule, with the final loss values reported in the configuration table.
+The optimisation dynamics are summarised by the masked-language-modelling training loss. Figure~\ref{fig:trainloss} plots the training loss against optimisation steps for the production runs; both runs trend downward under the Muon optimiser and the cosine masking schedule, with the final loss values reported in Table~\ref{tab:training_config_full}.
 
 \begin{figure}[t]\centering\includegraphics[width=0.85\linewidth]{figures/fig_trainloss.pdf}
-\caption{Masked-language-modelling training loss against optimisation steps for the Strict (100M) and Strict-Small (10M) production runs. Loss decreases smoothly under the Muon optimiser and the cosine masking schedule, without instability or divergence.}
+\caption{Masked-language-modelling training loss against optimisation steps for the Strict (100M) and Strict-Small (10M) production runs. The 10M run (left) converges smoothly, while the 100M run (right) exhibits oscillations characteristic of small-batch stochastic optimisation, with an overall downward trend and no divergence.}
 \label{fig:trainloss}\end{figure}
 
 \subsection{Kāraka-Aware Mechanisms}
@@ -54,13 +50,13 @@ The Pāṇinian-inspired contributions to the training pipeline consist of three
 Mechanism 1 consists of Vidyut N-hot morpheme-boundary embeddings. For each SentencePiece token in the corpus, a 10-dimensional sparse binary (N-hot) vector is assigned, encoding the token's morpheme-boundary class and kāraka role. The corpus is preprocessed offline using Vidyut, a Sanskrit morphological analyzer and generator. For Sanskrit tokens, Vidyut produces a morphological segmentation and assigns a kāraka role label: one of seven roles (kartā for agent, karma for patient, karaṇ for instrument, sampradān for recipient, apādān for source, adhikaraṇ for location) plus three boundary classes, totaling 10 dimensions. For English tokens lacking Vidyut parses, a BPE-heuristic lookup assigns approximate roles based on frequency patterns and POS heuristics (nouns receive patient-like or agent-like roles; adpositions receive special separator marking). The resulting 10-dimensional one-hot vector is projected to 768 dimensions via a learned linear layer:
 
 \begin{equation}
-\mathbf{e}\_{\text{kāraka}}(t) = W\_{\text{N-hot}} \cdot \mathbf{v}\_{\text{N-hot}}(t) \quad \in \mathbb{R}^{768},
+\mathbf{e}_{\text{kāraka}}(t) = W_{\text{N-hot}} \cdot \mathbf{v}_{\text{N-hot}}(t) \quad \in \mathbb{R}^{768},
 \end{equation}
 
 where $\mathbf{v}_{\text{N-hot}}(t) \in \{0,1\}^{10}$ and $W_{\text{N-hot}} \in \mathbb{R}^{768 \times 10}$ is a learned projection matrix. The projected N-hot embedding is added to the SentencePiece embedding before encoding via element-wise addition:
 
 \begin{equation}
-\mathbf{x}(t) = \text{Embed}(t) + \mathbf{e}\_{\text{kāraka}}(t).
+\mathbf{x}(t) = \text{Embed}(t) + \mathbf{e}_{\text{kāraka}}(t).
 \end{equation}
 
 The N-hot projection weights are initialized uniformly and trained jointly with the model. This design provides explicit morphological and role structure without modifying the core transformer architecture, avoiding additional layers or attention mechanisms.
@@ -68,7 +64,7 @@ The N-hot projection weights are initialized uniformly and trained jointly with 
 Mechanism 2 consists of kāraka role-stratified masking with budget matching. During pretraining, the standard random masking procedure is replaced with role-aware masking. Instead of selecting tokens uniformly at random for masking, tokens are partitioned by their kāraka role, and a role-specific mask probability is applied:
 
 \begin{equation}
-p\_{\text{mask}}(t) = p\_{\text{base}} + \delta\_{r(t)},
+p_{\text{mask}}(t) = p_{\text{base}} + \delta_{r(t)},
 \end{equation}
 
 where $p_{\text{base}}$ is the target overall mask rate (e.g., 0.30 after the 0.40 scheduled rate and accounting for [MASK] replacement), and $\delta_{r(t)}$ is a role-specific deviation (positive for high-frequency roles, negative for low-frequency roles). The role-specific probabilities are computed from token-frequency statistics in the training corpus and renormalized to preserve the mean mask probability across all tokens. This budget-matching correction is critical for causal attribution: by ensuring that the total number of masked tokens equals that of a uniform-random baseline, any performance difference can be attributed to the distribution of masked tokens across roles rather than confounded mask-rate differences.
@@ -78,7 +74,7 @@ Finding F2 directly tests this mechanism using a carefully controlled comparison
 Mechanism 3 consists of the śābdabodha auxiliary objective for supervised kāraka prediction. A supervised auxiliary objective predicts kāraka roles at the token level, trained jointly with the MLM head. The auxiliary loss is multi-class logistic cross-entropy, applied to a 10-class classification head stacked on the model's final hidden layer:
 
 \begin{equation}
-\mathcal{L}\_{\text{aux}} = -\sum\_{t} \sum\_{r=1}^{10} y\_r(t) \log \hat{p}\_r(t),
+\mathcal{L}_{\text{aux}} = -\sum_{t} \sum_{r=1}^{10} y_r(t) \log \hat{p}_r(t),
 \end{equation}
 
 where $y_r(t) \in \{0,1\}$ is the ground-truth indicator for role $r$ at token $t$ (multi-label, since a token can carry multiple roles), and $\hat{p}_r(t)$ is the predicted probability from the auxiliary head. Tokens without role annotations (e.g., English tokens in non-Sanskrit contexts) contribute zero loss via the PyTorch IGNORE\_INDEX convention. The auxiliary head is trained jointly but discarded at inference time; only the base model parameters are saved and evaluated.
@@ -86,7 +82,7 @@ where $y_r(t) \in \{0,1\}$ is the ground-truth indicator for role $r$ at token $
 The total loss is a weighted combination:
 
 \begin{equation}
-\mathcal{L}\_{\text{total}} = \mathcal{L}\_{\text{MLM}} + \lambda \cdot \mathcal{L}\_{\text{aux}},
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{MLM}} + \lambda \cdot \mathcal{L}_{\text{aux}},
 \end{equation}
 
 where $\lambda$ is a scalar weight (typically 1.0 for equal-weight combination or 0.0 for disabling the auxiliary objective). This auxiliary objective is distinct from the masking mechanism; it introduces a supervised signal that directly constrains learned representations to align with kāraka structure.
@@ -113,14 +109,15 @@ Fine-tuning with a Navya-Nyāya reasoning scaffold is conducted on the best-perf
 
 \begin{table}[t]
 \centering
-\caption{Training configuration summary. All models use SentencePiece tokenization (32K vocabulary), cosine mask schedule (0.40 to 0.15), Muon optimizer, RoPE, and sequence length 512 tokens. The submission model (prabhasa-b\_s-0.1) and leaderboard model (prabhasa-b\_s) use N-hot + RoPE mechanisms. Mechanism-ablation arms (F2 causal isolation and F3 validation) are listed with their control counterparts.}
+\caption{Training configuration summary. All models use SentencePiece tokenization (32K vocabulary), cosine mask schedule (0.40 to 0.15), Muon optimizer, RoPE, and sequence length 512 tokens. The submission model (prabhasa-b\_ss-0.1) and leaderboard model (prabhasa-b\_s) use N-hot + RoPE mechanisms. Mechanism-ablation arms (F2 causal isolation and F3 validation) are listed with their control counterparts.}
 \label{tab:training_config_full}
 {\footnotesize
+\adjustbox{max width=\linewidth}{%
 \begin{tabular}{lrllrlr}
 \toprule
 Model / Arm & Scale & Objective & Seeds & Mechanisms & LR & BLiMP \\
 \midrule
-prabhasa-b\_s-0.1 (Submission) & 10M & Hybrid & 3 & N-hot + RoPE & 1e-3 & 64.09 ± 0.26 \\
+prabhasa-b\_ss-0.1 (Submission) & 10M & Hybrid & 3 & N-hot + RoPE & 1e-3 & 64.09 ± 0.26 \\
 prabhasa-b\_s (Leaderboard) & 100M & Pure-MLM & 1 & N-hot + RoPE & 1e-3 & 73.06 \\
 \midrule
 \multicolumn{7}{c}{F2 Causal Isolation (100M, Pure-MLM):} \\
@@ -132,7 +129,8 @@ Aux real roles & 10M & Hybrid & 5 & N-hot + kāraka aux & 1e-3 & 64.89 ± 1.40 \
 Aux baseline & 10M & Hybrid & 5 & N-hot, no aux & 1e-3 & 63.88 ± 1.62 \\
 Aux shuffled roles & 10M & Hybrid & 3 & N-hot + shuffled aux & 1e-3 & 63.69 ± 0.78 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 }
 \end{table}
 

@@ -1,8 +1,8 @@
-We evaluate structural generalization across two fixed-budget pretraining corpora from the BabyLM challenge (Warstadt et al., 2023; Hu et al., 2024): the Strict-Small track at 10 million words and the Strict track at 100 million words. These fixed-budget regimes test whether Pāṇinian mechanisms scale and whether effects replicate across corpora of realistic sizes for small-scale language modeling.
+Structural generalization is evaluated across two fixed-budget pretraining corpora from the BabyLM challenge (Warstadt et al., 2023; Hu et al., 2024): the Strict-Small track at 10 million words and the Strict track at 100 million words. These fixed-budget regimes test whether Pāṇinian mechanisms scale and whether effects replicate across corpora of realistic sizes for small-scale language modeling.
 
 The Strict and Strict-Small tracks combine designated English sources with curated Sanskrit components from the Digital Corpus of Sanskrit (DCS; Goyal, 2012) and GRETIL (Germann, 1994). Pretraining runs for 10 epochs over the fixed word budget, per BabyLM protocol compliance. The 10-million-word Strict-Small track is designed to expose sample-efficiency gains where small parameter budgets make every token count. The 100-million-word Strict track assesses whether results replicate at a scale representative of real small-model deployments in domain-specific and resource-limited settings.
 
-\subsubsection{BabyLM Composition and Sources}
+\subsection{BabyLM Composition and Sources}
 
 Table \ref{tab:babylm_composition} provides the detailed source breakdown for the Strict (100M-word) corpus. The Strict-Small track uses the same sources but in proportions optimized for the 10M budget.
 
@@ -92,7 +92,7 @@ Table \ref{tab:corpus_manifest} summarizes the composition, sources, and licensi
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{lllr}
+\begin{tabular}{l p{5.2cm} l r}
 \toprule
 Corpus Component & Source & License & Size \\
 \midrule

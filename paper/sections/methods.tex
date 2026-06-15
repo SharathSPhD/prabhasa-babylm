@@ -7,17 +7,17 @@ Prabhāsa is a 14-layer Transformer encoder with a hidden dimension of 768, 12 a
 
 The core architectural innovation integrates morpheme and kāraka information via Vidyut (Raman et al., 2024). For each token in the corpus, Vidyut produces a morpheme boundary annotation (for example, a token such as kartṛbhiḥ is segmented into a root, affix, and case marker). A kāraka-role label is then assigned: one of kartā, karm, karaṇ, sampradan, apādān, or adhikaraṇ, or a separator label for non-role tokens. An N-hot (sparse binary) 10-dimensional vector is constructed where each dimension corresponds to one kāraka role or the separator class, and a token can be marked as multiple roles (for example, both action and patient in certain morphological contexts). This 10-dimensional vector is projected to 768 dimensions via a learned linear layer:
 \begin{equation}
-  \mathbf{e}\_{\text{kāraka}}(t) = W\_{\text{N-hot}} \cdot \mathbf{v}\_{\text{N-hot}}(t) \quad \in \mathbb{R}^{768},
+  \mathbf{e}_{\text{kāraka}}(t) = W_{\text{N-hot}} \cdot \mathbf{v}_{\text{N-hot}}(t) \quad \in \mathbb{R}^{768},
 \end{equation}
 where $\mathbf{v}_{\text{N-hot}}(t) \in \{0,1\}^{10}$ is the N-hot vector for token $t$, and $W_{\text{N-hot}} \in \mathbb{R}^{768 \times 10}$ is the projection matrix learned during pretraining. The projected N-hot embedding is added to the standard token embedding before passing to the encoder:
 \begin{equation}
-  \mathbf{x}(t) = \text{Embed}(t) + \mathbf{e}\_{\text{kāraka}}(t),
+  \mathbf{x}(t) = \text{Embed}(t) + \mathbf{e}_{\text{kāraka}}(t),
 \end{equation}
 where Embed$(t)$ is the SentencePiece embedding of token $t$. This design encodes morpheme and role information without explicit architectural modifications such as additional layers or cross-attention modules, integrating directly into standard Transformer pretraining.
 
 The masking strategy adapts based on kāraka role according to:
 \begin{equation}
-  p\_{\text{mask}}(t) = \alpha \cdot p\_{\text{base}} + (1-\alpha) \cdot p\_{\text{role}}(r(t)),
+  p_{\text{mask}}(t) = \alpha \cdot p_{\text{base}} + (1-\alpha) \cdot p_{\text{role}}(r(t)),
 \end{equation}
 where $p_{\text{base}} = 0.15$ is the baseline uniform masking rate (15\% of tokens masked), $p_{\text{role}}(r(t))$ is a role-specific mask rate determined by the kāraka role $r(t)$ of token $t$, and $\alpha$ is a blending parameter (typically $\alpha = 0.5$). High-frequency roles such as kartā and karm receive higher mask rates, while low-frequency roles and separators receive lower rates, reflecting the hypothesis that roles with richer distributional signal benefit from more masked context. In practice, the role-specific probabilities are computed from token-level role frequencies in the training corpus and rescaled to maintain a constant mean mask rate (0.30 after the 0.40/0.15 budget mask and random replacement). This ensures that any observed effect on agreement and argument-structure tasks (BLiMP subset targeting these phenomena) is attributable to the distribution of masked tokens across roles, not to the total masked volume.
 
@@ -25,11 +25,11 @@ where $p_{\text{base}} = 0.15$ is the baseline uniform masking rate (15\% of tok
 
 The auxiliary objective is a multi-task learning head that predicts kāraka roles at the token level:
 \begin{equation}
-  \mathcal{L}\_{\text{aux}} = -\sum\_{t} \sum\_{r} y\_r(t) \log \hat{p}\_r(t),
+  \mathcal{L}_{\text{aux}} = -\sum_{t} \sum_{r} y_r(t) \log \hat{p}_r(t),
 \end{equation}
 where $y_r(t) \in \{0,1\}$ is the ground-truth indicator for role $r$ at token $t$ (binary for each of the 10 roles; a token can have multiple roles), and $\hat{p}_r(t)$ is the predicted probability for role $r$ at token $t$, produced by a 10-class logistic regression head stacked on top of the model's final hidden state at position $t$. The loss is masked such that tokens without role annotations (for example, BabyLM English tokens not in the Sanskrit corpus) contribute zero loss (using the IGNORE\_INDEX convention). The auxiliary loss is combined with the main MLM loss via a learned weight parameter $\lambda$:
 \begin{equation}
-  \mathcal{L}\_{\text{total}} = \mathcal{L}\_{\text{MLM}} + \lambda \cdot \mathcal{L}\_{\text{aux}},
+  \mathcal{L}_{\text{total}} = \mathcal{L}_{\text{MLM}} + \lambda \cdot \mathcal{L}_{\text{aux}},
 \end{equation}
 where $\lambda$ is typically set to 1.0 (equal weighting) or tuned via validation-set BLiMP on a small held-out set. The auxiliary head is trained jointly during pretraining but is discarded before evaluation, with only the base model saved and evaluated. This setup allows the supervised kāraka signal to improve the learned representations without explicitly requiring external role labels at test time, as roles influence only the pretraining objective and not downstream inference.
 
