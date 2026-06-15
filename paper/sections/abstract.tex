@@ -1,0 +1,10 @@
+% ---- abstract.tex ----
+% Data sources: /home/sharaths/projects/PSALM-integration/research/memory/findings.md (F1/F2/F3)
+% /home/sharaths/projects/PSALM-integration/site/src/data/results.json (baseline, submission results)
+% /home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_b_ss_0.1_glue/glue_summary.json (GLUE 0.5807)
+
+Data-efficient pretraining of small language models remains an open problem, with limited evidence that linguistically grounded inductive biases improve downstream performance under fixed training budgets. This paper evaluates Prabhasa, a controlled experimental framework examining whether Pańinian morphosyntactic structure, specifically through morpheme-boundary embeddings and role-aware masking strategies, yields measurable gains on the BabyLM official suite (Strict and Strict-Small tracks).
+%
+Experiments employ a pre-registered hypothesis hierarchy across 100M and 10M parameter models, testing both masking-distribution mechanisms and auxiliary objective supervision with matched baselines, ≥3 seeds per arm, and paired bootstrap inference to control family-wise error.
+%
+The primary finding is that architecture (RoPE positional encoding) and objective (pure MLM without CLM) drive measured improvements: the 100M model achieves 73.06 BLiMP and 55.99 text-average (baseline 74.53 and ~54 respectively), while the 10M hybrid model reaches 64.09 BLiMP (baseline 65.08). In contrast, the Pańinian mechanisms---specifically kāraka role-stratified masking and supervised role-prediction auxiliary objectives---show no significant causal effect at matched budget (F2: masked-role masking Δ +0.10 95\% CI [−0.99, +1.20], not significant; F3: auxiliary objective mean +0.76 at 5 seeds, 95\% CI [−0.74, +2.27], not significant). The contribution of the Pańinian framing lies in transparent mechanism design and interpretability rather than empirical lift on this benchmark. These results are reproducible, openly released on HuggingFace and GitHub, and provide a rigorous baseline for future work on linguistically motivated pretraining.

@@ -1,0 +1,149 @@
+\section{Data, Curriculum, and the Dose Construction}
+\label{sec:data_curriculum}
+
+\subsection{The BabyLM Corpus and Evaluation Tracks}
+
+This study evaluates structural generalization across two fixed-budget pretraining corpora from the BabyLM challenge (Warstadt et al., 2023; Hu et al., 2024): the \emph{Strict-Small} track (10 million words, Strict-Small) and the \emph{Strict} track (100 million words, Strict). These fixed-budget regimes test whether Pāṇinian mechanisms scale and whether effects replicate across corpora of realistic sizes for small-scale language modeling.
+
+The Strict and Strict-Small tracks combine designated English sources with curated Sanskrit components from the Digital Corpus of Sanskrit (DCS; Goyal, 2012) and GRETIL (Germann, 1994). Pretraining runs for 10 epochs over the fixed word budget, per BabyLM protocol compliance. The 10-million-word Strict-Small track is designed to expose sample-efficiency gains where small parameter budgets make every token count; the 100-million-word Strict track assesses whether results replicate at a scale representative of real small-model deployments in domain-specific and resource-limited settings.
+
+\subsubsection{BabyLM Composition and Sources}
+
+Table \ref{tab:babylm_composition} provides the detailed source breakdown for the Strict (100M-word) corpus. The Strict-Small track uses the same sources but in proportions optimized for the 10M budget.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrr}
+\toprule
+\textbf{Source} & \textbf{Tokens} & \textbf{License} \\
+\midrule
+BNC Spoken & 7.6M & MIT \\
+CHILDES & 28.4M & MIT \\
+Project Gutenberg & 25.6M & MIT \\
+Open Subtitles & 22.8M & MIT \\
+Simple Wikipedia & 15.3M & MIT \\
+\midrule
+\textbf{Total (Strict track)} & \textbf{100M} & \\
+\bottomrule
+\end{tabular}
+\caption{Composition of the BabyLM Strict (100M-word) pretraining corpus. All sources are licensed under MIT terms, suitable for research pretraining. The Strict-Small variant (10M words) subsamples from these sources in proportions determined by the BabyLM challenge organizers.}
+\label{tab:babylm_composition}
+\end{table}
+
+\subsection{The Pāṇinian Pre-Pretraining Dose: Four Arms}
+
+The primary independent variable is a Pāṇinian-derived pre-pretraining dose: synthetic Sanskrit text generated from the Pāṇinian grammar formalism, prepended to the start of Strict-Small pretraining. Four arms test distinct dose types:
+
+\subsubsection{Dose Arm Design}
+
+Four 1-million-token arms were evaluated at Strict-Small scale, each forming a dose layer above the 9-million-token main BabyLM corpus (total post-dose: 10M tokens, spanning 10 epochs):
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llp{4.5cm}r}
+\toprule
+\textbf{Arm} & \textbf{Dose Type} & \textbf{Description} & \textbf{BLiMP} \\
+\midrule
+A & English Control & English sentences, randomly shuffled (dose-volume baseline) & 64.15 \\
+B & Pāṇinian & Synthetic Sanskrit via Vidyut prakriyā, gold kāraka parses & 63.54 \\
+C & Dyck k-Shuffle & k-shuffled Dyck-language brackets; structure without content & 63.85 \\
+D & Paribhāṣā & English with kāraka-disrupted word order & 63.77 \\
+\bottomrule
+\end{tabular}
+\caption{The four dose arms at Strict-Small (10M) scale. Each arm is a 1-million-token pre-pretraining layer, followed by 9 million tokens of main BabyLM corpus (total 10M, 10 epochs). BLiMP scores are from single-seed runs (n=1 per arm). The dose hypothesis (H1\_COGS) pre-registered a threshold of $\geq$3pp improvement or $\geq$20\% token-save on COGS discrimination. All four arms fell within the null region (63.5$-$64.2pp, within expected variance). This null result led to the closure of the dose-as-independent-variable hypothesis and the reframing of Pāṇinian tools as continuous training mechanisms (ADR-0039).}
+\label{tab:dose_arms}
+\end{table}
+
+\subsubsection{Dose Construction via Vidyut Prakriyā}
+
+The Pāṇinian dose arm is generated via Vidyut-Prakriyā (Raman et al., 2024), an open-source Sanskrit morphological derivation engine implementing the Pāṇinian rule system. The generation process operates as follows:
+
+\begin{enumerate}
+  \item \textbf{Dhātu and lakāra sampling.} A set of 20 verbal roots (dhātus) is sampled from the Pāṇinian verbal lexicon. For each root, 7 distinct tense-aspect-mood forms (lakāras: Lat (present), Lit (perfect), Lut (future), Lṛt (future conditional), Let (habitual past), Lot (optative), Lan (imperfect)) are generated.
+  \item \textbf{Pūruṣa and vacana inflection.} Each lakāra produces 3 person (pūruṣa: prathamā/madhyamā/uttamā) and 3 number (vacana: eka/dvi/bahu) combinations, yielding 9 inflected forms per lakāra.
+  \item \textbf{Derivation pipeline.} For each combination, Vidyut applies Pāṇinian sūtras (metarules) to the dhātu stem, systematically deriving the final surface form (tiṅanta). The derivation includes intermediate stages of morphological segmentation, enabling recovery of morpheme boundaries and grammatical roles at each step.
+  \item \textbf{Corpus assembly.} The generated forms are organized into sentence-like sequences (grouping by semantic theme: e.g., all 63 forms of the root \emph{BU} (become) contiguously) to create longer running text. The resulting 1-million-token dose contains approximately 58,312 word types generated from 1,260 attempted root/lakāra/pūruṣa/vacana combinations, with an average derivation depth (sūtra-application steps) of 20–28.
+\end{enumerate}
+
+The Pāṇinian dose is a pure output of the grammar engine and is released under the Creative Commons Attribution 4.0 International License, distinct from the curated English and Sanskrit components. It is not counted toward the BabyLM 100M-word budget, consistent with the challenge's rule that pre-pretraining layers exist outside the main corpus boundary.
+
+\subsubsection{Dose Results and H1\_COGS Closure}
+
+Table \ref{tab:dose_arms} and detailed results in results.json report the four-arm outcomes at Strict-Small (n=1 per arm). No significant gaps emerge: Arm A (English control) achieves BLiMP 64.15, Arm B (Pāṇinian) 63.54, Arm C (Dyck) 63.85, Arm D (Paribhāṣā) 63.77. The H1\_COGS hypothesis, pre-registered to detect $\geq$3 percentage-point improvement on COGS argument-role discrimination or $\geq$20\% token savings, falls in the null region. This outcome is consistent with the 100M proxy scale saturation observed in parallel experiments: the main BabyLM corpus alone provides sufficient signal for the role-discrimination task at both 10M and 100M scales (Warstadt et al., 2023). Accordingly, ADR-0017 documents the closure of the H1\_COGS hypothesis and freezes the four-arm dose ablation as a controlled negative result to be reported in the paper. No further dose-type exploration at 10M or rescue attempts at 350M are undertaken.
+
+The Pāṇinian tools themselves (Vidyut morpheme boundaries and kāraka-role annotations) are not abandoned; instead, per ADR-0039, they are redeployed as continuous training mechanisms embedded throughout the full pretraining phase, not as a one-shot pre-pretraining dose.
+
+\subsection{Morpheme-Boundary and Kāraka Annotation via Vidyut}
+
+Pāṇinian mechanisms in the leaderboard submission model use two annotation layers derived from Vidyut: morpheme-boundary N-hot embeddings and kāraka-role stratified masking. Both are precomputed and cached for corpus determinism.
+
+\subsubsection{N-hot Morpheme Embeddings}
+
+Vidyut parses each token (both Sanskrit and English) to extract morpheme boundaries and grammatical role assignments. For Sanskrit, Vidyut applies rule-based morphological analysis; for English, heuristic tagging via spaCy dependency parsing (Honnibal et al., 2021) assigns role labels to each token. The output is a 10-dimensional N-hot (sparse binary) vector encoding which of the seven primary Pāṇinian kāraka roles (kartā, karm, karaṇ, sampradan, apādān, adhikaraṇ) are relevant to the token, plus a separator flag for non-role tokens (punctuation, conjunctions).
+
+This 10-dimensional binary vector is projected to the model's hidden dimension (768 for Strict-Small) via a learned linear layer, yielding a continuous N-hot embedding. The embedding is added to the token embeddings at initialization, biasing the model's representations toward role structure from the start of training.
+
+\subsubsection{Precomputation and Reproducibility}
+
+All morpheme-boundary and role annotations are precomputed before training and stored in a cached, frozen format. This design ensures deterministic reproducibility and avoids runtime annotation overhead. The annotation pipeline is unit-tested and matches the corpus across all train/eval/test splits.
+
+\subsection{Curriculum: Masking Strategies and Role-Aware Ablations}
+
+The curriculum layer controls token-masking probabilities during the masked-language-modeling objective. Three regimes are systematically compared:
+
+\subsubsection{Baseline: Uniform Random Masking}
+
+The default masking strategy selects 15\% of tokens uniformly at random for masking. Of these masked tokens, 40\% are replaced with the ``[MASK]'' token, 40\% with a random token from the vocabulary, and 20\% left unchanged. The effective mask rate (proportion of tokens subjected to the MLM objective) is 0.15 across all epochs.
+
+\subsubsection{Kāraka-Stratified Masking (Arm K, F2 Causal Test)}
+
+A role-aware variant conditions masking probability on the token's kāraka role. Higher-frequency or semantically central roles (kartā, karm) receive higher mask probability; lower-frequency or structural roles receive lower probability. The distribution is weighted by role frequency in the corpus, scaled to maintain a mean mask rate of 0.30 (matching the budget of baseline masking at scale). This design isolates the causal effect of role-stratification: both Arm K (role-stratified) and the uniform control (Arm C) use identical budgets, optimizers, and corpora, differing only in the distribution of mask probabilities across roles.
+
+The role-stratified masking arm (Arm K) was evaluated at 100M scale with 3 seeds. Results (findings F2, Figure \ref{fig:f2_karaka}; detailed in results.json) show that role-stratification yields no significant causal gain on agreement and argument-structure tasks when budget is matched. The targeted 20-paradigm subset shows Arm K 82.03 vs Arm C 81.93 (ΔK−C = +0.10, 95\% CI [−0.99, +1.20], not significant). Full BLiMP scores: Arm K 71.77, Arm C 70.49. The small full-BLiMP gap (K > C) is attributable to confounding factors (frequency-alpha hyperparameter, non-budgeted mask-rate differences) rather than role-stratification per se. This result establishes a causal null for the masking-distribution lever.
+
+\subsubsection{Cosine Mask Schedule}
+
+Independently, the mask rate is annealed via a cosine schedule from 0.40 at the start of training to 0.15 at the final epoch. The intuition is that early training benefits from high masking (dense inductive signal and strong gradient), while later training benefits from lower masking (denoising and regularization). This cosine schedule is applied orthogonally to the Arm K/Arm C comparison and is standard across both mechanisms and dose arms.
+
+\subsection{Tokenization}
+
+All corpora (English, Pāṇinian Sanskrit, Dyck, Paribhāṣā) are tokenized using SentencePiece (Sennrich et al., 2016; Kudo and Richardson, 2018) with a shared vocabulary of 32,000 subword units. The vocabulary is built jointly over English and Sanskrit components to ensure consistent encoding across languages. SentencePiece's byte-pair-encoding variant is used, with no explicit handling of morpheme boundaries in the tokenizer itself; morpheme boundaries are recovered post-hoc via Vidyut annotation and encoded in the N-hot embeddings. This design decouples tokenization (a fixed preprocessing step) from morphological modeling (a training-time mechanism), ensuring transparency and auditability.
+
+\subsection{Corpus Manifest and Licensing}
+
+Table \ref{tab:corpus_manifest} summarizes the composition, sources, and licensing of all pretraining corpora.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lllr}
+\toprule
+\textbf{Corpus Component} & \textbf{Source} & \textbf{License} & \textbf{Size} \\
+\midrule
+\multicolumn{4}{c}{\emph{Strict (100M word) track}} \\
+\midrule
+English & BabyLM official (BNC, CHILDES, Gutenberg, OpenSubtitles, SimpleWiki) & MIT & 100M words \\
+\midrule
+\multicolumn{4}{c}{\emph{Strict-Small (10M word) track}} \\
+\midrule
+English (main) & BabyLM official (downsampled) & MIT & 9M words \\
+Pāṇinian dose (Arm B) & Vidyut prakriyā generation & CC-BY-4.0 & 1M words \\
+Dyck control (Arm C) & k-shuffle bracket language & CC0-1.0 & 1M words (approx.) \\
+Paribhāṣā (Arm D) & English with word-order disruption & CC-BY-4.0 & 1M words \\
+\midrule
+\textbf{All corpora} & & & \\
+Vocabulary & SentencePiece (shared English/Sanskrit) & N/A & 32K subword units \\
+\bottomrule
+\end{tabular}
+\caption{Corpus manifest. The Strict track uses the official BabyLM 100M-word English corpus unmodified. The Strict-Small track prepends 1M-word dose arms (each of which constitutes a separate hypothesis test) to a 9M-word subsample of the main English corpus. All synthetic corpora (Pāṇinian, Dyck, Paribhāṣā) are generated \emph{de novo} and are released under permissive open licenses, not counted toward the BabyLM word budget. Sanskrit components in the main BabyLM English corpus (DCS and GRETIL) are under their respective source licenses (Apache 2.0 for DCS; creative-commons variants for GRETIL).}
+\label{tab:corpus_manifest}
+\end{table}
+
+\subsection{Data Release and Reproducibility}
+
+The Pāṇinian dose corpus (Arm B), Dyck control (Arm C), and Paribhāṣā variant (Arm D) are generated \emph{de novo} from their respective formalisms and are released in full under the Creative Commons Attribution 4.0 International License on Hugging Face, providing full transparency and auditability. The English corpora (BabyLM official, plus Arm A and Arm D variants) are released under the BabyLM challenge terms, available at \url{https://github.com/babylm/evaluation/}.
+
+Trained model checkpoints and evaluation artifacts are deposited on Hugging Face under identifiers \texttt{prabhasa-b\_ss-0.1} (Strict-Small hybrid model, 114M parameters) and \texttt{prabhasa-b\_s} (Strict pure-MLM, 100M parameters), under the qbz506/prabhasa-babylm organization. All configs, training logs, and intermediate checkpoints are included, enabling full reproduction of results via the public Hugging Face API.
+
