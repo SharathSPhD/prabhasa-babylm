@@ -12,28 +12,27 @@
   organization={ACL}
 }
 
-@article{Samuel2023LTG,
-  title={Integrating Language-Theoretic Grammar into {BERT} for Compositional Generalisation},
-  author={Samuel, David and Shain, Cory and Hultin, Yonatan and Geyer, Ellen and others},
-  journal={Transactions of the Association for Computational Linguistics},
-  volume={11},
-  pages={1--19},
+@inproceedings{Samuel2023LTG,
+  title={Trained on 100 Million Words and Still in Shape: {BERT} Meets {B}ritish {N}ational {C}orpus},
+  author={Samuel, David and Kutuzov, Andrey and {\O}vrelid, Lilja and Velldal, Erik},
+  booktitle={Findings of the Association for Computational Linguistics: EACL 2023},
+  pages={1954--1974},
   year={2023},
-  note={arXiv:2306.14546. Accessed: 15 June 2026}
+  note={arXiv:2303.09859. Accessed: 15 June 2026}
 }
 
-@article{CharpentierSamuel2023,
-  title={{ELC}-{BERT}: Morphological Priors in Masked Language Model Pretraining},
-  author={Charpentier, Benoit and Samuel, David},
-  journal={arXiv preprint},
+@inproceedings{CharpentierSamuel2023,
+  title={Not All Layers Are Equally as Important: Every Layer Counts {BERT}},
+  author={Charpentier, Lucas Georges Gabriel and Samuel, David},
+  booktitle={Proceedings of the BabyLM Challenge at the 27th Conference on Computational Natural Language Learning (CoNLL)},
   year={2023},
-  note={arXiv:2307.10788. Accessed: 15 June 2026}
+  note={arXiv:2311.02265. Accessed: 15 June 2026}
 }
 
-@article{CharpentierSamuel2024,
-  title={{GPT}-{BERT}: {D}ata-Efficient Language Model Pretraining with Causal Objectives},
-  author={Charpentier, Benoit and Samuel, David},
-  journal={arXiv preprint},
+@inproceedings{CharpentierSamuel2024,
+  title={{GPT} or {BERT}: Why Not Both?},
+  author={Charpentier, Lucas Georges Gabriel and Samuel, David},
+  booktitle={Proceedings of the BabyLM Challenge at the 28th Conference on Computational Natural Language Learning (CoNLL)},
   year={2024},
   note={arXiv:2410.24159. Accessed: 15 June 2026}
 }
@@ -46,12 +45,12 @@
   note={arXiv:2104.09864. Accessed: 15 June 2026}
 }
 
-@article{Jordan2024Muon,
-  title={{M}uon: A Second-Order {O}ptimiser for {D}ata-{E}fficient {P}retraining},
-  author={Jordan, Matthew},
-  journal={arXiv preprint},
+@misc{Jordan2024Muon,
+  title={{M}uon: An Optimizer for Hidden Layers in Neural Networks},
+  author={Jordan, Keller and Jin, Yuchen and Boza, Vlado and You, Jiacheng and Cesista, Franz and Newhouse, Laker and Bernstein, Jeremy},
   year={2024},
-  note={arXiv:2409.18702. Accessed: 15 June 2026}
+  howpublished={\url{https://kellerjordan.github.io/posts/muon/}},
+  note={Blog post. Accessed: 15 June 2026}
 }
 
 @book{Matilal2001,
@@ -113,12 +112,13 @@
   organization={PMLR}
 }
 
-@article{Yaltik2020,
-  title={{M}orpheme-{A}ware {N}eural {M}achine {T}ranslation},
-  author={Yaltik, Hasan and Yeniterzi, Reyyan},
-  journal={arXiv preprint},
-  year={2020},
-  note={arXiv:2006.00984. Accessed: 15 June 2026}
+@inproceedings{Belinkov2017Morphology,
+  title={What Do Neural Machine Translation Models Learn about Morphology?},
+  author={Belinkov, Yonatan and Durrani, Nadir and Dalvi, Fahim and Sajjad, Hassan and Glass, James},
+  booktitle={Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (ACL)},
+  pages={861--872},
+  year={2017},
+  note={arXiv:1704.03471. Accessed: 15 June 2026}
 }
 
 @article{Vaswani2017,
@@ -168,19 +168,12 @@
   note={arXiv:1810.04805. Accessed: 15 June 2026}
 }
 
-@article{Clemons2023,
-  title={{C}ausal {L}anguage {M}odelling for {C}ompositional {G}eneralisation},
-  author={Clemons, David and others},
-  journal={arXiv preprint},
-  year={2023},
-  note={arXiv:2310.18618. Accessed: 15 June 2026}
-}
-
-@inproceedings{Søgaard2021,
-  title={{C}urriculum {L}earning for {N}atural {L}anguage {U}nderstanding},
-  author={S{\o}gaard, Anders and others},
-  booktitle={Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics},
-  year={2021}
+@inproceedings{Xu2020Curriculum,
+  title={Curriculum Learning for Natural Language Understanding},
+  author={Xu, Benfeng and Zhang, Licheng and Mao, Zhendong and Wang, Quan and Xie, Hongtao and Zhang, Yongdong},
+  booktitle={Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics (ACL)},
+  pages={6095--6104},
+  year={2020}
 }
 
 
@@ -192,19 +185,20 @@
   note={In: Proceedings of CICLing 2016}
 }
 
-@article{Lake2018SCAN,
+@inproceedings{Lake2018SCAN,
   title={{G}eneralization without {S}ystematicity: {O}n the {C}ompositional {S}kills of {S}equence-to-{S}equence {R}ecurrent {N}etworks},
   author={Lake, Brenden M and Baroni, Marco},
-  journal={arXiv preprint},
-  year={2017},
+  booktitle={Proceedings of the 35th International Conference on Machine Learning (ICML)},
+  pages={2873--2882},
+  year={2018},
   note={arXiv:1711.00350. Accessed: 15 June 2026}
 }
 
 @inproceedings{Kim2020COGS,
-  title={{C}ompositionality as {I}dentity},
+  title={{COGS}: A Compositional Generalization Challenge Based on Semantic Interpretation},
   author={Kim, Najoung and Linzen, Tal},
-  booktitle={Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing},
-  pages={9002--9015},
+  booktitle={Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+  pages={9087--9105},
   year={2020}
 }
 
@@ -215,11 +209,14 @@
   year={2020}
 }
 
-@inproceedings{Warstadt2020BLiMP,
-  title={{B}limpBench: {A} {S}uperbench for {L}inguistic {D}iagnostics of {L}anguage {M}odels},
-  author={Warstadt, Alex and Parrish, Alicia and Liu, Haau and others},
-  booktitle={Proceedings of the Ninth Joint Conference on Lexical and Computational Semantics},
-  year={2020}
+@article{Warstadt2020BLiMP,
+  title={{BLiMP}: The Benchmark of Linguistic Minimal Pairs for {E}nglish},
+  author={Warstadt, Alex and Parrish, Alicia and Liu, Haokun and Mohananey, Anhad and Peng, Wei and Wang, Sheng-Fu and Bowman, Samuel R.},
+  journal={Transactions of the Association for Computational Linguistics},
+  volume={8},
+  pages={377--392},
+  year={2020},
+  note={arXiv:1912.00582. Accessed: 15 June 2026}
 }
 
 @article{Dao2023FlashAttention,
@@ -237,12 +234,12 @@
   note={arXiv:2203.15556. Accessed: 15 June 2026}
 }
 
-@article{Ivgi2023Efficient,
-  title={{D}ata-{E}fficient {L}anguage {T}raining with {S}marter {C}urricula},
-  author={Ivgi, Maor and others},
-  journal={arXiv preprint},
+@inproceedings{Muennighoff2023Scaling,
+  title={Scaling Data-Constrained Language Models},
+  author={Muennighoff, Niklas and Rush, Alexander M. and Barak, Boaz and Le Scao, Teven and Piktus, Aleksandra and Tazi, Nouamane and Pyysalo, Sampo and Wolf, Thomas and Raffel, Colin},
+  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
   year={2023},
-  note={arXiv:2304.07978. Accessed: 15 June 2026}
+  note={arXiv:2305.16264. Accessed: 15 June 2026}
 }
 
 @article{Kaplan2020,
@@ -310,4 +307,55 @@
   series = {Lecture Notes in Computer Science}, volume = {6465},
   publisher = {Springer}, year = {2010},
   doi = {10.1007/978-3-642-17528-2_6}
+}
+
+@article{Ivanova2024EWoK,
+  title={Elements of World Knowledge ({EWoK}): A Cognition-Inspired Framework for Evaluating Basic World Knowledge in Language Models},
+  author={Ivanova, Anna A. and Sathe, Aalok and Lipkin, Benjamin and Kumar, Unnathi and Radkani, Setayesh and Clark, Thomas H. and Kauf, Carina and Hu, Jennifer and Pramod, R. T. and Grand, Gabriel and others},
+  journal={Transactions of the Association for Computational Linguistics},
+  year={2024},
+  note={arXiv:2405.09605. Accessed: 16 June 2026}
+}
+
+@inproceedings{Wang2019GLUE,
+  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},
+  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2019},
+  note={arXiv:1804.07461. Accessed: 16 June 2026}
+}
+
+@inproceedings{Misra2023COMPS,
+  title={{COMPS}: Conceptual Minimal Pair Sentences for Testing Robust Property Knowledge and its Inheritance in Pre-trained Language Models},
+  author={Misra, Kanishka and Rayz, Julia and Ettinger, Allyson},
+  booktitle={Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics (EACL)},
+  pages={2920--2941},
+  year={2023},
+  note={arXiv:2210.01963. Accessed: 16 June 2026}
+}
+
+@inproceedings{Kudo2018SentencePiece,
+  title={{SentencePiece}: A Simple and Language Independent Subword Tokenizer and Detokenizer for Neural Text Processing},
+  author={Kudo, Taku and Richardson, John},
+  booktitle={Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing (EMNLP): System Demonstrations},
+  pages={66--71},
+  year={2018},
+  note={arXiv:1808.06226. Accessed: 16 June 2026}
+}
+
+@inproceedings{Wolf2020Transformers,
+  title={Transformers: State-of-the-Art Natural Language Processing},
+  author={Wolf, Thomas and Debut, Lysandre and Sanh, Victor and Chaumond, Julien and Delangue, Clement and Moi, Anthony and others},
+  booktitle={Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP): System Demonstrations},
+  pages={38--45},
+  year={2020},
+  note={arXiv:1910.03771. Accessed: 16 June 2026}
+}
+
+@misc{Honnibal2020spaCy,
+  title={{spaCy}: Industrial-Strength Natural Language Processing in {P}ython},
+  author={Honnibal, Matthew and Montani, Ines and Van Landeghem, Sofie and Boyd, Adriane},
+  year={2020},
+  howpublished={\url{https://spacy.io}},
+  doi={10.5281/zenodo.1212303}
 }

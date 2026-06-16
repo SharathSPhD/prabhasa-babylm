@@ -53,7 +53,7 @@ D & Paribhāṣā & English with kāraka-disrupted word order \\
 
 \subsubsection{Dose Construction via Vidyut Prakriyā}
 
-The Pāṇinian dose arm is generated via Vidyut-Prakriyā (Raman et al., 2024), an open-source Sanskrit morphological derivation engine implementing the Pāṇinian rule system. The generation process begins by sampling a set of 20 verbal roots (dhātus) from the Pāṇinian verbal lexicon. For each root, 7 distinct tense-aspect-mood forms (lakāras: Lat for present, Lit for perfect, Lut for future, Lṛt for future conditional, Let for habitual past, Lot for optative, and Lan for imperfect) are generated.
+The Pāṇinian dose arm is generated via Vidyut-Prakriyā~\cite{Prasad2024Vidyut}, an open-source Sanskrit morphological derivation engine implementing the Pāṇinian rule system. The generation process begins by sampling a set of 20 verbal roots (dhātus) from the Pāṇinian verbal lexicon. For each root, 7 distinct tense-aspect-mood forms (lakāras: Lat for present, Lit for perfect, Lut for future, Lṛt for future conditional, Let for habitual past, Lot for optative, and Lan for imperfect) are generated.
 
 Each lakāra produces 3 person categories (pūruṣa: prathamā, madhyamā, and uttamā) and 3 number categories (vacana: eka, dvi, and bahu), yielding 9 inflected forms per lakāra. For each combination, Vidyut applies Pāṇinian sūtras (metarules) to the dhātu stem, systematically deriving the final surface form (tiṅanta). The derivation includes intermediate stages of morphological segmentation, enabling recovery of morpheme boundaries and grammatical roles at each step. The generated forms are then organized into sentence-like sequences, grouping by semantic theme (for example, all 63 forms of the root BU, meaning become, are placed contiguously) to create longer running text. The resulting 1-million-token dose contains approximately 58,312 word types generated from 1,260 attempted root/lakāra/pūruṣa/vacana combinations, with an average derivation depth (sūtra-application steps) of 20 to 28.
 
@@ -61,7 +61,7 @@ The Pāṇinian dose is a pure output of the grammar engine and is released unde
 
 \subsection{Morpheme-Boundary and Kāraka Annotation via Vidyut}
 
-Prabhāsa mechanisms in the leaderboard submission model use two annotation layers derived from Vidyut: morpheme-boundary N-hot embeddings and kāraka-role stratified masking. Both are precomputed and cached for corpus determinism. Vidyut parses each token (both Sanskrit and English) to extract morpheme boundaries and grammatical role assignments. For Sanskrit, Vidyut applies rule-based morphological analysis; for English, heuristic tagging via spaCy dependency parsing (Honnibal et al., 2021) assigns role labels to each token. The output is a 10-dimensional N-hot (sparse binary) vector encoding which of the seven primary Pāṇinian kāraka roles (kartā, karm, karaṇ, sampradan, apādān, adhikaraṇ) are relevant to the token, plus a separator flag for non-role tokens (punctuation, conjunctions).
+Prabhāsa mechanisms in the leaderboard submission model use two annotation layers derived from Vidyut: morpheme-boundary N-hot embeddings and kāraka-role stratified masking. Both are precomputed and cached for corpus determinism. Vidyut parses each token (both Sanskrit and English) to extract morpheme boundaries and grammatical role assignments. For Sanskrit, Vidyut applies rule-based morphological analysis; for English, heuristic tagging via spaCy dependency parsing~\cite{Honnibal2020spaCy} assigns role labels to each token. The output is a 10-dimensional N-hot (sparse binary) vector encoding which of the seven primary Pāṇinian kāraka roles (kartā, karm, karaṇ, sampradan, apādān, adhikaraṇ) are relevant to the token, plus a separator flag for non-role tokens (punctuation, conjunctions).
 
 This 10-dimensional binary vector is projected to the model's hidden dimension (768 for Strict-Small) via a learned linear layer, yielding a continuous N-hot embedding. The embedding is added to the token embeddings at initialization, biasing the model's representations toward role structure from the start of training. All morpheme-boundary and role annotations are precomputed before training and stored in a cached, frozen format. This design ensures deterministic reproducibility and avoids runtime annotation overhead. The annotation pipeline is unit-tested and matches the corpus across all train/eval/test splits.
 
@@ -75,7 +75,7 @@ Independently, the mask rate is annealed via a cosine schedule from 0.40 at the 
 
 \subsection{Tokenization}
 
-All corpora (English, Pāṇinian Sanskrit, Dyck, Paribhāṣā) are tokenized using SentencePiece (Sennrich et al., 2016; Kudo and Richardson, 2018) with a shared vocabulary of 32,000 subword units. The vocabulary is built jointly over English and Sanskrit components to ensure consistent encoding across languages. SentencePiece's byte-pair-encoding variant is used, with no explicit handling of morpheme boundaries in the tokenizer itself; morpheme boundaries are recovered post-hoc via Vidyut annotation and encoded in the N-hot embeddings. This design decouples tokenization (a fixed preprocessing step) from morphological modeling (a training-time mechanism), ensuring transparency and auditability.
+All corpora (English, Pāṇinian Sanskrit, Dyck, Paribhāṣā) are tokenized using SentencePiece~\cite{Kudo2018SentencePiece} with byte-pair encoding~\cite{Sennrich2016BPE} and a shared vocabulary of 20,000 subword units. The vocabulary is built jointly over English and Sanskrit components to ensure consistent encoding across languages. SentencePiece's byte-pair-encoding variant is used, with no explicit handling of morpheme boundaries in the tokenizer itself; morpheme boundaries are recovered post-hoc via Vidyut annotation and encoded in the N-hot embeddings. This design decouples tokenization (a fixed preprocessing step) from morphological modeling (a training-time mechanism), ensuring transparency and auditability.
 
 \subsection{Corpus Manifest and Licensing}
 
@@ -100,7 +100,7 @@ Dyck control (Arm C) & k-shuffle bracket language & CC0-1.0 & 1M words (approx.)
 Paribhāṣā (Arm D) & English with word-order disruption & CC-BY-4.0 & 1M words \\
 \midrule
 All corpora & & & \\
-Vocabulary & SentencePiece (shared English/Sanskrit) & N/A & 32K subword units \\
+Vocabulary & SentencePiece (shared English/Sanskrit) & N/A & 20K subword units \\
 \bottomrule
 \end{tabular}
 \caption{Corpus manifest: Strict (100M English), Strict-Small (9M English + 1M dose arms). All synthetic corpora released under permissive open licenses.}
