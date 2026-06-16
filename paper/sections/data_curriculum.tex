@@ -22,7 +22,7 @@ Simple Wikipedia & 15.3M & MIT \\
 Total (Strict track) & 100M & \\
 \bottomrule
 \end{tabular}
-\caption{Composition of the BabyLM Strict (100M-word) pretraining corpus. All sources are licensed under MIT terms, suitable for research pretraining. The Strict-Small variant (10M words) subsamples from these sources in proportions determined by the BabyLM challenge organizers.}
+\caption{Composition of the BabyLM Strict (100M-word) corpus. The Strict-Small (10M) variant subsamples the same MIT-licensed sources.}
 \label{tab:babylm_composition}
 \end{table}
 
@@ -32,22 +32,22 @@ The primary independent variable in the dose hypothesis (H1\_COGS, now closed) i
 
 \subsubsection{Dose Arm Design}
 
-Four 1-million-token arms were evaluated at Strict-Small scale, each forming a dose layer above the 9-million-token main BabyLM corpus (total post-dose: 10 million tokens, spanning 10 epochs). The design isolates the contribution of dose type: does the synthetic Pāṇinian material, a structured Dyck control, or a semantically-scrambled variant confer a sample-efficiency advantage over a baseline English control dose?
+Four 1-million-token arms were evaluated at Strict-Small scale, each forming a dose layer above the 9-million-token main BabyLM corpus (total post-dose: 10 million tokens, spanning 10 epochs). Table~\ref{tab:dose_arms} summarizes the four arms. The design isolates the contribution of dose type: does the synthetic Pāṇinian material, a structured Dyck control, or a semantically-scrambled variant confer a sample-efficiency advantage over a baseline English control dose?
 
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{llp{4.5cm}r}
+\begin{tabular}{llp{5.5cm}}
 \toprule
-Arm & Dose Type & Description & BLiMP \\
+Arm & Dose Type & Description \\
 \midrule
-A & English Control & English sentences, randomly shuffled (dose-volume baseline) & 64.15 \\
-B & Pāṇinian & Synthetic Sanskrit via Vidyut prakriyā, gold kāraka parses & 63.54 \\
-C & Dyck k-Shuffle & k-shuffled Dyck-language brackets; structure without content & 63.85 \\
-D & Paribhāṣā & English with kāraka-disrupted word order & 63.77 \\
+A & English Control & English sentences, randomly shuffled (dose-volume baseline) \\
+B & Pāṇinian & Synthetic Sanskrit via Vidyut prakriyā, gold kāraka parses \\
+C & Dyck k-Shuffle & k-shuffled Dyck-language brackets; structure without content \\
+D & Paribhāṣā & English with kāraka-disrupted word order \\
 \bottomrule
 \end{tabular}
-\caption{The four dose arms at Strict-Small (10M) scale. Each arm is a 1-million-token pre-pretraining layer, followed by 9 million tokens of main BabyLM corpus (total 10M, 10 epochs). BLiMP scores are from single-seed runs (n=1 per arm). The dose hypothesis (H1\_COGS) pre-registered a threshold of 3 percentage-point improvement or 20 percent token-save on COGS discrimination. All four arms fell within the null region (63.5 to 64.2 pp, within expected variance). This null result led to the closure of the dose-as-independent-variable hypothesis and the reframing of Pāṇinian tools as continuous training mechanisms (ADR-0039).}
+\caption{Four dose arms at Strict-Small (10M): 1M pre-pretraining layer + 9M main BabyLM corpus. See Section~\ref{sec:results} for empirical outcomes.}
 \label{tab:dose_arms}
 \end{table}
 
@@ -59,12 +59,6 @@ Each lakāra produces 3 person categories (pūruṣa: prathamā, madhyamā, and 
 
 The Pāṇinian dose is a pure output of the grammar engine and is released under the Creative Commons Attribution 4.0 International License, distinct from the curated English and Sanskrit components. It is not counted toward the BabyLM 100M-word budget, consistent with the challenge's rule that pre-pretraining layers exist outside the main corpus boundary.
 
-\subsubsection{Dose Results and H1\_COGS Closure}
-
-The four-arm outcomes at Strict-Small scale (single seed per arm, n=1) show no significant gaps (Table \ref{tab:dose_arms}): Arm A achieves BLiMP 64.15, Arm B 63.54, Arm C 63.85, and Arm D 63.77. The H1\_COGS hypothesis, pre-registered to detect 3 percentage-point improvement on COGS argument-role discrimination or 20 percent token savings, falls in the null region. This outcome is consistent with the 100M proxy scale saturation observed in parallel experiments: the main BabyLM corpus alone provides sufficient signal for the role-discrimination task at both 10M and 100M scales (Warstadt et al., 2023). Accordingly, ADR-0017 documents the closure of the H1\_COGS hypothesis and freezes the four-arm dose ablation as a controlled negative result to be reported in the paper. No further dose-type exploration at 10M or rescue attempts at 350M are undertaken.
-
-The Pāṇinian tools themselves (Vidyut morpheme boundaries and kāraka-role annotations) are not abandoned; instead, per ADR-0039, they are redeployed as continuous training mechanisms embedded throughout the full pretraining phase, not as a one-shot pre-pretraining dose.
-
 \subsection{Morpheme-Boundary and Kāraka Annotation via Vidyut}
 
 Prabhāsa mechanisms in the leaderboard submission model use two annotation layers derived from Vidyut: morpheme-boundary N-hot embeddings and kāraka-role stratified masking. Both are precomputed and cached for corpus determinism. Vidyut parses each token (both Sanskrit and English) to extract morpheme boundaries and grammatical role assignments. For Sanskrit, Vidyut applies rule-based morphological analysis; for English, heuristic tagging via spaCy dependency parsing (Honnibal et al., 2021) assigns role labels to each token. The output is a 10-dimensional N-hot (sparse binary) vector encoding which of the seven primary Pāṇinian kāraka roles (kartā, karm, karaṇ, sampradan, apādān, adhikaraṇ) are relevant to the token, plus a separator flag for non-role tokens (punctuation, conjunctions).
@@ -75,11 +69,9 @@ This 10-dimensional binary vector is projected to the model's hidden dimension (
 
 The curriculum layer controls token-masking probabilities during the masked-language-modeling objective. Three regimes are systematically compared. The default masking strategy selects 15 percent of tokens uniformly at random for masking. Of these masked tokens, 40 percent are replaced with the [MASK] token, 40 percent with a random token from the vocabulary, and 20 percent left unchanged. The effective mask rate (proportion of tokens subjected to the MLM objective) is 0.15 across all epochs.
 
-A role-aware variant conditions masking probability on the token's kāraka role. Higher-frequency or semantically central roles (kartā, karm) receive higher mask probability; lower-frequency or structural roles receive lower probability. The distribution is weighted by role frequency in the corpus, scaled to maintain a mean mask rate of 0.30 (matching the budget of baseline masking at scale). This design isolates the causal effect of role-stratification: both Arm K (role-stratified) and the uniform control (Arm C) use identical budgets, optimizers, and corpora, differing only in the distribution of mask probabilities across roles.
+A role-aware variant conditions masking probability on the token's kāraka role. Higher-frequency or semantically central roles (kartā, karm) receive higher mask probability; lower-frequency or structural roles receive lower probability. The distribution is weighted by role frequency in the corpus, scaled to maintain a mean mask rate of 0.30 (matching the budget of baseline masking at scale). This design isolates the causal effect of role-stratification: both the role-stratified arm and the uniform control use identical budgets, optimizers, and corpora, differing only in the distribution of mask probabilities across roles.
 
-The role-stratified masking arm (Arm K) was evaluated at 100M scale with 1 seed each per condition (finding F2). Results show that role-stratification yields no significant causal gain on agreement and argument-structure tasks when budget is matched. The targeted 20-paradigm subset shows Arm K 82.03 versus Arm C 81.93 (delta K minus C equals plus 0.10, 95 percent CI from negative 0.99 to plus 1.20, not significant). Full BLiMP scores: Arm K 71.77, Arm C 70.49. The small full-BLiMP gap (K exceeding C) is attributable to confounding factors (frequency-alpha hyperparameter, non-budgeted mask-rate differences) rather than role-stratification per se. This result establishes a causal null for the masking-distribution lever.
-
-Independently, the mask rate is annealed via a cosine schedule from 0.40 at the start of training to 0.15 at the final epoch. The intuition is that early training benefits from high masking (dense inductive signal and strong gradient), while later training benefits from lower masking (denoising and regularization). This cosine schedule is applied orthogonally to the Arm K and Arm C comparison and is standard across both mechanisms and dose arms.
+Independently, the mask rate is annealed via a cosine schedule from 0.40 at the start of training to 0.15 at the final epoch. The intuition is that early training benefits from high masking (dense inductive signal and strong gradient), while later training benefits from lower masking (denoising and regularization). This cosine schedule is applied orthogonally to the masking-distribution comparison and is standard across all mechanisms and dose arms. Empirical evaluation of these curriculum designs is reported in Section~\ref{sec:results}.
 
 \subsection{Tokenization}
 
@@ -111,7 +103,7 @@ All corpora & & & \\
 Vocabulary & SentencePiece (shared English/Sanskrit) & N/A & 32K subword units \\
 \bottomrule
 \end{tabular}
-\caption{Corpus manifest. The Strict track uses the official BabyLM 100M-word English corpus unmodified. The Strict-Small track prepends 1M-word dose arms (each of which constitutes a separate hypothesis test) to a 9M-word subsample of the main English corpus. All synthetic corpora (Pāṇinian, Dyck, Paribhāṣā) are generated de novo and are released under permissive open licenses, not counted toward the BabyLM word budget. Sanskrit components in the main BabyLM English corpus (DCS and GRETIL) are under their respective source licenses (Apache 2.0 for DCS; creative-commons variants for GRETIL).}
+\caption{Corpus manifest: Strict (100M English), Strict-Small (9M English + 1M dose arms). All synthetic corpora released under permissive open licenses.}
 \label{tab:corpus_manifest}
 \end{table}
 

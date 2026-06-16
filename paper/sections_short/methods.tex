@@ -26,7 +26,7 @@ The core model is a 14-layer Transformer encoder with a hidden dimension of 768,
   \draw [->] (encoder) -- (combine);
   \draw [->] (combine) -- (eval);
 \end{tikzpicture}
-\caption{ELC-Prabh\=asa pretraining pipeline: corpus annotation via Vidyut, N-hot morpheme embedding, adaptive masking stratified by kāraka role, a Transformer encoder, and multi-task training combining masked language modeling with an optional auxiliary role-prediction objective that is discarded after training.}
+\caption{Prabh\=asa pretraining pipeline: Vidyut annotation, N-hot morpheme embedding, kāraka-stratified masking, Transformer encoder, and multi-task MLM with an optional auxiliary role objective (discarded after training).}
 \label{fig:arch}
 \end{figure}
 

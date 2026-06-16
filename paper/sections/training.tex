@@ -7,15 +7,15 @@ Prabhāsa training combines a hardware platform optimized for small-scale pretra
 
 \subsection{Hardware and Infrastructure}
 
-The Prabhāsa training pipeline operates on a single NVIDIA DGX Spark system (GB10 Grace-Blackwell processor, 128GB unified GPU memory, aarch64 platform). Code execution uses NGC PyTorch containers (PyTorch 2.4+, CUDA 13.3, arm64 architecture). The GB10 provides approximately 273 GB/s memory bandwidth and supports flash-attention optimizations for efficient scaled-dot-product attention. Training time per 100M-token run is approximately 111 minutes; the 10M-token runs complete in approximately 67 minutes, excluding I/O and evaluation overhead.
+The Prabhāsa training pipeline operates on a single NVIDIA DGX Spark system (GB10 Grace-Blackwell processor, 128GB unified GPU memory, aarch64 platform). Code execution uses NGC PyTorch containers (PyTorch 2.4+, CUDA 13.3, arm64 architecture). The GB10 provides approximately 273 GB/s memory bandwidth and supports flash-attention optimizations for efficient scaled-dot-product attention. Training time per 100M-token run is approximately 13.7 hours; the 10M-token runs complete in approximately 82 minutes, excluding I/O and evaluation overhead.
 
 Both models employ a 14-layer encoder architecture with 768-dimensional hidden states, 12 attention heads, and feed-forward inner dimension of 3072. The Strict-Small model (prabhasa-b\_ss-0.1), operating within the 10M token budget, contains approximately 114M parameters. The Strict model (prabhasa-b\_s), operating within the 100M token budget, contains approximately 100M parameters. Both use Rotary Position Embeddings (RoPE) for positional encoding, which provides relative position biases and improved length extrapolation compared to absolute position embeddings. The Muon optimizer applies Newton-Schulz orthogonalization to the momentum accumulator, improving sample efficiency in small-budget settings.
 
 \subsection{Training Budget and Corpus Preparation}
 
-The main pretraining stage is governed by the official BabyLM constraint: strictly 10M words (Strict-Small) or 100M words (Strict), applied over a fixed number of training steps. The corpus combines English from BabyLM sources (Wikipedia, news, and high-frequency public corpora) with Sanskrit from the Digital Corpus of Sanskrit (DCS, Jawaharlal Nehru University) and the GRETIL archive. All text is tokenized via SentencePiece with a 32K vocabulary trained jointly on English and Sanskrit to ensure consistent subword segmentation across languages.
+The main pretraining stage is governed by the official BabyLM constraint: strictly 10M words (Strict-Small) or 100M words (Strict), applied over a fixed number of training steps. The corpus combines English from BabyLM sources (Wikipedia, news, and high-frequency public corpora) with Sanskrit from the Digital Corpus of Sanskrit (DCS, Jawaharlal Nehru University) and the GRETIL archive. All text is tokenized via SentencePiece with a vocabulary of 20,000 tokens trained jointly on English and Sanskrit to ensure consistent subword segmentation across languages.
 
-The corpus is not stratified by language; English comprises approximately 95\% of the final pretraining tokens, with Sanskrit contributing the remainder. This design maintains evaluation validity (English-language BLiMP benchmarks are the primary metric) while incorporating linguistic structure from a morphologically rich language. Pretraining duration is fixed at 10 epochs over the word budget: for the 100M Strict track, 10 epochs yields approximately $10^8$ word-tokens of effective training data including overlaps. The sequence length is 512 tokens; the batch size is 512 tokens per batch, yielding 96 training steps per epoch in official BabyLM mode. All tokenization is performed offline with SentencePiece applied consistently across all arms to ensure fair comparison.
+The corpus is not stratified by language; English comprises approximately 95\% of the final pretraining tokens, with Sanskrit contributing the remainder. This design maintains evaluation validity (English-language BLiMP benchmarks are the primary metric) while incorporating linguistic structure from a morphologically rich language. Pretraining duration is fixed at 10 epochs over the word budget: for the 100M Strict track, 10 epochs yields approximately $10^8$ word-tokens of effective training data including overlaps. The maximum sequence length is 192 tokens; the batch size is 256 sequences, yielding 96 training steps per epoch in official BabyLM mode. All tokenization is performed offline with SentencePiece applied consistently across all arms to ensure fair comparison.
 
 \subsection{Pre-Pretraining and Dose Ablation}
 
@@ -37,10 +37,10 @@ The peak learning rate for embedding and transformer layers is set to 1e-3. The 
 
 A learning-rate warmup is applied over 5\% of total training steps, linearly increasing the learning rate from 0 to the peak value. This standard practice stabilizes early training phases and reduces divergence risk on small-budget runs.
 
-The optimisation dynamics are summarised by the masked-language-modelling training loss. Figure~\ref{fig:trainloss} plots the training loss against optimisation steps for the production runs; both runs trend downward under the Muon optimiser and the cosine masking schedule, with the final loss values reported in Table~\ref{tab:training_config_full}.
+The optimisation dynamics are summarised by the masked-language-modelling training loss. Figure~\ref{fig:trainloss} plots the training loss of the 100M Strict run against optimisation steps; the loss trends downward under the Muon optimiser and the cosine masking schedule, with the final value reported in Table~\ref{tab:training_config_full}. The 10M run is omitted from the figure because the two recorded seed logs are identical and would misrepresent seed variability.
 
-\begin{figure}[t]\centering\includegraphics[width=0.85\linewidth]{figures/fig_trainloss.pdf}
-\caption{Masked-language-modelling training loss against optimisation steps for the Strict (100M) and Strict-Small (10M) production runs. The 10M run (left) converges smoothly, while the 100M run (right) exhibits oscillations characteristic of small-batch stochastic optimisation, with an overall downward trend and no divergence.}
+\begin{figure}[t]\centering\includegraphics[width=0.7\linewidth]{figures/fig_trainloss.pdf}
+\caption{Masked-language-modelling training loss of the 100M Strict run against optimisation steps, showing an overall downward trend with oscillations characteristic of small-batch optimisation.}
 \label{fig:trainloss}\end{figure}
 
 \subsection{Kāraka-Aware Mechanisms}
@@ -109,7 +109,7 @@ Fine-tuning with a Navya-Nyāya reasoning scaffold is conducted on the best-perf
 
 \begin{table}[t]
 \centering
-\caption{Training configuration summary. All models use SentencePiece tokenization (32K vocabulary), cosine mask schedule (0.40 to 0.15), Muon optimizer, RoPE, and sequence length 512 tokens. The submission model (prabhasa-b\_ss-0.1) and leaderboard model (prabhasa-b\_s) use N-hot + RoPE mechanisms. Mechanism-ablation arms (F2 causal isolation and F3 validation) are listed with their control counterparts.}
+\caption{Training configuration: vocabulary 20K, sequence length 192, batch size 256, cosine mask schedule 0.40 to 0.15, Muon, RoPE. Production and mechanism-ablation arms shown.}
 \label{tab:training_config_full}
 {\footnotesize
 \adjustbox{max width=\linewidth}{%
@@ -134,6 +134,6 @@ Aux shuffled roles & 10M & Hybrid & 3 & N-hot + shuffled aux & 1e-3 & 63.69 ± 0
 }
 \end{table}
 
-All training runs respect the official BabyLM step and word budgets. The maximum step count per training run is 96 steps (BabyLM official limit), allowing approximately 49K tokens per run under the 512-token batch-size constraint. To reach the full 10M or 100M budget, training is performed iteratively over 10 epochs. Checkpoints are saved at epoch boundaries and after the final epoch. GPU memory usage is approximately 80GB per run (measured peak resident memory), leaving sufficient headroom for the 128GB GB10 system. Wall-clock time per 100M run is approximately 111 minutes, including model loading, data iteration, backward pass, and optimizer step.
+All training runs respect the official BabyLM step and word budgets. The maximum step count per training run is 96 steps (BabyLM official limit), allowing approximately 24.5K tokens per run under the 256-sequence batch-size constraint with maximum sequence length 192. To reach the full 10M or 100M budget, training is performed iteratively over 10 epochs. Checkpoints are saved at epoch boundaries and after the final epoch. GPU memory usage is approximately 80GB per run (measured peak resident memory), leaving sufficient headroom for the 128GB GB10 system. Wall-clock time per 100M run is approximately 13.7 hours, including model loading, data iteration, backward pass, and optimizer step.
 
 Training is implemented in PyTorch 2.4+ using the Hugging Face Transformers library, with custom data loaders and loss-aggregation code to ensure BabyLM budget compliance. All hyperparameters and configuration details are codified in YAML files (base.yaml and arm-specific configs in configs/phase2/), loaded and validated at runtime by the configuration module.
