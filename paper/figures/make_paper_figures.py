@@ -581,6 +581,61 @@ def fig_mechanism() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Per-seed training-instability (reproducibility) figure
+# --------------------------------------------------------------------------- #
+def _load_curve(name: str, col: str = "ema"):
+    import csv
+    xs: list[float] = []
+    ys: list[float] = []
+    with open(os.path.join(HERE, name), encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            xs.append(float(row["step"]))
+            ys.append(float(row[col]))
+    return np.array(xs), np.array(ys)
+
+
+def _smooth(y, w: int = 5):
+    if len(y) < w:
+        return y
+    k = np.ones(w) / w
+    sm = np.convolve(y, k, mode="same")
+    # fix edge artefacts from 'same' convolution
+    half = w // 2
+    sm[:half] = y[:half]
+    sm[-half:] = y[-half:]
+    return sm
+
+
+def fig_seed_divergence() -> None:
+    s0x, s0y = _load_curve("trainloss_b_s_seed0.csv", "ema")
+    s1x, s1y = _load_curve("trainloss_b_s_seed1.csv", "ema")
+    s2x, s2y = _load_curve("trainloss_b_s_seed2.csv", "ema")
+
+    fig, ax = plt.subplots(figsize=(6.3, 3.8))
+    ax.plot(s2x, _smooth(s2y), color=C_CONTROL, lw=1.7, zorder=3,
+            label="seed 2 — best 1.82 $\\to$ BLiMP 53.6 (diverges)")
+    ax.plot(s1x, _smooth(s1y), color=C_HIGHLIGHT, lw=1.7, zorder=3,
+            label="seed 1 — best 1.61 $\\to$ BLiMP 58.3")
+    ax.plot(s0x, _smooth(s0y), color=C_TREATMENT, lw=2.2, zorder=4,
+            label="seed 0 — best 0.515 $\\to$ BLiMP 73.06 (submission)")
+
+    # mark the shared-init region
+    ax.axvspan(0, 1400, color="#999999", alpha=0.10, zorder=1)
+    ax.text(700, ax.get_ylim()[1] * 0.97, "shared\ninit", ha="center",
+            va="top", fontsize=7.5, color="#777777")
+
+    ax.set_xlabel("training step")
+    ax.set_ylabel("MLM loss (logged EMA)")
+    ax.set_title("100M Strict — training-seed instability (identical init)")
+    ax.set_xlim(0, max(s0x.max(), s1x.max(), s2x.max()) * 1.02)
+    ax.set_ylim(bottom=0)
+    despine(ax)
+    ygrid(ax)
+    ax.legend(frameon=False, fontsize=8.2, loc="lower left")
+    save(fig, "fig_seed_divergence.pdf")
+
+
+# --------------------------------------------------------------------------- #
 def main() -> None:
     apply_style()
     print("Generating PSALM paper figures...")
@@ -592,6 +647,7 @@ def main() -> None:
     fig_trainloss()
     fig_findings_forest()
     fig_mechanism()
+    fig_seed_divergence()
     print("Done.")
 
 

@@ -33,7 +33,7 @@ A hybrid objective adds a causal language-modelling (CLM) head to the MLM loss, 
 
 \subsection{Strict-Track Results: prabhasa-b\_s (100M, Pure-MLM)}
 
-The 100M-token pure-MLM model (prabhasa-b\_s, n\,=\,1) is evaluated on the full Strict-track suite (baseline 74.53 BLiMP). It trails on main BLiMP by 1.47 points (73.06 versus 74.53) but gains 2.46 points on BLiMP Supplement (67.46 versus 65.0) and 9.66 points on Entity Tracking (33.26 versus 23.6). Its Text Average of 55.99 exceeds the reference of 54.0, indicating competitive overall generalization despite the main-BLiMP shortfall. Per-category detail appears in Appendix~\ref{app:repro}.
+The 100M-token pure-MLM model (prabhasa-b\_s, n\,=\,1) is evaluated on the full Strict-track suite (baseline 74.53 BLiMP). It trails on main BLiMP by 1.47 points (73.06 versus 74.53) but gains 2.46 points on BLiMP Supplement (67.46 versus 65.0) and 9.66 points on Entity Tracking (33.26 versus 23.6). Its Text Average of 55.99 exceeds the reference of 54.0, indicating competitive overall generalization despite the main-BLiMP shortfall. Per-category detail appears in Appendix~\ref{app:repro}. We report this single-seed figure transparently: re-running the locked recipe from identical initialization under two further seeds settles at 53.6 and 58.3 BLiMP (best loss 1.6--1.8 versus the submission seed's 0.515), with one optimizer trajectory diverging, so the 100M recipe is not yet robust to the training seed and 73.06 is a valid but fortunate-seed outcome (Appendix~\ref{app:repro}). The evaluation is not implicated: the submission checkpoint re-evaluates to 73.06 and an independent proxy reproduces all three scores within 0.4 points.
 
 \subsection{F2: Kāraka-Masking Causality (Matched-Budget)}
 
