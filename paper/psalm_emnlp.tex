@@ -35,6 +35,8 @@
 Data-efficient pretraining of small language models raises a sharp question: which inductive biases actually improve generalization under a fixed token budget, and which only appear to until they are tested with proper controls? We study this with Prabh\=asa, a pre-registered, matched-budget evaluation of whether P\=a\d{n}inian morphosyntactic structure---Vidyut morpheme-boundary embeddings, k\=araka role-stratified masking, and a supervised role-prediction objective---improves small-model pretraining on the official BabyLM suite. We train a 114M-parameter bidirectional encoder on the Strict (100M-word) and Strict-Small (10M-word) budgets and test every claim with three to five seeds, paired bootstrap inference, and Holm--Bonferroni correction. The main positive finding is a scale-dependent objective effect: pure masked-language modelling (MLM) is statistically indistinguishable from a hybrid MLM\,+\,CLM objective at 10M tokens but exceeds it by 5.49 BLiMP points at 100M, which complicates the hybrid recipe used by the BabyLM~2024 winner GPT-BERT. We treat this 100M figure as a single, seed-sensitive estimate: two further seeds, started from identical weights, land 14--19 points lower. Against this, both P\=a\d{n}inian mechanisms return pre-registered null or weak results once their confounds are removed: at matched mask budget, k\=araka-stratified masking is causally inert; and a k\=araka auxiliary objective gives only $+0.76$ targeted points over five seeds (not significant). On the official BabyLM~2026 harness the submission checkpoints score 67.56 and 59.46 BLiMP against baselines of 74.53 and 65.08; our internal selection harness scores the same checkpoints about five to six points higher, a systematic offset we document. The contribution is a controlled separation of the design choices that help at this scale (objective and architecture) from a linguistically motivated prior that does not, with code, checkpoints, and official prediction files released.
 \end{abstract}
 
+\noindent\textbf{Keywords:} data-efficient pretraining; BabyLM; P\=a\d{n}inian grammar; k\=araka roles; masked language modelling; morphology-aware masking.
+
 \section{Introduction}
 \label{sec:intro}
 Scaling has driven most recent progress in language modelling, yet it obscures a basic question: under a fixed data budget, which design choices actually buy generalization, and which only seem to until tested with matched controls? Small models trained under the strict budgets of the BabyLM challenge \cite{Warstadt2023,Hu2024BabyLM} are an unusually clean setting to ask this, because the data is held fixed and the confounds that dominate frontier-scale training are absent. What survives is informative: it constrains the design space for data-efficient pretraining and tells us which inductive biases are worth their complexity.
@@ -67,7 +69,7 @@ For each token $t$, Vidyut \cite{Prasad2024Vidyut} produces a morpheme-boundary 
 \end{equation}
 so morphosyntactic information enters without any architectural change. Masking adapts by role, $p_{\text{mask}}(t) = \alpha\,p_{\text{base}} + (1-\alpha)\,p_{\text{role}}(r(t))$, with per-role probabilities rescaled to hold the mean mask rate constant; any effect is then attributable to the \emph{distribution} of masked tokens across roles rather than to total masked volume (the budget-matching control central to F2). The auxiliary objective adds a token-level role classifier whose loss is combined with the MLM loss at weight $\lambda$ (typically $1.0$); the head is discarded before evaluation, so no role labels are needed at test time. For English, where Vidyut has no native parser, roles are assigned by a token-level heuristic over a small Sanskrit role lexicon and part-of-speech cues; this introduces label noise that we return to as a limitation.
 
-Two objectives are compared: a hybrid MLM\,+\,CLM configuration (15\% masked, plus a causal next-token head weighted 0.5) and a pure-MLM configuration (CLM head removed). All models are evaluated on the official BabyLM suite: BLiMP \cite{Warstadt2020BLiMP} (67 minimal-pair paradigms), BLiMP Supplement, EWoK \cite{Ivanova2024EWoK}, Entity Tracking, COMPS \cite{Misra2023COMPS}, and GLUE \cite{Wang2019GLUE}. The two mechanism studies (F2, F3) pre-register a \emph{targeted} subset of 20 BLiMP paradigms drawn from the agreement and argument-structure categories, where role information is most likely to matter. Reported results are means with 95\% confidence intervals over three to five seeds (single seed for the exploratory 100M arms); arm comparisons use paired bootstrap over per-paradigm subsets with Holm--Bonferroni correction. The Strict baseline is 74.53 BLiMP and Strict-Small 65.08 \cite{Hu2024BabyLM}. We also ran a frozen pre-pretraining ``dose'' ablation, injecting synthetic P\=a\d{n}inian, Dyck, or English sequences before the main run; it produced no effect at proxy scale (Appendix~\ref{app:data}) and is not used in the submissions. Corpus, training stages, and full hyperparameters are in Appendices~\ref{app:data} and~\ref{app:train}.
+Two objectives are compared: a hybrid MLM\,+\,CLM configuration (15\% masked, plus a causal next-token head weighted 0.5) and a pure-MLM configuration (CLM head removed). All models are evaluated on the official BabyLM suite: BLiMP \cite{Warstadt2020BLiMP} (67 minimal-pair paradigms), BLiMP Supplement, EWoK \cite{Ivanova2024EWoK}, Entity Tracking, COMPS \cite{Misra2023COMPS}, and GLUE \cite{Wang2019GLUE}. The two mechanism studies (F2, F3) pre-register a \emph{targeted} subset of 20 BLiMP paradigms drawn from the agreement and argument-structure categories, where role information is most likely to matter. Reported results are means with 95\% confidence intervals over three to five seeds (single seed for the exploratory 100M arms); arm comparisons use paired bootstrap over per-paradigm subsets with Holm--Bonferroni correction. The Strict baseline is 74.53 BLiMP and Strict-Small 65.08 \cite{Hu2024BabyLM}. We also ran a frozen pre-pretraining ``dose'' ablation, injecting synthetic P\=a\d{n}inian, Dyck, or English sequences before the main run; it produced no effect at proxy scale (\ref{app:data}) and is not used in the submissions. Corpus, training stages, and the full hyperparameter table are in \ref{app:train} and~\ref{app:data}.
 
 \section{Results}
 \label{sec:results}
@@ -79,7 +81,7 @@ We report three pre-registered findings: F1 (a scale-dependent objective effect,
 
 \begin{table}[t]
 \centering\small
-\caption{Official BabyLM~2026 pipeline (the leaderboard harness) for both submission models against the official baselines \cite{Hu2024BabyLM}; per-task GLUE in Appendix~\ref{app:repro}. Our internal development harness scores the same checkpoints $\sim$5--6 points higher (73.06 / 64.09 BLiMP), a systematic offset (\S\ref{subsec:harness}). The Strict-Small Entity-Tracking entry (---) is a task that produced no predictions and is scored 0 server-side, not a missing baseline.}
+\caption{Official BabyLM~2026 pipeline (the leaderboard harness) for both submission models against the official baselines \cite{Hu2024BabyLM}; per-task GLUE in \ref{app:repro}. Our internal development harness scores the same checkpoints $\sim$5--6 points higher (73.06 / 64.09 BLiMP), a systematic offset (\S\ref{subsec:harness}). The Strict-Small Entity-Tracking entry (---) is a task that produced no predictions and is scored 0 server-side, not a missing baseline.}
 \label{tab:official}
 \begin{tabular}{lcccc}
 \toprule
@@ -157,7 +159,7 @@ Baseline (no aux.) & 72.95 & 63.74 \\
 \end{table}
 
 \subsection{Submission Models and GLUE}
-On the internal harness, the Strict submission reaches 73.06 BLiMP, within 1.5 points of the 74.53 baseline, and the Strict-Small submission reaches a 3-seed mean of 64.09 ($\pm$0.26) against the 65.08 baseline (Table~\ref{tab:headline}). The Strict-Small submission keeps the hybrid objective because F1 shows the pure-MLM advantage only emerges at 100M. Fine-tuned on seven GLUE tasks \cite{Wang2019GLUE}, the official-pipeline macro-averages are 63.28 (Strict) and 63.09 (Strict-Small), strongest on MRPC and WSC and weakest on the multi-class task MNLI (Appendix~\ref{app:repro}, Table~\ref{tab:official_glue})---the expected profile for these data budgets.
+On the internal harness, the Strict submission reaches 73.06 BLiMP, within 1.5 points of the 74.53 baseline, and the Strict-Small submission reaches a 3-seed mean of 64.09 ($\pm$0.26) against the 65.08 baseline (Table~\ref{tab:headline}). The Strict-Small submission keeps the hybrid objective because F1 shows the pure-MLM advantage only emerges at 100M. Fine-tuned on seven GLUE tasks \cite{Wang2019GLUE}, the official-pipeline macro-averages are 63.28 (Strict) and 63.09 (Strict-Small), strongest on MRPC and WSC and weakest on the multi-class task MNLI (\ref{app:repro}, Table~\ref{tab:official_glue})---the expected profile for these data budgets.
 
 \begin{table}[t]
 \centering\small
@@ -192,10 +194,51 @@ This work uses the public BabyLM corpora, which carry the biases of their web an
 \bibliography{references_new}
 
 \appendix
+\renewcommand{\thesection}{Appendix~\Alph{section}}
+\renewcommand{\sectionautorefname}{Appendix}
 
 \section{Architecture and Training Configuration}
 \label{app:train}
-Both tracks use a 14-layer Transformer encoder (hidden 768, 12 heads, feed-forward 3072) with RoPE positional encoding and the Muon (Newton--Schulz orthogonalized momentum) optimizer at peak learning rate $1\times10^{-3}$ with cosine annealing and 5\% linear warmup. Batch size is 256 sequences of length up to 192; the masking rate follows a cosine schedule from 0.40 to 0.15 over 10 epochs. The tokenizer is a 20{,}000-piece SentencePiece BPE built jointly over English and Sanskrit. Both tracks use the same $\sim$114M-parameter architecture and differ only in the token budget (100M words for Strict, 10M for Strict-Small); each is trained on a single 128\,GB unified-memory accelerator, with a 100M-token run taking $\approx$13.7 hours and a 10M-token run $\approx$82 minutes. The N-hot projection $W\in\mathbb{R}^{768\times10}$ maps the sparse role vector to the hidden dimension and is added to the token embedding before encoding; the auxiliary head is a token-level role classifier trained with weight $\lambda$ and discarded at inference.
+Both tracks use a 14-layer Transformer encoder (hidden 768, 12 heads, feed-forward 3072) with RoPE positional encoding and the Muon (Newton--Schulz orthogonalized momentum) optimizer at peak learning rate $1\times10^{-3}$ with cosine annealing and 5\% linear warmup. Batch size is 256 sequences of length up to 192; the masking rate follows a cosine schedule from 0.40 to 0.15 over 10 epochs. The tokenizer is a 20{,}000-piece SentencePiece BPE built jointly over English and Sanskrit. Both tracks use the same $\sim$114M-parameter architecture and differ only in the token budget (100M words for Strict, 10M for Strict-Small); each is trained on a single 128\,GB unified-memory accelerator, with a 100M-token run taking $\approx$13.7 hours and a 10M-token run $\approx$82 minutes. The N-hot projection $W\in\mathbb{R}^{768\times10}$ maps the sparse role vector to the hidden dimension and is added to the token embedding before encoding; the auxiliary head is a token-level role classifier trained with weight $\lambda$ and discarded at inference. Table~\ref{tab:hparams} lists the full hyperparameters; both pretraining tracks share these settings and differ only in the token budget and (for Strict-Small) the objective.
+
+\begin{table}[t]
+\centering\small
+\caption{Full pretraining hyperparameters. Both tracks share the architecture and optimization; Strict uses pure MLM at the 100M-word budget, Strict-Small uses the hybrid MLM\,+\,CLM objective at 10M words. GLUE fine-tuning uses learning rate $3\times10^{-5}$, batch size 16--32, sequence length 192, up to 10 epochs (30 for WSC).}
+\label{tab:hparams}
+\begin{tabular}{ll}
+\toprule
+Hyperparameter & Value \\
+\midrule
+Layers & 14 \\
+Hidden size & 768 \\
+Attention heads & 12 (head dim 64) \\
+Feed-forward size & 3072 \\
+Positional encoding & RoPE \\
+Parameters & $\sim$114M \\
+\midrule
+Tokenizer & SentencePiece BPE \\
+Vocabulary size & 20{,}000 (joint en+sa) \\
+Max sequence length & 192 \\
+\midrule
+Optimizer & Muon \\
+Peak learning rate & $1\times10^{-3}$ \\
+LR schedule & cosine, 5\% warmup \\
+Batch size & 256 sequences \\
+Epochs & 10 \\
+Mask-rate schedule & cosine $0.40\!\to\!0.15$ \\
+\midrule
+Objective (Strict) & pure MLM \\
+Objective (Strict-Small) & hybrid MLM\,+\,CLM \\
+CLM head weight (hybrid) & 0.5 \\
+N-hot role dimension & 10 \\
+Auxiliary weight $\lambda$ & 1.0 (when enabled) \\
+Frequency weight $\alpha$ (F2) & 0.5 / 0 (matched) \\
+\midrule
+Seeds & 3 (10M), 1 (100M arms), 5 (F3) \\
+Hardware & 1$\times$128\,GB unified-mem.\ GPU \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Corpus, Curriculum, and Dose Arms}
 \label{app:data}
