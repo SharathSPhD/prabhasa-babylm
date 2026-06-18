@@ -1,7 +1,7 @@
 % Condensed results: F1, F2, F3 with headline numbers and figures.
 % Frozen numbers from sections/results.tex (long form) and findings.md.
 
-We report three pre-registered findings. F1 establishes a scale-dependent effect of the pretraining objective and is the principal positive result; F2 tests kāraka role-stratified masking at matched budget; F3 tests a supervised kāraka-role auxiliary objective across five seeds. Together they localize the robust gains to architecture (RoPE) and objective design (pure MLM at scale), while the Pāṇinian mechanisms add interpretability without a validated BLiMP improvement at this scale. Figure~\ref{fig:forest} places all four pre-registered effects on a common axis, and Table~\ref{tab:headline} situates both submission tracks against their official baselines.
+We report three pre-registered findings. F1 establishes a scale-dependent effect of the pretraining objective and is the principal positive result; F2 tests kāraka role-stratified masking at matched budget; F3 tests a supervised kāraka-role auxiliary objective across five seeds. Together they localize the robust gains to architecture (RoPE) and objective design (pure MLM at scale), while the Pāṇinian mechanisms add interpretability without a validated BLiMP improvement at this scale. Figure~\ref{fig:forest} places all four pre-registered effects on a common axis. We first situate the two submission models on the official BabyLM~2026 leaderboard harness (Table~\ref{tab:official}); all controlled comparisons (F1--F3) then use a single internal harness that scores the same checkpoints about five to six points higher, a systematic offset we report transparently (Table~\ref{tab:headline}).
 
 \begin{figure}[h]\centering\includegraphics[width=0.82\linewidth]{figures/fig_findings_forest.pdf}
 \caption{Summary of pre-registered effects on BLiMP (points). The 100M objective effect (F1) is the one large, robust positive; the 10M objective contrast and both kāraka mechanisms fall within noise of the $+1.0$-point threshold. Whiskers are 95\% intervals; the 100M point is single-seed.}
@@ -9,7 +9,29 @@ We report three pre-registered findings. F1 establishes a scale-dependent effect
 
 \begin{table}[h]
 \centering
-\caption{Both submission tracks against their own official BabyLM baseline~\cite{Hu2024BabyLM}.}
+\caption{Official BabyLM 2026 pipeline (leaderboard harness) results for both submission models against the official baselines~\cite{Hu2024BabyLM}; per-task GLUE in Appendix~\ref{app:repro}.}
+\label{tab:official}
+{\small
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{Strict (100M)} & \multicolumn{2}{c}{Strict-Small (10M)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Task & b\_s & base & b\_ss-0.1 & base \\
+\midrule
+BLiMP & 67.56 & 74.53 & 59.46 & 65.08 \\
+BLiMP Suppl. & 63.81 & 65.00 & 55.08 & 57.25 \\
+COMPS & 53.78 & 55.85 & 50.99 & 51.81 \\
+EWoK & 52.35 & — & 52.24 & — \\
+Entity Track. & 22.28 & 23.58 & — & 21.07 \\
+GLUE (macro) & 63.28 & — & 63.09 & — \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Submission models on the internal development harness (used for all controlled comparisons below). The internal harness sits $\approx$5--6 points above the official scorer of Table~\ref{tab:official} on the same checkpoints.}
 \label{tab:headline}
 {\small
 \begin{tabular}{llcccc}

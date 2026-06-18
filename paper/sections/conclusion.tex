@@ -2,7 +2,7 @@
 % Data sources: research/memory/journal.md (closure notes), site/src/data/results.json (model cards).
 % Balanced reframe; tokens-vs-parameters corrected.
 
-Prabhāsa is a controlled, pre-registered evaluation of whether Pāṇinian morphosyntactic structure, operationalized through morpheme-boundary embeddings and role-aware masking, improves data-efficient pretraining of small language models. The experiments separate architectural effects (RoPE), objective effects (pure MLM), and mechanism effects (kāraka masking and auxiliary supervision) through matched-budget comparisons and multi-seed validation.
+Prabhāsa is a controlled, pre-registered evaluation of whether Pāṇinian morphosyntactic structure, operationalized through morpheme-boundary embeddings and role-aware masking, improves data-efficient pretraining of small language models. The experiments separate architectural effects (RoPE), objective effects (pure MLM), and mechanism effects (kāraka masking and auxiliary supervision) through matched-budget comparisons and multi-seed validation. On the official BabyLM~2026 leaderboard harness the two submission checkpoints score 67.56 (Strict) and 59.46 (Strict-Small) BLiMP against baselines of 74.53 and 65.08, with competitive COMPS, BLiMP-Supplement, and GLUE; the internal development harness that drove model selection placed the same checkpoints about five to six points higher, a systematic harness offset we report transparently (Section~\ref{subsec:harness}). Both entries were submitted to the official leaderboard.
 
 \subsection{Summary of Findings}
 

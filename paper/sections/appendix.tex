@@ -121,6 +121,32 @@ The validated 100M Strict submission (prabhasa-b\_s, BLiMP 73.06) was trained at
 
 A reproducibility caveat is recorded here in full. Re-running the locked recipe from identical initialization under two further seeds does not recover 73.06: the additional seeds reach best masked-language-modelling losses of 1.61 and 1.82 and BLiMP scores of 58.3 and 53.6. Weight initialization is held fixed across seeds, so all trajectories begin identically and the divergence arises during optimization; a fix that re-seeded the post-initialization RNG correctly exposed genuine training stochasticity (previously, distinct \texttt{--seed} values had produced byte-identical checkpoints), revealing that the 100M recipe sits at the edge of an optimization instability rather than introducing a bug. The evaluation is not implicated: the submission checkpoint re-evaluates to 73.06 on the current pipeline, and an independent pseudo-log-likelihood proxy reproduces all three per-seed scores within 0.4 points. Reproducing the submitted model therefore requires the locked recipe with seed 0; making the 73-point basin reachable independent of seed is identified as future work.
 
+\subsection{Official BabyLM 2026 Pipeline — Per-Task GLUE}
+
+Table~\ref{tab:official_glue} reports the per-task GLUE results from the official 2026 pipeline (the leaderboard harness; zero-shot results are in Table~\ref{tab:official}). The collated official prediction files for both tracks are released alongside the code.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Official 2026-pipeline GLUE (accuracy, except MRPC/QQP F1) for both submission models, with the official baselines where reported.}
+\label{tab:official_glue}
+\begin{tabular}{lcccc}
+\toprule
+Task & prabhasa-b\_s & Strict base & prabhasa-b\_ss-0.1 & SS base \\
+\midrule
+BoolQ (acc) & 67.03 & 67.46 & 65.99 & 65.87 \\
+MNLI (acc) & 48.84 & 59.94 & 46.37 & 49.80 \\
+MRPC (F1) & 82.04 & 84.35 & 82.57 & 83.49 \\
+MultiRC (acc) & 57.55 & 63.90 & 57.88 & 64.52 \\
+QQP (F1) & 64.83 & 70.73 & 63.03 & 60.86 \\
+RTE (acc) & 61.15 & 56.83 & 60.43 & 60.43 \\
+WSC (acc) & 61.54 & — & 65.38 & — \\
+\midrule
+Macro-average & 63.28 & — & 63.09 & — \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Ethical Considerations and Limitations}
 
 The Prabhāsa models are trained on BabyLM corpora (English Wikipedia, Common Crawl, Books), which carry known biases and content restrictions. The models are not intended for production deployment and are released for research purposes only. The auxiliary mechanisms incorporate Sanskrit linguistic categories; users working in low-resource language settings should verify that role assignments are appropriate for their language family before adapting the code to other languages or domains. Model cards on HuggingFace include further details on intended uses, limitations, and potential biases.
