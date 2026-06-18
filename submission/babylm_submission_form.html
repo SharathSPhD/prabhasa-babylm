@@ -3,173 +3,117 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BabyLM 2026 — Prabhāsa Submission Sheet</title>
+<title>BabyLM 2026 — Prabhāsa Submission Record</title>
 <style>
-  :root{--bg:#0f1216;--card:#1a1f27;--card2:#222834;--ink:#e8edf3;--mut:#9aa7b6;
-        --line:#2c3441;--blue:#4ea1ff;--green:#3ddc97;--amber:#f5b656;--vermil:#ff7a59;}
+  :root{color-scheme:light;--bg:#f6f8fa;--card:#fff;--card2:#eef2f6;--ink:#1a2026;
+        --mut:#5c6b7a;--line:#dde3ea;--blue:#1f6feb;--green:#1a7f4b;--amber:#a9690b;--vermil:#c2410c;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
        font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
   .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
-  h1{font-size:26px;margin:0 0 4px}
-  h2{font-size:19px;margin:30px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
-  .sub{color:var(--mut);margin:0 0 18px}
-  .pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;
-        background:var(--card2);color:var(--mut);border:1px solid var(--line);margin-right:6px}
+  h1{font-size:25px;margin:0 0 4px}
+  h2{font-size:18px;margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .sub{color:var(--mut);margin:0 0 16px}
+  .banner{background:#e7f6ec;border:1px solid #b7e3c6;color:#125e36;border-radius:12px;
+          padding:14px 18px;font-size:16px;font-weight:600;margin:6px 0 18px}
+  .banner small{display:block;font-weight:400;color:#2a7a4f;margin-top:4px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:760px){.grid{grid-template-columns:1fr}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
   .card h3{margin:0 0 10px;font-size:16px}
-  .card h3 .tag{font-size:11px;color:#0f1216;background:var(--blue);padding:2px 8px;
-                border-radius:6px;margin-left:8px;vertical-align:middle}
+  .card h3 .tag{font-size:11px;color:#fff;background:var(--blue);padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle}
   .ss h3 .tag{background:var(--green)}
   table{width:100%;border-collapse:collapse}
-  td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-  td.k{color:var(--mut);width:42%;white-space:nowrap}
+  td,th{padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+  td.k,th{color:var(--mut);font-weight:600}
   td.v{font-weight:600}
-  .copy{cursor:pointer;border:1px solid var(--line);background:var(--card2);color:var(--mut);
-        border-radius:6px;font-size:11px;padding:1px 7px;margin-left:8px}
-  .copy:hover{color:var(--ink);border-color:var(--blue)}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.03em}
   a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
-  ol{padding-left:20px}li{margin:7px 0}
-  code{background:#0c0f13;border:1px solid var(--line);border-radius:5px;padding:1px 6px;
-       font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:#cfe3ff}
-  .note{background:#1c2530;border-left:3px solid var(--amber);padding:10px 14px;border-radius:8px;
-        color:#e7d8b8;margin:14px 0}
-  .warn{border-left-color:var(--vermil);color:#f3c4b6;background:#251c1c}
+  code{background:#eef2f6;border:1px solid var(--line);border-radius:5px;padding:1px 6px;
+       font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
   .links a{display:inline-block;margin:0 14px 8px 0}
-  .ck{list-style:none;padding:0}.ck li{margin:6px 0}.ck input{margin-right:8px}
+  .note{background:#fff7e6;border-left:3px solid var(--amber);padding:10px 14px;border-radius:8px;color:#6b4e15;margin:14px 0}
   .small{color:var(--mut);font-size:13px}
+  .pos{color:var(--green);font-weight:600}.neg{color:var(--vermil)}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1>BabyLM 2026 — Prabhāsa Submission Sheet</h1>
-  <p class="sub">Everything needed to fill the leaderboard form for both tracks.
-    Click <span class="copy">copy</span> next to any value. Scores are computed
-    <b>server-side</b> — you only upload the predictions file.</p>
-  <p><span class="pill">Direct deadline: 15 Jul 2026</span>
-     <span class="pill">Backend: mlm</span>
-     <span class="pill">Eligibility: OK (≤10 epochs, within word budget)</span></p>
+  <h1>BabyLM 2026 — Prabhāsa Submission Record</h1>
+  <p class="sub">Record of the two entries submitted to the official leaderboard, with the official scores and the exact field values used.</p>
 
-  <h2>Quick links</h2>
+  <div class="banner">✅ Both entries submitted to the BabyLM 2026 leaderboard — “counted toward the challenge”.
+    <small>Submitted via the Gradio API (DGX), 18 Jun 2026. Server-side scoring populates the public board shortly; check the Strict / Strict-small tabs.</small></div>
+
   <div class="links">
-    <a href="https://huggingface.co/spaces/BabyLM-community/BabyLM-Leaderboard-2026" target="_blank">▶ Leaderboard Space (open the <b>Submit</b> tab)</a><br>
-    <a href="https://huggingface.co/qbz506/prabhasa-b_s" target="_blank">HF model — Strict (prabhasa-b_s)</a>
-    <a href="https://huggingface.co/qbz506/prabhasa-b_ss-0.1" target="_blank">HF model — Strict-Small (prabhasa-b_ss-0.1)</a>
+    <a href="https://huggingface.co/spaces/BabyLM-community/BabyLM-Leaderboard-2026" target="_blank">▶ Leaderboard (Strict / Strict-small tabs)</a>
+    <a href="https://huggingface.co/qbz506/prabhasa-b_s" target="_blank">HF — prabhasa-b_s</a>
+    <a href="https://huggingface.co/qbz506/prabhasa-b_ss-0.1" target="_blank">HF — prabhasa-b_ss-0.1</a>
     <a href="https://github.com/babylm-org/babylm-eval" target="_blank">Eval pipeline</a>
-    <a href="https://babylm.github.io/guidelines.html" target="_blank">Guidelines</a>
-    <a href="https://forms.gle/nRjdt5w5rCoFFqnJ6" target="_blank">Hyperparameter Google form</a>
   </div>
 
-  <div class="note warn"><b>Predictions files (the only uploads):</b> produced by the runbook
-    (<code>babylm_eval_runbook.md</code>). After the eval finishes they will be at:<br>
-    Strict → <code>/home/sharaths/babylm_submission/prabhasa-b_s_strict_preds.json</code><br>
-    Strict-Small → <code>/home/sharaths/babylm_submission/prabhasa-b_ss-0.1_strict-small_preds.json</code><br>
-    On this Mac they appear under <code>/Volumes/sharaths/babylm_submission/</code> (SMB mount).
-    <i>This sheet will be updated with the confirmed filenames once the eval reports back.</i></div>
+  <h2>Official 2026-pipeline scores (the leaderboard harness)</h2>
+  <div class="card">
+    <table>
+      <tr><th>Task</th><th>Strict (b_s)</th><th>Strict base</th><th>Strict-Small (b_ss-0.1)</th><th>SS base</th></tr>
+      <tr><td class="k">BLiMP</td><td class="v">67.56</td><td>74.53</td><td class="v">59.46</td><td>65.08</td></tr>
+      <tr><td class="k">BLiMP Supplement</td><td class="v">63.81</td><td>65.00</td><td class="v">55.08</td><td>57.25</td></tr>
+      <tr><td class="k">COMPS</td><td class="v">53.78</td><td>55.85</td><td class="v">50.99</td><td>51.81</td></tr>
+      <tr><td class="k">EWoK</td><td class="v">52.35</td><td>—</td><td class="v">52.24</td><td>—</td></tr>
+      <tr><td class="k">Entity Tracking</td><td class="v">22.28</td><td>23.58</td><td class="v neg">absent*</td><td>21.07</td></tr>
+      <tr><td class="k">GLUE (macro)</td><td class="v">63.28</td><td>—</td><td class="v">63.09</td><td>—</td></tr>
+    </table>
+    <p class="small">*Strict-Small Entity Tracking produced no predictions (scored 0 server-side; allowed). GLUE per-task: BoolQ 67.03/65.99, MNLI 48.84/46.37, MRPC-F1 82.04/82.57, MultiRC 57.55/57.88, QQP-F1 64.83/63.03, RTE 61.15/60.43, WSC 61.54/65.38.</p>
+    <p class="small"><b>Harness note:</b> the internal development harness scored these same checkpoints ~5–6 pts higher (73.06 / 64.09 BLiMP); the official pipeline above is the leaderboard record. Both are reported in the paper.</p>
+  </div>
 
-  <h2>Per-track fields</h2>
+  <h2>Exact values submitted (per track)</h2>
   <div class="grid">
-
     <div class="card">
       <h3>Strict <span class="tag">100M</span></h3>
       <table>
-        <tr><td class="k">Track</td><td class="v" data-c="Strict">Strict</td></tr>
-        <tr><td class="k">Model Name</td><td class="v" data-c="prabhasa-b_s">prabhasa-b_s</td></tr>
-        <tr><td class="k">HuggingFace Repository</td><td class="v" data-c="qbz506/prabhasa-b_s">qbz506/prabhasa-b_s</td></tr>
-        <tr><td class="k">Revision Commit</td><td class="v" data-c="main">main</td></tr>
-        <tr><td class="k">Random Seed</td><td class="v" data-c="0">0</td></tr>
-        <tr><td class="k">Approx GPU Hours (Train)</td><td class="v" data-c="13.7">13.7</td></tr>
-        <tr><td class="k">Words in Custom Dataset (M)</td><td class="v" data-c="100">~100 (≤100M)</td></tr>
-        <tr><td class="k">Results file</td><td class="v" data-c="prabhasa-b_s_strict_preds.json">prabhasa-b_s_strict_preds.json</td></tr>
+        <tr><td class="k">Track</td><td class="v">strict</td></tr>
+        <tr><td class="k">Model Name</td><td class="v">prabhasa-b_s</td></tr>
+        <tr><td class="k">HF Repo / Revision</td><td class="v">qbz506/prabhasa-b_s · main</td></tr>
+        <tr><td class="k">Results file</td><td class="v">prabhasa-b_s_strict_preds.json (16.8 MB)</td></tr>
+        <tr><td class="k">GPU Hours (train)</td><td class="v">13.7</td></tr>
       </table>
     </div>
-
     <div class="card ss">
       <h3>Strict-Small <span class="tag">10M</span></h3>
       <table>
-        <tr><td class="k">Track</td><td class="v" data-c="Strict-small">Strict-small</td></tr>
-        <tr><td class="k">Model Name</td><td class="v" data-c="prabhasa-b_ss-0.1">prabhasa-b_ss-0.1</td></tr>
-        <tr><td class="k">HuggingFace Repository</td><td class="v" data-c="qbz506/prabhasa-b_ss-0.1">qbz506/prabhasa-b_ss-0.1</td></tr>
-        <tr><td class="k">Revision Commit</td><td class="v" data-c="main">main</td></tr>
-        <tr><td class="k">Random Seed</td><td class="v" data-c="0">0</td></tr>
-        <tr><td class="k">Approx GPU Hours (Train)</td><td class="v" data-c="1.4">1.4</td></tr>
-        <tr><td class="k">Words in Custom Dataset (M)</td><td class="v" data-c="10">~10 (≤10M)</td></tr>
-        <tr><td class="k">Results file</td><td class="v" data-c="prabhasa-b_ss-0.1_strict-small_preds.json">prabhasa-b_ss-0.1_strict-small_preds.json</td></tr>
+        <tr><td class="k">Track</td><td class="v">strict-small</td></tr>
+        <tr><td class="k">Model Name</td><td class="v">prabhasa-b_ss-0.1</td></tr>
+        <tr><td class="k">HF Repo / Revision</td><td class="v">qbz506/prabhasa-b_ss-0.1 · main</td></tr>
+        <tr><td class="k">Results file</td><td class="v">prabhasa-b_ss-0.1_strict-small_preds.json (16.2 MB)</td></tr>
+        <tr><td class="k">GPU Hours (train)</td><td class="v">1.4</td></tr>
       </table>
     </div>
   </div>
 
-  <h2>Shared fields (identical for both entries)</h2>
+  <h2>Shared fields used</h2>
   <div class="card">
     <table>
-      <tr><td class="k">Model Type</td><td class="v" data-c="Encoder and Decoder">Encoder and Decoder <span class="small">(display label only; it's a pure MLM encoder)</span></td></tr>
-      <tr><td class="k">Base Architecture</td><td class="v" data-c="GPT-BERT">GPT-BERT <span class="small">(nearest option; actual = ELC-PSALM)</span></td></tr>
-      <tr><td class="k">Learning Rate</td><td class="v" data-c="0.001">0.001</td></tr>
-      <tr><td class="k">LR Scheduler</td><td class="v" data-c="cosine">cosine (5% warmup)</td></tr>
-      <tr><td class="k">Num Training Epochs</td><td class="v" data-c="10">10</td></tr>
-      <tr><td class="k">Batch Size</td><td class="v" data-c="256">256 (sequences)</td></tr>
-      <tr><td class="k">Max Sequence Length</td><td class="v" data-c="192">192</td></tr>
-      <tr><td class="k">Num Attention Heads</td><td class="v" data-c="12">12</td></tr>
-      <tr><td class="k">Num Layers</td><td class="v" data-c="14">14</td></tr>
-      <tr><td class="k">Total Parameters (M)</td><td class="v" data-c="130.3">130.3</td></tr>
-      <tr><td class="k">Token Set Size / Tokenizer count</td><td class="v" data-c="20000">20000</td></tr>
-      <tr><td class="k">Optimizer</td><td class="v" data-c="Muon">Muon <span class="small">(custom — Newton–Schulz orthogonalized momentum)</span></td></tr>
-      <tr><td class="k">Tokenizer</td><td class="v" data-c="SentencePiece (BPE)">SentencePiece (BPE), 20k joint EN+SA</td></tr>
-      <tr><td class="k">Training Dataset</td><td class="v" data-c="BabyLM English + Sanskrit (DCS/GRETIL) + synthetic Paninian, within budget">BabyLM English + Sanskrit (DCS/GRETIL) + synthetic Pāṇinian (within word budget)</td></tr>
-      <tr><td class="k">Main Contributions</td><td class="v" data-c="Architectural innovations, Training objective innovations, Data augmentation">Architectural innovations · Training objective innovations · Data augmentation/synthetic</td></tr>
-      <tr><td class="k">Data Augmentation / Synthetic</td><td class="v" data-c="Yes">Yes — synthetic Pāṇinian Sanskrit (Vidyut-Prakriyā) + DCS/GRETIL</td></tr>
-      <tr><td class="k">Custom Synthetic Data</td><td class="v" data-c="Yes">Yes</td></tr>
-      <tr><td class="k">Custom Data Human Annotation</td><td class="v" data-c="No">No</td></tr>
-      <tr><td class="k">Benchmark Methods</td><td class="v" data-c="BLiMP, BLiMP Supplement, EWoK, Entity Tracking, COMPS, Reading Comprehension, Text Average">BLiMP, BLiMP Supplement, EWoK, Entity Tracking, COMPS, Reading Comprehension, Text Average</td></tr>
-      <tr><td class="k">Teacher Models</td><td class="v" data-c="">(none)</td></tr>
-      <tr><td class="k">Brief Description</td><td class="v" data-c="Prabhasa: Paninian structured pretraining for small LMs. A masked-LM encoder (14L/768d/12h, RoPE, Muon) with three Paninian mechanisms — Vidyut N-hot morpheme/role embeddings, karaka role-stratified budget-matched masking, and a sabdabodha auxiliary role-prediction objective. Trained on BabyLM English mixed with a small Sanskrit (DCS/GRETIL) + synthetic Paninian component within the word budget. Strict = pure-MLM (validated seed-0, best-loss 0.515 -> BLiMP ~73); Strict-Small = hybrid MLM+CLM (3-seed mean ~64). The submitted checkpoints are the validated public models.">Prabhāsa: Pāṇinian structured pretraining — MLM encoder (14L/768d/12h, RoPE, Muon) with Vidyut N-hot morpheme/role embeddings, kāraka budget-matched masking, and a śābdabodha auxiliary objective. (Full text in copy.)</td></tr>
+      <tr><td class="k">Model Type</td><td class="v">Encoder only <span class="small">(the real API exposes this; “Encoder/Decoder” shown on the filter UI was a display artifact)</span></td></tr>
+      <tr><td class="k">Base Architecture</td><td class="v">LTG-BERT <span class="small">(closest to ELC-PSALM in the API’s option set: GPT-2/Llama/BERT/T5/RoBERTa/DeBERTa/LTG-BERT/LSTM)</span></td></tr>
+      <tr><td class="k">Main Contributions</td><td class="v">Architectural innovations · Training objective innovations · Data augmentation · Linguistic bias · Controlled experiments</td></tr>
+      <tr><td class="k">LR · Scheduler · Epochs</td><td class="v">0.001 · cosine · 10</td></tr>
+      <tr><td class="k">Batch · Seq len · Heads · Layers</td><td class="v">256 · 192 · 12 · 14</td></tr>
+      <tr><td class="k">Params · Token set</td><td class="v">130.3M · 20000</td></tr>
+      <tr><td class="k">Optimizer · Tokenizer</td><td class="v">Muon · SentencePiece (BPE)</td></tr>
+      <tr><td class="k">Training Data</td><td class="v">BabyLM strict / strict-small (+ small in-budget Sanskrit DCS/GRETIL + synthetic Pāṇinian)</td></tr>
     </table>
+    <p class="small">FLOPs (≈4.7e17 / 7.8e16) and dev-GPU-hours (≈50 / 30) are approximate estimates — the form requires non-zero values.</p>
   </div>
 
-  <h2>Submission procedure</h2>
-  <ol>
-    <li>Confirm both predictions files exist (see the orange box above). Make sure both
-        HF models are still <b>public</b>.</li>
-    <li>Open the <a href="https://huggingface.co/spaces/BabyLM-community/BabyLM-Leaderboard-2026" target="_blank">Leaderboard Space</a>
-        and click the <b>😀 Submit</b> tab. (Log into HF if the form asks you to.)</li>
-    <li><b>Submit the Strict entry:</b> select Track = <b>Strict</b>, fill the per-track + shared
-        fields above, upload <code>prabhasa-b_s_strict_preds.json</code> in the
-        <i>Results file (JSON)</i> field, then click <b>Submit Results</b>.</li>
-    <li><b>Submit the Strict-Small entry:</b> repeat with Track = <b>Strict-small</b>, the
-        Strict-Small per-track values, and <code>prabhasa-b_ss-0.1_strict-small_preds.json</code>.</li>
-    <li>Wait for the “Submission successful” message for each; note the confirmation /
-        timestamp. Both entries should appear on the respective track tabs.</li>
-  </ol>
+  <h2>Re-submit / update (if needed)</h2>
+  <p>To resubmit (e.g. after filling Strict-Small entity_tracking), edit values in <code>submit_babylm.py</code> and run on the DGX:</p>
+  <p><code>~/projects/PSALM-integration/.venv/bin/python ~/projects/PSALM/submission/submit_babylm.py strict</code><br>
+     <code>~/projects/PSALM-integration/.venv/bin/python ~/projects/PSALM/submission/submit_babylm.py strict-small</code></p>
+  <p class="small">Predictions staged at <code>/home/sharaths/babylm_submission/</code>. A green “counted toward the challenge” message confirms acceptance.</p>
 
-  <div class="note">If the form warns about <i>missing/incomplete tasks</i> (e.g. EWoK or a GLUE
-    task), that is fine — incomplete submissions are allowed and missing tasks score 0. You can
-    re-run the gap and <b>re-submit</b> later; resubmission is encouraged.</div>
-
-  <h2>Pre-flight checklist</h2>
-  <ul class="ck">
-    <li><input type="checkbox"> Both HF models public &amp; unchanged</li>
-    <li><input type="checkbox"> Strict predictions JSON generated</li>
-    <li><input type="checkbox"> Strict-Small predictions JSON generated</li>
-    <li><input type="checkbox"> Strict entry submitted &amp; confirmed</li>
-    <li><input type="checkbox"> Strict-Small entry submitted &amp; confirmed</li>
-    <li><input type="checkbox"> (optional) Hyperparameter Google form filled</li>
-  </ul>
-
-  <p class="small">Generated for S — Prabhāsa / BabyLM 2026. Field mappings follow the
-    official guideline; the “Model Type” and “Base Architecture” dropdowns are
-    under-specified for pure encoders and do not affect score or eligibility.</p>
+  <p class="small">Generated for S — Prabhāsa / BabyLM 2026.</p>
 </div>
-
-<script>
-  document.querySelectorAll('td.v[data-c]').forEach(td=>{
-    const b=document.createElement('button');b.className='copy';b.textContent='copy';
-    b.onclick=()=>{navigator.clipboard.writeText(td.getAttribute('data-c'));
-      b.textContent='copied';setTimeout(()=>b.textContent='copy',1200);};
-    td.appendChild(b);
-  });
-</script>
 </body>
 </html>
