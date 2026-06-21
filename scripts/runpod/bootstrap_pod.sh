@@ -19,6 +19,8 @@ echo "=== [bootstrap] uv sync --extra ml --extra stats (x86 cu12 env; torch is i
 uv sync --extra ml --extra stats 2>&1 | tail -6
 uv run --no-sync python -c "import torch;print('torch',torch.__version__,'cuda_ok',torch.cuda.is_available(),torch.version.cuda)"
 uv run --no-sync python -c "import psalm;print('psalm import OK')"
+echo "=== [bootstrap] spaCy model (en_core_web_sm; required by linguistics import) ==="
+uv run --no-sync python -m spacy download en_core_web_sm 2>&1 | tail -1 || echo "[warn] spacy model download failed"
 
 echo "=== [bootstrap] eval pipeline ==="
 mkdir -p vendor

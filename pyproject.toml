@@ -43,6 +43,7 @@ dependencies = [
 ml = [
     "torch>=2.4",
     "transformers>=4.44",
+    "spacy>=3.7",  # english_karaka_real / shabdabodha import it unconditionally (model: en_core_web_sm)
     "datasets>=2.20",
     "tokenizers>=0.19",
     "sentencepiece>=0.2",
