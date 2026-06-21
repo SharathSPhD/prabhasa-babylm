@@ -136,6 +136,13 @@ def main() -> None:
     ap.add_argument("--arch", default="elc_psalm_s")
     ap.add_argument("--max-seq-len", type=int, default=256)
     ap.add_argument("--batch-size", type=int, default=256)
+    ap.add_argument(
+        "--grad-accum",
+        type=int,
+        default=1,
+        help="Gradient accumulation: process N micro-batches per effective optimizer step. "
+        "Default 1 is byte-identical to current behavior; >1 fits smaller micro-batches on 24GB GPU.",
+    )
     ap.add_argument("--dose-epochs", type=float, default=3.0)
     ap.add_argument("--english-epochs", type=float, default=7.0)
     ap.add_argument(
@@ -268,6 +275,14 @@ def main() -> None:
         torch.cuda.manual_seed_all(args.seed)
         print(f"CUDA: {torch.cuda.get_device_name(0)} | torch {torch.__version__}", flush=True)
 
+    # Validate grad_accum: for simplicity, restrict to MLM-only unless accum=1
+    if args.grad_accum > 1 and args.objective != "mlm":
+        raise SystemExit(
+            f"--grad-accum {args.grad_accum} > 1 only supported with --objective mlm; "
+            f"hybrid/clm require per-effective-step objective decision (unsupported). "
+            f"Use --objective mlm or --grad-accum 1."
+        )
+
     sp = spm.SentencePieceProcessor()
     sp.Load(str(TOK))
     vocab = sp.GetPieceSize()
@@ -289,13 +304,22 @@ def main() -> None:
         base_tokens = int(manifest["english_base"]["tokens"])
 
     tok_per_step = args.batch_size * args.max_seq_len
-    stage1_steps = max(int(args.dose_epochs * dose_tokens / tok_per_step), 1)
-    stage2_steps = max(int(args.english_epochs * base_tokens / tok_per_step), 1)
-    total_steps = stage1_steps + stage2_steps
+    stage1_micro_steps = max(int(args.dose_epochs * dose_tokens / tok_per_step), 1)
+    stage2_micro_steps = max(int(args.english_epochs * base_tokens / tok_per_step), 1)
+    total_micro_steps = stage1_micro_steps + stage2_micro_steps
+
+    # Effective steps: how many times optimizer.step() is called
+    total_steps = max(total_micro_steps // args.grad_accum, 1)
+    stage1_steps = max(stage1_micro_steps // args.grad_accum, 1)
+    stage2_steps = max(stage2_micro_steps // args.grad_accum, 1)
+
     warmup = max(int(args.warmup_frac * total_steps), 1)
     print(
         f"submission: doses={args.dose_arms} dose_tok={dose_tokens} base_tok={base_tokens} "
-        f"| stage1={stage1_steps} stage2={stage2_steps} total={total_steps} "
+        f"| stage1_micro={stage1_micro_steps} stage2_micro={stage2_micro_steps} "
+        f"total_micro={total_micro_steps} "
+        f"| grad_accum={args.grad_accum} -> stage1_eff={stage1_steps} stage2_eff={stage2_steps} "
+        f"total_eff={total_steps} "
         f"| muon={'off' if args.no_muon else 'on'} mask={args.mask_start}->{args.mask_end} "
         f"freq_alpha={args.freq_alpha} pos_encoding={args.pos_encoding} max_seq={args.max_seq_len}",
         flush=True,
@@ -469,20 +493,26 @@ def main() -> None:
 
     def run_stage(
         lines: list[str],
-        n_steps: int,
-        offset: int,
+        n_micro_steps: int,
+        micro_offset: int,
         *,
         salience_weights: torch.Tensor | None = None,
         ckpt_interval_tokens: int = 0,
         ckpt_milestones_words: tuple[int, ...] = (),
         words_offset: float = 0.0,
     ) -> tuple[float, float, float]:
-        """Returns (last_loss, best_loss, words_processed_this_stage)."""
+        """Returns (last_loss, best_loss, words_processed_this_stage).
+
+        Args:
+            n_micro_steps: total micro-batches to process in this stage.
+            micro_offset: global micro-step index at stage start.
+            (other args: checkpointing, salience weights, etc.)
+        """
         it = packer.packed_batches(stream(lines), batch_size=args.batch_size, device=device)
         # RQ-B: role-label batches in lockstep with the token packer (same seq_len windowing).
         role_it = (
             RoleStreamPacker(shabdabodha_roles, seq_len=args.max_seq_len).packed_batches(
-                n_steps, args.batch_size, device=device
+                n_micro_steps, args.batch_size, device=device
             )
             if shabdabodha_roles is not None
             else None
@@ -497,157 +527,181 @@ def main() -> None:
         # BabyLM milestone checkpoints: pending milestones greater than words_offset
         pending_milestones = [m for m in ckpt_milestones_words if m > words_offset]
         milestone_idx = 0
-        for local in range(n_steps):
-            gstep = offset + local
+
+        # Gradient accumulation loop: iterate over micro-batches
+        for local_micro in range(n_micro_steps):
+            micro_step = micro_offset + local_micro
+            # Effective (optimizer) step: which optimizer.step() call will this micro-batch contribute to?
+            eff_step = micro_step // args.grad_accum
+            accum_idx = micro_step % args.grad_accum
+
+            # Fetch micro-batch
             batch = next(it)
-            cur_seq = progressive_seq_len(gstep, total_steps, seq_schedule)
+            # Use effective-step (not micro-step) for seq schedule and LR
+            cur_seq = progressive_seq_len(eff_step, total_steps, seq_schedule)
             if cur_seq < batch.size(1):
                 batch = batch[:, :cur_seq].contiguous()
-            lr = lr_at(gstep)
-            for o in opts:
-                for g in o.param_groups:
-                    # AdamW group follows the cosine LR; Muon keeps its own (scale-invariant) LR.
-                    if not (not args.no_muon and o is opts[0]):
-                        g["lr"] = lr
-            for o in opts:
-                o.zero_grad(set_to_none=True)
+
+            # Zero grad only at the start of a new accumulation cycle
+            if accum_idx == 0:
+                for o in opts:
+                    o.zero_grad(set_to_none=True)
+
+            # LR and mask_prob are based on effective step
+            lr = lr_at(eff_step)
+            if accum_idx == 0:
+                # Update LR for all optimizers (only once per effective step)
+                for o in opts:
+                    for g in o.param_groups:
+                        # AdamW group follows the cosine LR; Muon keeps its own (scale-invariant) LR.
+                        if not (not args.no_muon and o is opts[0]):
+                            g["lr"] = lr
+
             mask_prob = scheduled_mask_prob(
-                gstep,
+                eff_step,
                 total_steps,
                 p_start=args.mask_start,
                 p_end=args.mask_end,
                 kind=args.mask_kind,
             )
+
+            # Forward pass with accumulation scaling
             ctx = torch.autocast(device_type="cuda", dtype=dtype) if autocast else _null()
             with ctx:
-                _do_clm = args.objective == "clm" or (args.objective == "hybrid" and gstep % 2 == 1)
-                if _do_clm:
-                    _, aux = model(batch, objective=HybridObjective.CLM, labels=batch)
-                    loss = aux["loss"]
-                else:
-                    if mask_cfg.enabled and karaka_lookup is not None and karaka_lookup._map:
-                        # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM, full lookup)
-                        prob_tensor = karaka_lookup.mask_probs_for_ids(
-                            batch, default_prob=mask_prob
-                        )
-                        if args.karaka_budget_match:
-                            # Preserve total mask BUDGET: rescale per-token probs so their
-                            # mean equals the scheduled rate, so the kāraka arm masks the
-                            # same expected count as a uniform control — isolating the
-                            # *distribution* effect (RQ-A clean causal contrast).
-                            _m = prob_tensor.mean().clamp(min=1e-6)
-                            prob_tensor = (prob_tensor * (mask_prob / _m)).clamp(0.0, 0.95)
-                        masked, loss_mask = make_structured_mlm_mask(
-                            batch,
-                            mask_id=mask_id,
-                            prob_tensor=prob_tensor,
-                            exclude={EOS_ID, mask_id},
-                        )
-                        if salience_transfer is not None:
-                            salience_transfer.record_batch(batch, loss_mask)
-                    elif salience_weights is not None:
-                        # Stage 2: use salience transfer weights from Stage 1
-                        masked, loss_mask = make_freq_informed_mlm_mask(
-                            batch,
-                            mask_id=mask_id,
-                            probability=mask_prob,
-                            token_log_freq=salience_weights,
-                            alpha=args.freq_alpha if args.freq_alpha > 0 else 0.5,
-                            exclude={EOS_ID, mask_id},
-                        )
-                    elif args.freq_alpha > 0:
-                        masked, loss_mask = make_freq_informed_mlm_mask(
-                            batch,
-                            mask_id=mask_id,
-                            probability=mask_prob,
-                            token_log_freq=log_freq,
-                            alpha=args.freq_alpha,
-                            exclude={EOS_ID, mask_id},
-                        )
-                    else:
-                        masked, loss_mask = make_mlm_mask(
-                            batch,
-                            mask_id=mask_id,
-                            probability=mask_prob,
-                            exclude={EOS_ID, mask_id},
-                        )
-                    _, aux = model(
-                        masked, objective=HybridObjective.MLM, labels=batch, mlm_mask=loss_mask
+                # Pure MLM for grad_accum > 1 (validated above)
+                if mask_cfg.enabled and karaka_lookup is not None and karaka_lookup._map:
+                    # Paribhāṣā kāraka-aware adaptive masking (H1_MECHANISM, full lookup)
+                    prob_tensor = karaka_lookup.mask_probs_for_ids(batch, default_prob=mask_prob)
+                    if args.karaka_budget_match:
+                        # Preserve total mask BUDGET: rescale per-token probs so their
+                        # mean equals the scheduled rate, so the kāraka arm masks the
+                        # same expected count as a uniform control — isolating the
+                        # *distribution* effect (RQ-A clean causal contrast).
+                        _m = prob_tensor.mean().clamp(min=1e-6)
+                        prob_tensor = (prob_tensor * (mask_prob / _m)).clamp(0.0, 0.95)
+                    masked, loss_mask = make_structured_mlm_mask(
+                        batch,
+                        mask_id=mask_id,
+                        prob_tensor=prob_tensor,
+                        exclude={EOS_ID, mask_id},
                     )
-                    loss = aux["loss"]
-                    if role_it is not None:
-                        # RQ-B: śābdabodha role-prediction aux loss on the SAME forward's
-                        # hidden states (single forward); total = mlm + λ·aux.
-                        role_batch = next(role_it)[:, :cur_seq]
-                        aux_logits = model.shabdabodha_head(aux["hidden_mlm"])
-                        loss = loss + args.shabdabodha_aux * shabdabodha_aux_loss(
-                            aux_logits, role_batch
-                        )
-            loss.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            for o in opts:
-                o.step()
-            v = float(loss.detach())
-            last = v
-            best = min(best, v)
-            ema = v if ema is None else 0.98 * ema + 0.02 * v
+                    if salience_transfer is not None:
+                        salience_transfer.record_batch(batch, loss_mask)
+                elif salience_weights is not None:
+                    # Stage 2: use salience transfer weights from Stage 1
+                    masked, loss_mask = make_freq_informed_mlm_mask(
+                        batch,
+                        mask_id=mask_id,
+                        probability=mask_prob,
+                        token_log_freq=salience_weights,
+                        alpha=args.freq_alpha if args.freq_alpha > 0 else 0.5,
+                        exclude={EOS_ID, mask_id},
+                    )
+                elif args.freq_alpha > 0:
+                    masked, loss_mask = make_freq_informed_mlm_mask(
+                        batch,
+                        mask_id=mask_id,
+                        probability=mask_prob,
+                        token_log_freq=log_freq,
+                        alpha=args.freq_alpha,
+                        exclude={EOS_ID, mask_id},
+                    )
+                else:
+                    masked, loss_mask = make_mlm_mask(
+                        batch,
+                        mask_id=mask_id,
+                        probability=mask_prob,
+                        exclude={EOS_ID, mask_id},
+                    )
+                _, aux = model(
+                    masked, objective=HybridObjective.MLM, labels=batch, mlm_mask=loss_mask
+                )
+                loss = aux["loss"]
+                if role_it is not None:
+                    # RQ-B: śābdabodha role-prediction aux loss on the SAME forward's
+                    # hidden states (single forward); total = mlm + λ·aux.
+                    role_batch = next(role_it)[:, :cur_seq]
+                    aux_logits = model.shabdabodha_head(aux["hidden_mlm"])
+                    loss = loss + args.shabdabodha_aux * shabdabodha_aux_loss(
+                        aux_logits, role_batch
+                    )
+
+            # Scale loss by 1/grad_accum for gradient scaling
+            scaled_loss = loss / args.grad_accum
+            scaled_loss.backward()
+
+            # Token accounting (per micro-batch, not per effective step)
             step_tokens = args.batch_size * cur_seq
             tokens_this_stage += step_tokens
             words_done = (
                 words_offset + tokens_this_stage / 1.376
             )  # empirical tok/word for strict-small
 
-            # BabyLM 2026 milestone checkpoints
-            if ckpt_interval_tokens > 0 and tokens_this_stage >= next_ckpt_tokens:
-                milestone_M = int(words_done / 1_000_000)
-                ckpt_dev = out_dir / f"elc_{milestone_M}M.pt"
-                save_elc_checkpoint(
-                    ckpt_dev,
-                    model,
-                    mask_id=mask_id,
-                    extra={
-                        "track": "leaderboard_submission",
-                        "checkpoint_words": int(words_done),
-                        "step": gstep,
-                        "loss": v,
-                    },
-                )
-                print(
-                    f"  [CKPT] {ckpt_dev.name} @ {words_done / 1e6:.2f}M words (step {gstep + 1})",
-                    flush=True,
-                )
-                next_ckpt_tokens += ckpt_interval_tokens
-            while (
-                milestone_idx < len(pending_milestones)
-                and words_done >= pending_milestones[milestone_idx]
-            ):
-                m = pending_milestones[milestone_idx]
-                ckpt_dev = out_dir / f"elc_{m // 1_000_000}M.pt"
-                if not ckpt_dev.exists():
+            # Only step optimizer and log metrics after accumulation is complete
+            if (accum_idx + 1) == args.grad_accum or (local_micro + 1) == n_micro_steps:
+                # Final micro-batch of this accumulation cycle (or end of stage)
+                nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                for o in opts:
+                    o.step()
+
+                # Record loss (unscaled, for readability)
+                v = float(loss.detach())
+                last = v
+                best = min(best, v)
+                ema = v if ema is None else 0.98 * ema + 0.02 * v
+
+                # BabyLM 2026 milestone checkpoints
+                if ckpt_interval_tokens > 0 and tokens_this_stage >= next_ckpt_tokens:
+                    milestone_M = int(words_done / 1_000_000)
+                    ckpt_dev = out_dir / f"elc_{milestone_M}M.pt"
                     save_elc_checkpoint(
                         ckpt_dev,
                         model,
                         mask_id=mask_id,
                         extra={
                             "track": "leaderboard_submission",
-                            "checkpoint_words": m,
-                            "step": gstep,
+                            "checkpoint_words": int(words_done),
+                            "step": eff_step,
                             "loss": v,
                         },
                     )
                     print(
-                        f"  [CKPT-BabyLM] {ckpt_dev.name} @ {words_done / 1e6:.2f}M words",
+                        f"  [CKPT] {ckpt_dev.name} @ {words_done / 1e6:.2f}M words (step {eff_step + 1})",
                         flush=True,
                     )
-                milestone_idx += 1
+                    next_ckpt_tokens += ckpt_interval_tokens
+                while (
+                    milestone_idx < len(pending_milestones)
+                    and words_done >= pending_milestones[milestone_idx]
+                ):
+                    m = pending_milestones[milestone_idx]
+                    ckpt_dev = out_dir / f"elc_{m // 1_000_000}M.pt"
+                    if not ckpt_dev.exists():
+                        save_elc_checkpoint(
+                            ckpt_dev,
+                            model,
+                            mask_id=mask_id,
+                            extra={
+                                "track": "leaderboard_submission",
+                                "checkpoint_words": m,
+                                "step": eff_step,
+                                "loss": v,
+                            },
+                        )
+                        print(
+                            f"  [CKPT-BabyLM] {ckpt_dev.name} @ {words_done / 1e6:.2f}M words",
+                            flush=True,
+                        )
+                    milestone_idx += 1
 
-            if (local + 1) % 200 == 0:
-                rate = (local + 1) / max(time.time() - t0, 1e-6)
-                print(
-                    f"  step {gstep + 1}/{total_steps} loss={v:.4f} ema={ema:.4f} "
-                    f"lr={lr:.2e} seq={cur_seq} maskp={mask_prob:.3f} {rate:.2f} step/s",
-                    flush=True,
-                )
+                # Logging: every 200 effective steps
+                if ((eff_step + 1) % 200 == 0) or (local_micro + 1 == n_micro_steps):
+                    rate = (eff_step + 1) / max(time.time() - t0, 1e-6)
+                    print(
+                        f"  eff_step {eff_step + 1}/{total_steps} loss={v:.4f} ema={ema:.4f} "
+                        f"lr={lr:.2e} seq={cur_seq} maskp={mask_prob:.3f} {rate:.2f} step/s",
+                        flush=True,
+                    )
         return last, best, tokens_this_stage / 1.376
 
     out_dir = Path(args.out)
@@ -664,7 +718,7 @@ def main() -> None:
     t0 = time.time()
     _, b1, words_s1 = run_stage(
         dose_lines,
-        stage1_steps,
+        stage1_micro_steps,
         0,
         ckpt_interval_tokens=ckpt_interval_tokens,
         ckpt_milestones_words=milestones,
@@ -681,8 +735,8 @@ def main() -> None:
 
     last, b2, words_s2 = run_stage(
         base,
-        stage2_steps,
-        stage1_steps,
+        stage2_micro_steps,
+        stage1_micro_steps,
         salience_weights=stage2_salience,
         ckpt_interval_tokens=ckpt_interval_tokens,
         ckpt_milestones_words=milestones,
