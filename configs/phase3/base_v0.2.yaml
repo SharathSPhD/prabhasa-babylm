@@ -1,0 +1,56 @@
+# Prabhāsa v0.2 base run configuration (reference defaults).
+# Extends the intent of configs/base.yaml; M1/M2/M3 arms override only what differs so
+# comparisons stay matched. Target = the OFFICIAL BabyLM-2026 scorer. See ADR-0041.
+phase: phase-3-v0.2
+arm_id: base
+
+model:
+  # ELC submission backbone (ground-truth v0.1 facts); M1 bake-off may replace with a
+  # GPT-BERT-class hybrid. Pāṇinian mechanisms graft onto whichever wins.
+  name: prabhasa-b-v0.2
+  param_count_m: 114.0
+  n_layers: 14
+  d_model: 768
+  n_heads: 12
+  vocab_size: 20000
+  max_seq_len: 192
+
+data:
+  pre_pretrain_source: none        # dose arms frozen (ADR-0038); v0.2 is mechanism/circuit-driven
+  pretrain_corpus: english
+  word_budget: 100000000           # Strict; Strict-Small overrides to 10_000_000
+  tokenizer_path: data/tokenizer/psalm-sp.model
+
+training:
+  # Validated v0.1 recipe + stability levers already present in train_submission_model.py.
+  objective: mlm                   # pure-MLM (F1 robust win at 100M)
+  learning_rate: 1.0e-3            # AdamW peak (cosine warmup); Muon scale-invariant
+  muon_lr: 0.02
+  warmup_frac: 0.06
+  dropout: 0.1                     # stability lever (vs v0.1 seed_0's 0.0)
+  max_grad_norm: 1.0               # grad clipping (stability lever)
+  batch_size: 256
+  precision: bf16
+  pos_encoding: rope
+  nhot_embeddings: true
+  structured_masking: true
+  mask_start: 0.40
+  mask_end: 0.15
+  freq_alpha: 0.5
+  seeds: [0, 1, 2]
+
+evaluation:
+  # Inner-loop metric is the OFFICIAL pipeline via scripts/run_official_eval.py.
+  official_pipeline: vendor/babylm-evaluation-pipeline-2026/strict
+  backend: mlm
+  primary: blimp                   # official summed-PLL, no length normalization
+  suite: [blimp, blimp_supplement, ewok, entity_tracking, comps, reading, glue]
+
+go_no_go:
+  # Staged targets on the OFFICIAL scorer (ADR-0041).
+  strict_blimp_baseline: 74.53
+  strict_small_blimp_baseline: 65.08
+  seed_cv_threshold: 0.05          # CV(BLiMP) over >=3 seeds (measured in M1 per backbone)
+  coverage_threshold: 0.80
+  significance_alpha: 0.05
+  min_seeds: 3

@@ -85,3 +85,20 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
 - DEFINITIVE H1 PICTURE: robust validated wins = RoPE (architecture) + pure-MLM (objective). Pāṇinian
   kāraka masking = causal NULL (F2); kāraka aux objective = non-significant (F3, 5-seed +0.76). The
   honest contribution of the Pāṇinian framing is interpretability + the mechanism design, not a BLiMP lift.
+
+## F4 — v0.2 official-metric lock (M0, cycle 72, 2026-06-21)
+- **Finding (POSITIVE, foundation):** the BabyLM-2026 leaderboard scores the OFFICIAL pipeline
+  (summed pseudo-log-likelihood, NO length normalization; compute_results.py ~L189-207), not the
+  internal length-normalized harness. v0.1 official scores reproduced from disk via the new
+  `scripts/run_official_eval.py`: Strict BLiMP **67.56** (supp 63.81, ewok 52.35, entity 22.28,
+  comps 53.78), Strict-Small BLiMP **59.46** (supp 55.08, ewok 52.24, comps 50.99) — matching
+  EVAL_OUTCOMES_REPORT.md exactly → the parser + wrapper are validated.
+- **Implication:** v0.2 optimizes the official scorer as the inner-loop metric. v0.1 is BELOW the
+  GPT-2 baseline officially (Strict 74.53 / SS 65.08), so the climb is real. The gap concentrates on
+  length-mismatched minimal pairs (many NPI-scope/island/filler-gap items) — the same weak paradigms
+  ACD targets (M3). See docs/memory/official_blimp_scoring.md, ADR-0041.
+- **Seed stability:** the recipe already carries dropout 0.1 + grad-clip 1.0 + post-build reseed; the
+  one missing documented lever is Muon LR warmup. Per intervention discipline, CV(BLiMP) is MEASURED on
+  the chosen backbone in M1's multi-seed bake-off (official scorer) rather than a redundant M0 sweep
+  (10M 3-seed internal-harness evidence already ~CV 2.4%; the instability that bit us was a 100M-Strict
+  phenomenon — to be confirmed seed-robust in M4 with the stabilized recipe + best-of-N fallback).
