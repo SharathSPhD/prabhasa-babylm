@@ -204,6 +204,13 @@ def main() -> None:
     )
     ap.add_argument("--no-structured-masking", dest="structured_masking", action="store_false")
     ap.add_argument(
+        "--no-layer-routing",
+        dest="layer_routing",
+        action="store_false",
+        default=True,
+        help="Disable ELC every-layer-counts routing (default=ON; False=vanilla residual stack)",
+    )
+    ap.add_argument(
         "--karaka-budget-match",
         action="store_true",
         help="Rescale the kāraka per-token mask probs so their mean equals the scheduled "
@@ -320,6 +327,7 @@ def main() -> None:
         pos_encoding=args.pos_encoding,
         ffn_type=args.ffn_type,
         norm_type=args.norm_type,
+        route_layers=args.layer_routing,
     )
     model = model.to(device)
     if args.compile and device == "cuda":
@@ -696,6 +704,7 @@ def main() -> None:
             "muon": not args.no_muon,
             "nhot_embeddings": args.nhot_embeddings,
             "structured_masking": args.structured_masking,
+            "route_layers": args.layer_routing,
             "freq_alpha": args.freq_alpha,
             "mask_start": args.mask_start,
             "mask_end": args.mask_end,
@@ -727,6 +736,7 @@ def main() -> None:
                 "wall_seconds": wall,
                 "checkpoint": str(ckpt),
                 "pos_encoding": args.pos_encoding,
+                "route_layers": args.layer_routing,
                 "nhot_embeddings": args.nhot_embeddings,
                 "structured_masking": args.structured_masking,
                 "karaka_lookup": str(args.karaka_lookup) if args.karaka_lookup else "bpe_heuristic",

@@ -35,6 +35,7 @@ def build_elc_encoder(
     pos_encoding: Literal["absolute", "rope"] = "absolute",
     ffn_type: Literal["gelu", "geglu"] = "gelu",
     norm_type: Literal["layernorm", "rmsnorm"] = "layernorm",
+    route_layers: bool = True,
 ) -> tuple[ElcPsalmEncoder, ElcPsalmConfig]:
     """Resolve ``architecture`` (``elc_psalm_s`` / ``elc_psalm_m``) and construct the encoder.
 
@@ -62,6 +63,8 @@ def build_elc_encoder(
         overrides["ffn_type"] = ffn_type
     if norm_type != "layernorm":
         overrides["norm_type"] = norm_type
+    if not route_layers:
+        overrides["route_layers"] = False
     if overrides:
         cfg = cfg.model_copy(update=overrides)
     if smoke:
@@ -78,6 +81,7 @@ def build_elc_encoder(
             pos_encoding=pos_encoding,
             ffn_type=ffn_type,
             norm_type=norm_type,
+            route_layers=route_layers,
         )
     torch.manual_seed(0)
     return ElcPsalmEncoder(cfg, nhot_emb=nhot_emb), cfg

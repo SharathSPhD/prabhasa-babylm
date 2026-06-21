@@ -160,7 +160,10 @@ class ElcPsalmEncoder(nn.Module):
         object.__setattr__(self, "_nhot_emb", nhot_emb)
         if nhot_emb is not None:
             self.register_module("nhot_emb", nhot_emb)
-        self.router = LayerRouteCombiner(cfg.n_layers)
+        # ELC every-layer-counts routing (toggleable via cfg.route_layers).
+        # Only instantiate and register if enabled.
+        if cfg.route_layers:
+            self.router = LayerRouteCombiner(cfg.n_layers)
         self.blocks = nn.ModuleList(_SDPABlock(cfg) for _ in range(cfg.n_layers))
         self.ln_f = _make_norm(cfg)
         self.lm_head = nn.Linear(cfg.d_model, cfg.vocab_size, bias=False)
@@ -199,7 +202,13 @@ class ElcPsalmEncoder(nn.Module):
     ) -> torch.Tensor:
         states: list[torch.Tensor] = [self.embed(idx)]
         for layer_idx, block in enumerate(self.blocks):
-            x = self.router.combine(states, layer_idx)
+            # ELC routing: combine all prior states (route_layers=True)
+            # or vanilla residual: use only previous output (route_layers=False)
+            x = (
+                self.router.combine(states, layer_idx)  # type: ignore[attr-defined]
+                if self.cfg.route_layers
+                else states[-1]
+            )
             h = block(x, attn_mode=attn_mode, key_padding_mask=key_padding_mask)
             states.append(h)
         return self.ln_f(states[-1])

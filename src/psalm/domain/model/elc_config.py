@@ -65,6 +65,12 @@ class ElcPsalmConfig(BaseModel):
         description="Normalization: 'layernorm' (default) or 'rmsnorm'",
     )
 
+    # ELC every-layer-counts routing toggle (architecture bake-off lever).
+    route_layers: bool = Field(
+        default=True,
+        description="ELC every-layer-counts routing; False = vanilla pre-norm residual stack",
+    )
+
     @model_validator(mode="after")
     def _validate(self) -> ElcPsalmConfig:
         if self.d_model % self.n_heads != 0:
@@ -91,7 +97,8 @@ class ElcPsalmConfig(BaseModel):
 
     @property
     def non_embedding_params(self) -> int:
-        return self.block_params * self.n_layers + self.routing_params
+        routing = self.routing_params if self.route_layers else 0
+        return self.block_params * self.n_layers + routing
 
     @property
     def embedding_params(self) -> int:
