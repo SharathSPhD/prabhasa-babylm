@@ -31,6 +31,14 @@ echo "=== [5/6] reproduce STRICT corpus (pull public BabyLM + tokenize) ==="
 mkdir -p data/corpora/strict
 uv run --no-sync python scripts/prepare_babylm_100m.py 2>&1 | tail -8
 
+echo "=== [5b/6] pull EXPANSION from public HF (Sanskrit/Paribhāṣā dose + grammar; v0.1 release) ==="
+mkdir -p docs/data data/corpora/strict_small/arms data/corpora/grammar
+uv run --no-sync python -c "from huggingface_hub import snapshot_download; snapshot_download('qbz506/psalm-corpora', repo_type='dataset', local_dir='/tmp/psc')" 2>&1 | tail -1
+cp -f /tmp/psc/strict-small-arms.json docs/data/strict-small-arms.json
+cp -f /tmp/psc/dose_*.txt data/corpora/strict_small/arms/
+uv run --no-sync python -c "from huggingface_hub import snapshot_download; snapshot_download('qbz506/prabhasa-babylm-grammar', repo_type='dataset', local_dir='data/corpora/grammar')" 2>&1 | tail -1
+echo "expansion: $(ls docs/data/strict-small-arms.json data/corpora/strict_small/arms/*.txt 2>/dev/null | wc -l) files placed"
+
 echo "=== [6/6] verify corpus byte-size matches GB10 (strict english_base.bin == 313669342) ==="
 SZ=$(stat -c %s data/corpora/strict/english_base.bin 2>/dev/null || echo 0)
 echo "strict english_base.bin size = $SZ (expect 313669342)"
