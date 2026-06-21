@@ -84,3 +84,6 @@ paper/*.synctex.gz
 
 paper/*.fls
 paper/*.fdb_latexmk
+
+# Internal research process (ADRs, closure reports, memos) stays local; mirrors main's clean-repo policy.
+docs/
