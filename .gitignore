@@ -84,6 +84,13 @@ paper/*.synctex.gz
 
 paper/*.fls
 paper/*.fdb_latexmk
-
-# Internal research process (ADRs, closure reports, memos) stays local; mirrors main's clean-repo policy.
+.claude/
+.cursor/
+.serena/
 docs/
+.smbdelete*
+
+# v0.2: keep the public feature branch lean (pod regenerates these)
+logs/
+data/hf_export/
+data/official_scores/

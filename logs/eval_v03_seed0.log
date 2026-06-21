@@ -1,34 +1,0 @@
-[export] data/checkpoints/prabhasa_b_ss_v03_englishonly/seed_0/elc.pt -> /home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_b_ss_v03_englishonly_seed0
-Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.82it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.82it/s]
-Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 11049.04it/s]
-Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 9880.10it/s]
-OK HF export -> /home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_b_ss_v03_englishonly_seed0
-  tokenizer id-identical to SP; mask_token_id=19999
-  AutoModelForMaskedLM loads (trust_remote_code); logits (1, 8, 20000)
-  AutoModel base loads; hidden_size=768; last_hidden_state (1, 8, 768)
-[ewok] using ewok_filtered
-[zero_shot] blimp:blimp
-[zero_shot] blimp: 61.64
-[zero_shot] blimp:blimp_supplement
-[zero_shot] blimp_supplement: 56.83
-[zero_shot] ewok:ewok
-[zero_shot] ewok: 51.01
-[zero_shot] entity_tracking:entity_tracking
-[zero_shot] entity_tracking: FAILED (exit 1) — log: /home/sharaths/projects/PSALM-integration/logs/official/prabhasa_b_ss_v03_englishonly_seed0__entity_tracking.log
-[zero_shot] wug_adj:wug_adj_nominalization
-[zero_shot] wug_adj_nominalization: None
-[zero_shot] comps:comps
-[zero_shot] comps: 51.9
-[zero_shot] wug_past:wug_past_tense
-[zero_shot] wug_past_tense: None
-[reading] surprisal predictions
-
-=== official summary -> /home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_b_ss_v03_englishonly_seed0/official_summary.json ===
-  blimp: 61.64
-  blimp_supplement: 56.83
-  ewok: 51.01
-  entity_tracking: None
-  wug_adj_nominalization: None
-  comps: 51.9
-  wug_past_tense: None
-  TEXT AVERAGE: 55.345

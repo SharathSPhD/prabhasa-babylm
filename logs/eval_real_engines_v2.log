@@ -1,16 +1,0 @@
-[export] data/checkpoints/prabhasa_real_engines_v2/seed_0/elc.pt -> /home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_real_engines_v2_seed0
-Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.62it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.62it/s]
-Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 13316.11it/s]
-Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 10752.95it/s]
-OK HF export -> /home/sharaths/projects/PSALM-integration/data/hf_export/prabhasa_real_engines_v2_seed0
-  tokenizer id-identical to SP; mask_token_id=19999
-  AutoModelForMaskedLM loads (trust_remote_code); logits (1, 8, 20000)
-  AutoModel base loads; hidden_size=768; last_hidden_state (1, 8, 768)
-[ewok] using ewok_filtered
-[zero_shot] blimp:blimp
-[zero_shot] blimp: 61.5
-[zero_shot] blimp:blimp_supplement
-[zero_shot] blimp_supplement: 59.13
-[zero_shot] ewok:ewok
-[zero_shot] ewok: 50.91
-[zero_shot] entity_tracking:entity_tracking

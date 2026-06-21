@@ -1,8 +1,0 @@
-=== Launching seed 1 → data/checkpoints/submission_compliant/seed_1 ===
-CUDA: NVIDIA GB10 | torch 2.12.0+cu130
-submission: doses=['A', 'B', 'C', 'D'] dose_tok=5992836 base_tok=13757590 | stage1=274 stage2=1469 total=1743 | muon=on mask=0.3->0.15 freq_alpha=0.5 max_seq=256
-N-hot embeddings: ON (vocab=20000, nhot_dim=10, d_model=768)
-Kāraka lookup: BPE-heuristic (10574 kartā, 2533 viśeṣaṇa, 6893 separator)
-Structured masking: ON (p=0.3→0.15)
-BabyLM checkpoints: ON (milestones at 1M–10M every 1M, then every 10M)
-  step 200/1743 loss=14.1093 ema=10.0446 lr=1.99e-03 seq=64 maskp=0.295 0.36 step/s

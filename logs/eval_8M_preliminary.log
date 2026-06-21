@@ -1,30 +1,0 @@
-/home/sharaths/projects/PSALM-integration/scripts/official_eval.py:197: UserWarning: BabyLM 2026 harness not yet available. Falling back to 2025 pipeline. To use 2026 when available, clone it to vendor/babylm-evaluation-pipeline-2026.
-  pipeline = _resolve_harness(args.harness)
-[harness] 2026 not found; using 2025 fallback
-[export] data/checkpoints/submission_compliant/seed_0/elc_8M.pt -> /home/sharaths/projects/PSALM-integration/data/hf_export/psalm_8M_preliminary
-Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.23s/it]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.23s/it]
-Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 5737.50it/s]
-Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 14298.87it/s]
-OK HF export -> /home/sharaths/projects/PSALM-integration/data/hf_export/psalm_8M_preliminary
-  tokenizer id-identical to SP; mask_token_id=19999
-  AutoModelForMaskedLM loads (trust_remote_code); logits (1, 8, 20000)
-  AutoModel base loads; hidden_size=768; last_hidden_state (1, 8, 768)
-[ewok] using ewok_filtered
-[zero_shot] blimp:blimp
-[zero_shot] blimp: 52.68
-[zero_shot] blimp:blimp_supplement
-[zero_shot] blimp_supplement: 50.17
-[zero_shot] ewok:ewok
-[zero_shot] ewok: 50.05
-[zero_shot] entity_tracking:entity_tracking
-Traceback (most recent call last):
-  File "/home/sharaths/projects/PSALM-integration/scripts/official_eval.py", line 268, in <module>
-    main()
-  File "/home/sharaths/projects/PSALM-integration/scripts/official_eval.py", line 231, in main
-    summary[label] = _run_zero_shot(
-                     ^^^^^^^^^^^^^^^
-  File "/home/sharaths/projects/PSALM-integration/scripts/official_eval.py", line 87, in _run_zero_shot
-    subprocess.run(
-  File "/usr/lib/python3.12/subprocess.py", line 571, in run
-    raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command '['/home/sharaths/projects/PSALM-integration/.venv/bin/python3', '-m', 'evaluation_pipeline.sentence_zero_shot.run', '--model_path_or_name', '/home/sharaths/projects/PSALM-integration/data/hf_export/psalm_8M_preliminary', '--backend', 'mlm', '--task', 'entity_tracking', '--data_path', 'evaluation_data/full_eval/entity_tracking', '--batch_size', '16', '--non_causal_batch_size', '64', '--output_dir', 'results']' returned non-zero exit status 1.

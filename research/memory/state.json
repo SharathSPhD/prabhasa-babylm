@@ -145,5 +145,11 @@
     64.94,
     63.83,
     63.83
-  ]
+  ],
+  "closure": {
+    "repo": "prabhasa-babylm PUBLIC, single clean contributor, cruft purged",
+    "hf_models": "prabhasa-b_ss-0.1 + prabhasa-b_s PUBLIC",
+    "deadline": "July 15 2026 (open)",
+    "remaining": "intermediate checkpoints+dataset to HF; leaderboard predictions+submit; paper PDF+OpenReview; colab validate; all final submits via Chrome"
+  }
 }

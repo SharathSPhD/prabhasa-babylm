@@ -566,3 +566,16 @@ Each entry: `[cycle N | date] action → result → next`. The harness writes he
   prabhasa-babylm-grammar dataset (public) + intermediate checkpoints uploading as revisions. Colab
   -> public HF. Leaderboard submission package assembled (both tracks, honest framing). F3 5-seed final
   (null, +0.76 ns). User performs the final leaderboard + OpenReview submits (deadline July 15).
+
+## Paper closure (4-round adversarial review) — 2026-06-15
+Both manuscripts (psalm.tex long-form 43pp; psalm_short.tex 8-page BabyLM submission)
+passed a 4-round multi-agent adversarial review (6 dimensions: structure, formatting,
+numerical integrity, citations, figures, prose). Findings converged 25 -> 17 -> 4 -> 0.
+Round-2 caught fabricated/stale per-seed tables in the long appendix; all numbers
+reconciled to findings.md (no invented values). Architecture (14L-768d-12h) + LR (1e-3)
+reconciled to published config.json. SCAN citation corrected to verified arXiv:1711.00350.
+Both compile clean: 0 errors/undefined/multiply-defined/overfull (long paper retains 4
+benign hyperref anchor warnings on unreferenced display equations). Pushed to
+prabhasa-babylm main (commit 0096986) via temp worktree, author qbz506@york.ac.uk.
+TECHNICAL gate (make gate) blocked by pre-existing uv env issue (missing path-dep
+panini-data-toolkit), unrelated to paper. Leaderboard/OpenReview submission: user-driven.
