@@ -144,6 +144,11 @@ def main() -> int:
         else "WANDB_MODE=disabled\n"
     )
 
+    # A local checkpoint dir must be passed as an ABSOLUTE path: the eval subprocess runs
+    # with cwd=PIPE, so a relative path would not resolve there and transformers would treat
+    # it as an HF repo id (HFValidationError). HF ids (no local dir) are passed through.
+    model = os.path.abspath(args.model) if os.path.isdir(args.model) else args.model
+
     t0 = time.time()
     if not args.scores_only:
         # EWoK one-time setup (benign if it skips).
@@ -155,7 +160,7 @@ def main() -> int:
                     "-m",
                     "evaluation_pipeline.sentence_zero_shot.run",
                     "--model_path_or_name",
-                    args.model,
+                    model,
                     "--backend",
                     args.backend,
                     "--task",
@@ -168,20 +173,20 @@ def main() -> int:
                 ]
             )
         else:
-            rc = _run(["bash", "scripts/eval_zero_shot.sh", args.model, args.backend])
-            _run(["bash", "scripts/eval_zero_shot_fast.sh", args.model, "main", args.backend])
+            rc = _run(["bash", "scripts/eval_zero_shot.sh", model, args.backend])
+            _run(["bash", "scripts/eval_zero_shot_fast.sh", model, "main", args.backend])
             if args.stage == "full":
                 _run(
                     [
                         "bash",
                         "scripts/eval_finetuning.sh",
                         "--model_path",
-                        args.model,
+                        model,
                         "--seed",
                         str(args.seed),
                     ]
                 )
-                _run(["bash", "scripts/collate_preds.sh", args.model, args.backend, args.track])
+                _run(["bash", "scripts/collate_preds.sh", model, args.backend, args.track])
         if rc != 0:
             print(f"[WARN] primary stage returned rc={rc} (partial results allowed)")
 

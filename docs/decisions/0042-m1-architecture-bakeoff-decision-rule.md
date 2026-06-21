@@ -52,3 +52,16 @@ GPT-BERT port, or scoring-gap-targeted changes) before declaring the architectur
 - The chosen backbone carries forward to M2 (Pāṇinian rigour) and M3 (ACD circuits).
 - Pāṇinian mechanisms (N-hot, structured masking) are ON in both arms, so the bake-off does not
   confound the architecture question with the mechanism question (mechanisms are studied in M2).
+
+## Outcome (2026-06-21)
+
+Bake-off ran on GB10 (10M, official scorer, 2 seeds/arm). **Official BLiMP:** ELC (routing ON)
+61.32/61.64 → mean **61.48** (CV 0.37%); vanilla (routing OFF) 62.74/62.55 → mean **62.65** (CV 0.21%).
+Δ(vanilla−elc) = **+1.17 pt ≥ +1.0** → decision rule fires.
+
+**DECISION: adopt VANILLA (`--no-layer-routing`) as the v0.2 backbone.** ELC's every-layer routing costs
+~1.2 BLiMP on the leaderboard scorer; it is retired. Pāṇinian mechanisms graft onto the vanilla GPT-BERT-class
+stack. Both arms seed-stable at 10M (CV < 0.5%; folded M0c satisfied). Both beat v0.1 official SS (59.46);
+vanilla 62.65 approaches baseline 65.08 (≈2.4 pt gap = the M2/M3 leading-indicator target). The 100M
+backbone-confirm is **folded into M4** (the first 100M finals run validates vanilla at scale) to avoid a
+separate RunPod job. See findings F5.

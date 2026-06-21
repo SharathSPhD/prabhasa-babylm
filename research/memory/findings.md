@@ -102,3 +102,18 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
   the chosen backbone in M1's multi-seed bake-off (official scorer) rather than a redundant M0 sweep
   (10M 3-seed internal-harness evidence already ~CV 2.4%; the instability that bit us was a 100M-Strict
   phenomenon — to be confirmed seed-robust in M4 with the stabilized recipe + best-of-N fallback).
+
+## F5 — M1 architecture bake-off: ELC every-layer routing HURTS the official scorer (cycle 73, 2026-06-21)
+- **Pre-registered (ADR-0042) bake-off**, 10M Strict-Small, official scorer, routing ON (ELC) vs OFF
+  (vanilla GPT-BERT-class), identical otherwise (pure-MLM, RoPE, N-hot, structured masking, dose-off, Muon).
+- **Official BLiMP (n=2 seeds):** ELC 61.32/61.64 → mean **61.48** (CV 0.37%); vanilla 62.74/62.55 → mean
+  **62.65** (CV 0.21%). Δ(vanilla−elc) = **+1.17 pt ≥ +1.0** → decision rule fires → **adopt VANILLA (routing OFF).**
+- **Finding (POSITIVE, decisive):** the ELC every-layer-counts routing (the architecture's one novel element)
+  *costs* ~1.2 BLiMP on the leaderboard scorer at 10M; the vanilla pre-norm stack is better. **v0.2 backbone =
+  vanilla (`--no-layer-routing`)**; Pāṇinian mechanisms (N-hot, structured masking) graft onto it. Routing retired.
+- **Seed stability (folded M0c):** both arms CV < 0.5% at 10M → recipe is seed-stable at the proxy scale (the
+  100M-Strict instability is re-checked in M4 with best-of-N).
+- **Context:** both v0.2 arms beat v0.1 official SS (59.46): vanilla +3.2 pt → 62.65, approaching baseline 65.08.
+  The ~2.4 pt gap-to-baseline at 10M is the leading-indicator target for M2 (rigour) + M3 (ACD circuits) to close.
+  Tarka: n=2 seeds is thin, but the +1.17 gap exceeds both arms' 0.13-0.23 spread and is consistent across seeds;
+  supplement is mixed (elc 58.36 vs vanilla 57.79) but BLiMP is the pre-registered primary. ELC retired honestly.
