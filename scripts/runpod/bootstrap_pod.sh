@@ -1,31 +1,42 @@
 #!/usr/bin/env bash
-# Runs ON the RunPod pod (after sync_to_pod.sh). Builds the x86/cu12 env + eval pipeline.
-# Usage (from GB10):  ssh root@HOST -p PORT 'bash -s' < scripts/runpod/bootstrap_pod.sh
-set -euo pipefail
-export DEBIAN_FRONTEND=noninteractive
+# Full PULL-ONLY pod provisioner (no agent egress). Piped via run_pod.sh bootstrap.
+# Writes a detached provisioner to /workspace/_provision.sh, nohups it, returns immediately.
+# Monitor /workspace/provision.log for "PROVISION_DONE".
+set -uo pipefail
+cat > /workspace/_provision.sh <<'PROV'
+#!/usr/bin/env bash
+set -uo pipefail
 export PATH="$HOME/.local/bin:$PATH"
+export HF_HUB_ENABLE_HF_TRANSFER=0
+cd /workspace
+BR=feature/v0.2-arch-sweep
+
+echo "=== [1/6] code via git (clean public branch) ==="
+if [ -d psalm/.git ]; then (cd psalm && git fetch --depth 1 origin "$BR" && git reset --hard origin/"$BR"); \
+else rm -rf psalm && git clone --branch "$BR" --depth 1 https://github.com/SharathSPhD/prabhasa-babylm.git psalm; fi
+[ -d panini-data-toolkit/.git ] || git clone --depth 1 https://github.com/SharathSPhD/panini-data-toolkit.git panini-data-toolkit
 cd /workspace/psalm
 
-echo "=== [bootstrap] env ==="; uname -m; nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || true
-command -v uv >/dev/null 2>&1 || { echo "installing uv"; curl -LsSf https://astral.sh/uv/install.sh | sh; export PATH="$HOME/.local/bin:$PATH"; }
-uv --version
+echo "=== [2/6] env (uv sync --extra ml --extra stats) ==="
+uv sync --extra ml --extra stats 2>&1 | tail -3
+echo "=== [3/6] spaCy model ==="
+uv run --no-sync python -m spacy download en_core_web_sm 2>&1 | tail -1 || echo "[warn] spacy dl"
+uv run --no-sync python -c "import torch,psalm,spacy; print('env OK torch',torch.__version__,'cuda',torch.cuda.is_available())"
 
-echo "=== [bootstrap] panini-data-toolkit (editable path dep; clone if missing) ==="
-if [ ! -d /workspace/panini-data-toolkit/panini_data_toolkit ] && [ ! -d /workspace/panini-data-toolkit/src ]; then
-  git clone --depth 1 https://github.com/SharathSPhD/panini-data-toolkit.git /workspace/panini-data-toolkit 2>&1 | tail -2
-fi
+echo "=== [4/6] eval pipeline (clone + 192 fix) ==="
+[ -d vendor/babylm-evaluation-pipeline-2026 ] || git clone --depth 1 https://github.com/babylm-org/babylm-eval.git vendor/babylm-evaluation-pipeline-2026
+sed -i 's/--sequence_length 512/--sequence_length 192/g' vendor/babylm-evaluation-pipeline-2026/strict/scripts/eval_finetuning.sh 2>/dev/null || true
 
-echo "=== [bootstrap] uv sync --extra ml --extra stats (x86 cu12 env; torch is in the ml extra) ==="
-uv sync --extra ml --extra stats 2>&1 | tail -6
-uv run --no-sync python -c "import torch;print('torch',torch.__version__,'cuda_ok',torch.cuda.is_available(),torch.version.cuda)"
-uv run --no-sync python -c "import psalm;print('psalm import OK')"
-echo "=== [bootstrap] spaCy model (en_core_web_sm; required by linguistics import) ==="
-uv run --no-sync python -m spacy download en_core_web_sm 2>&1 | tail -1 || echo "[warn] spacy model download failed"
+echo "=== [5/6] reproduce STRICT corpus (pull public BabyLM + tokenize) ==="
+mkdir -p data/corpora/strict
+uv run --no-sync python scripts/prepare_babylm_100m.py 2>&1 | tail -8
 
-echo "=== [bootstrap] eval pipeline ==="
-mkdir -p vendor
-if [ ! -d vendor/babylm-evaluation-pipeline-2026 ]; then
-  git clone --depth 1 https://github.com/babylm-org/babylm-eval.git vendor/babylm-evaluation-pipeline-2026 2>&1 | tail -3
-fi
-ls vendor/babylm-evaluation-pipeline-2026 | head
-echo "BOOTSTRAP_BASE_DONE  (eval-data download + 192 fix handled interactively after layout check)"
+echo "=== [6/6] verify corpus byte-size matches GB10 (strict english_base.bin == 313669342) ==="
+SZ=$(stat -c %s data/corpora/strict/english_base.bin 2>/dev/null || echo 0)
+echo "strict english_base.bin size = $SZ (expect 313669342)"
+if [ "$SZ" = "313669342" ]; then echo "CORPUS_MATCH_OK"; else echo "CORPUS_MATCH_MISMATCH (size $SZ)"; fi
+echo "PROVISION_DONE"
+PROV
+chmod +x /workspace/_provision.sh
+nohup bash /workspace/_provision.sh > /workspace/provision.log 2>&1 < /dev/null &
+echo "PROVISION_LAUNCHED pid=$!"
