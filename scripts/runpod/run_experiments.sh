@@ -53,8 +53,8 @@ job() {
   echo "########## [$(date +%T)] JOB $TAG DONE: $(cat data/official_scores/${TAG}.json 2>/dev/null | tr -d '\n') ##########"
 }
 
-# ===== QUEUE (Batch 1): AdamW stability PROBE (3 epochs) — is Muon the 100M instability source? =====
-# Skip eval for the probe (we only need the loss trajectory). If stable -> full 100M next.
-SKIP_EVAL=1 TRACK=strict job v02_vanilla_adamw_p3 --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 3 --base-dir data/corpora/strict --seed 0
+# ===== QUEUE (Batch 1): FINALS seed-1 — AdamW lr 3e-4 stable recipe (GB10 runs seed-0 in parallel) =====
+# Full 100M (10 epochs) + official eval. AdamW-3e-4 confirmed stable on GB10 (monotonic past Muon's divergence).
+TRACK=strict job v02_vanilla_adamw3e4_strict_seed1 --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 10 --base-dir data/corpora/strict --seed 1
 
 echo "QUEUE_DONE $(date)"
