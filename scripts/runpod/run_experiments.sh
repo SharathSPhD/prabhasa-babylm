@@ -31,7 +31,7 @@ job() {
     --pos-encoding rope --nhot-embeddings --structured-masking \
     --mask-start 0.40 --mask-end 0.15 --freq-alpha 0.5 \
     --max-seq-len 192 --batch-size 128 --grad-accum 2 --vocab 20000 \
-    --peak-lr 1e-3 --muon-lr 0.02 --dropout 0.1 --require-cuda \
+    --peak-lr 5e-4 --muon-lr 0.01 --warmup-frac 0.10 --dropout 0.1 --require-cuda \
     "$@" --out "$CK" || { echo "JOB $TAG TRAIN FAILED"; return 1; }
   RUN uv run --no-sync python scripts/export_hf_model.py --ckpt "$CK/elc.pt" \
     --tokenizer data/tokenizer/strict_small/spm.model --out "$HF" --model-name "$TAG" || echo "[warn] export $TAG"
