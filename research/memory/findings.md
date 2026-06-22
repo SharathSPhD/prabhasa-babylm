@@ -183,3 +183,17 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
 - **Implication for the leaderboard:** the Pāṇinian-rigour MASKING is not the lever. The path to beat baselines is
   the validated bases (F7 Strict 72.46 / M1 Muon SS 62.65) + **M3 ACD circuit-targeting** of the weak paradigms
   (NPI/filler-gap/islands) — the remaining high-upside novelty — + seed-robust finals (M4).
+
+## F9 — LR/recipe lever EXHAUSTED at ~72.5 Strict (loss↓ but BLiMP flat) (cycle 77, 2026-06-22)
+- **Experiment:** AdamW **5e-4** @ 100M Strict, 10 epochs (vs F7 base = AdamW 3e-4 → 72.46). One-variable (LR).
+  Model trained on an A40 pod, fetched to GB10, evaluated there (full suite, ewok/entity worked here unlike the
+  pod-hung seed-1 eval).
+- **Result:** official **BLiMP 72.63** (supp 65.90, ewok 53.23, entity 29.85, comps 54.72), best_loss **0.331**,
+  final_loss 2.10, `babylm_compliant: true`. vs base 72.46 → **+0.17 pp = MARGINAL NULL** (n=1, within noise).
+- **Finding (NULL, important):** 5e-4 reached a far lower MLM loss (best 0.331 vs the base's ~1.68 ema lows) yet
+  BLiMP did NOT improve — **train loss and official BLiMP have decoupled/saturated.** Both 3e-4 and 5e-4 land at
+  ~72.5. **The LR/recipe-tuning lever is exhausted; "train harder" will not close the −1.9 pp gap to baseline 74.53.**
+- **Strategic implication:** the architecture+recipe ceiling at 100M Strict is ~72.5 (a solid +5 pp over v0.1's
+  67.56, but below baseline). Remaining shots at baseline: (a) **M3 ACD** circuit-targeting (uncertain, ~40% per
+  Lane-C); (b) accept ~72.5 and ship the seed-robust finals + the honest Pāṇinian-recipe + null-findings paper.
+  Do NOT keep tuning LR/optimizer. Model preserved at data/checkpoints/v02_adamw5e4_strict_seed1/ on GB10.
