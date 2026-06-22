@@ -53,10 +53,13 @@ job() {
   echo "########## [$(date +%T)] JOB $TAG DONE: $(cat data/official_scores/${TAG}.json 2>/dev/null | tr -d '\n') ##########"
 }
 
-# ===== QUEUE (Batch 3): recipe-improvement probe — AdamW 5e-4 @ 100M Strict (vs the 72.46 base of 3e-4) =====
-# F7 base = AdamW 3e-4 / 10ep -> BLiMP 72.46 (ended underpushed, loss ~2.9). Test whether a higher LR converges
-# better and closes the -2.07 gap to baseline 74.53. One-variable change (LR only); same seed/epochs. --peak-lr
-# 5e-4 appears after the job()'s default 3e-4 so argparse takes 5e-4.
-TRACK=strict job v02_adamw5e4_strict_seed1 --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 10 --base-dir data/corpora/strict --seed 1 --peak-lr 5e-4
+# ===== QUEUE (Batch 3): recipe-improvement probes @ 100M Strict (vs the 72.46 base = AdamW 3e-4/10ep) =====
+# Select one experiment per pod via EXP env var. F7 base ended underpushed (loss ~2.9); these test "train harder".
+EXP="${EXP:-adamw5e4}"
+case "$EXP" in
+  adamw5e4) TRACK=strict job v02_adamw5e4_strict_seed1 --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 10 --base-dir data/corpora/strict --seed 1 --peak-lr 5e-4 ;;
+  ep16)     TRACK=strict job v02_ep16_strict_seed1     --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 16 --base-dir data/corpora/strict --seed 1 ;;
+  *) echo "unknown EXP=$EXP"; exit 1 ;;
+esac
 
 echo "QUEUE_DONE $(date)"
