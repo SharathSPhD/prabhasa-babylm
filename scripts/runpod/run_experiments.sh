@@ -58,7 +58,7 @@ job() {
 EXP="${EXP:-adamw5e4}"
 case "$EXP" in
   adamw5e4) TRACK=strict job v02_adamw5e4_strict_seed1 --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 10 --base-dir data/corpora/strict --seed 1 --peak-lr 5e-4 ;;
-  ep16)     TRACK=strict job v02_ep16_strict_seed1     --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 16 --base-dir data/corpora/strict --seed 1 ;;
+  seed0)    TRACK=strict job v02_adamw3e4_strict_seed0  --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 10 --base-dir data/corpora/strict --seed 0 ;;  # reproduce 72.46 @ seed 0 (10ep, COMPLIANT)
   *) echo "unknown EXP=$EXP"; exit 1 ;;
 esac
 
