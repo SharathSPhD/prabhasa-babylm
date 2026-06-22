@@ -51,7 +51,10 @@ class TestElcConfigRoutingToggle:
             route_layers=False,
         )
         # routing_params property always returns the count; the difference is in non_embedding_params
-        assert cfg_without.non_embedding_params == cfg_with.non_embedding_params - cfg_with.routing_params
+        assert (
+            cfg_without.non_embedding_params
+            == cfg_with.non_embedding_params - cfg_with.routing_params
+        )
 
     def test_routing_params_unchanged_regardless_of_flag(self) -> None:
         """routing_params property is independent of route_layers flag."""

@@ -33,6 +33,7 @@ training:
   precision: bf16
   pos_encoding: rope
   nhot_embeddings: true
+  nhot_mode: heuristic              # M2a: 'heuristic' (current) or 'real' (Morfessor)
   structured_masking: true
   mask_start: 0.40
   mask_end: 0.15

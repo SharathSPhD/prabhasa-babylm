@@ -7,6 +7,8 @@ by its resolved config, whose hash is recorded in the experiment ledger.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -40,6 +42,10 @@ class TrainingConfig(BaseModel):
     weight_decay: float = Field(default=0.1, ge=0)
     max_grad_norm: float = Field(default=1.0, gt=0)
     precision: str = "bf16"
+    nhot_mode: Literal["heuristic", "real"] = Field(
+        default="heuristic",
+        description="N-hot morphology mode: 'heuristic' (BPE only) or 'real' (Morfessor segmentation)",
+    )
     seeds: list[int] = Field(default_factory=lambda: [0, 1, 2])
 
 
