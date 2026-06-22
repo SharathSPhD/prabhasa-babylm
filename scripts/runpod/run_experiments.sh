@@ -53,13 +53,10 @@ job() {
   echo "########## [$(date +%T)] JOB $TAG DONE: $(cat data/official_scores/${TAG}.json 2>/dev/null | tr -d '\n') ##########"
 }
 
-# ===== QUEUE (Batch 2): M2 ablation battery — PROPER epochs (7, M1-matched) + Strict-Small official eval =====
-# Redo: the first battery was undertrained (1 epoch -> loss 4.4, control BLiMP 51.99 vs M1 ~62). Each arm:
-# 7 epochs (target loss ~2.0) -> export -> official SS eval -> score. Mechanisms (F2/F3 say likely NULL) vs control,
-# identical recipe (vanilla + AdamW 3e-4). Relative deltas are the test; control validates the setup (~M1 level).
-TRACK=strict-small job m2b_control   --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 7 --base-dir data/corpora/strict_small --seed 0
-TRACK=strict-small job m2b_morfessor --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 7 --base-dir data/corpora/strict_small --seed 0 --nhot-mode real
-TRACK=strict-small job m2b_deprel    --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 7 --base-dir data/corpora/strict_small --seed 0 --use-real-deprel
-TRACK=strict-small job m2b_mi        --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 7 --base-dir data/corpora/strict_small --seed 0 --use-mi-weights --mi-blend 0.3
+# ===== QUEUE (Batch 3): recipe-improvement probe — AdamW 5e-4 @ 100M Strict (vs the 72.46 base of 3e-4) =====
+# F7 base = AdamW 3e-4 / 10ep -> BLiMP 72.46 (ended underpushed, loss ~2.9). Test whether a higher LR converges
+# better and closes the -2.07 gap to baseline 74.53. One-variable change (LR only); same seed/epochs. --peak-lr
+# 5e-4 appears after the job()'s default 3e-4 so argparse takes 5e-4.
+TRACK=strict job v02_adamw5e4_strict_seed1 --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 10 --base-dir data/corpora/strict --seed 1 --peak-lr 5e-4
 
 echo "QUEUE_DONE $(date)"
