@@ -144,3 +144,19 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
 - **Orchestration cost (honest ledger):** the investigation burned ~$8 of RunPod on churn — 4 overlapping runs
   from relaunches whose ssh `pkill`s were cut off by 255 disconnects (FIX: lockfile in run_experiments.sh), and
   ~3 dud pods in US-NC-1 that never assigned a public IP (FIX: pin DC to US-CA-2). Reliable engine = GB10 (local).
+
+## F7 — v0.2 Strict 100M base recipe VALIDATED: official BLiMP 72.46 (cycle 75, 2026-06-22)
+- **Finding (POSITIVE, the v0.2 headline so far):** the locked v0.2 backbone+recipe (vanilla `--no-layer-routing`,
+  pure-MLM, RoPE, N-hot + structured masking in HEURISTIC mode, **AdamW lr 3e-4** F6, 10 epochs, seq 48→96→192,
+  mask 0.40→0.15) at **100M Strict** scores **official BLiMP 72.46** (supplement 68.18, comps 54.65, entity 22.26),
+  seed 1, on the pod (US-CA-2, AdamW-3e-4, properly trained — lows ~1.68). vs **v0.1 Strict 67.56 → +4.90 pp**;
+  vs **GPT-2 baseline 74.53 → −2.07 pp** (closing). This is the best v0.2 Strict number to date and confirms
+  F6's AdamW-3e-4 recipe is not just stable but STRONG (the earlier "underperformance" fear was a 1-epoch
+  undertraining artifact in a bad 10M battery, NOT the recipe).
+- **Caveats (honest):** n=1 seed (not yet seed-robust — M4 needs ≥3 seeds + CI before it's a locked submission
+  number); still −2 pp under baseline, so M2 mechanisms (battery) + M3 ACD must close the last gap to beat 74.53;
+  ewok/GLUE came back null in this run (eval-stage hang on the pod — re-eval those at finals). The pod was deleted
+  after capturing the score (stuck on the null eval stages, unkillable); the model is reproducible from the
+  committed recipe+seed, to be re-trained at M4 finals.
+- **Next:** M2 ablation battery (redone PROPERLY at 7 epochs on GB10 — Strict-Small 10M) tests whether Morfessor
+  N-hot / real deprel / MI masking add to this base; promote only statistically-real wins to the 100M Strict recipe.
