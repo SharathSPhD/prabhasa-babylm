@@ -117,3 +117,30 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
   The ~2.4 pt gap-to-baseline at 10M is the leading-indicator target for M2 (rigour) + M3 (ACD circuits) to close.
   Tarka: n=2 seeds is thin, but the +1.17 gap exceeds both arms' 0.13-0.23 spread and is consistent across seeds;
   supplement is mixed (elc 58.36 vs vanilla 57.79) but BLiMP is the pre-registered primary. ELC retired honestly.
+
+## F6 — 100M-Strict instability is OPTIMIZER, not architecture: Muon→AdamW(3e-4) (cycle 74, 2026-06-22)
+- **Problem:** the M1-validated vanilla backbone, scaled from 10M to 100M-Strict, did NOT train stably under
+  **Muon**. Loss oscillated (e.g. 1.93↔4.6; best ~1.93 vs the lucky ELC seed_0's 0.515), with spikes
+  correlating to Muon updates + the progressive-seq jumps. This is the same 100M-Strict seed-sensitivity
+  flagged in F4 (seed_0 lucky, seed_1/2 diverge), now reproduced directly.
+- **Intervention discipline (≥2 before any conclusion):**
+  - **#1 — lower Muon LR + longer warmup** (peak 1e-3→5e-4, warmup 0.06→0.10): still oscillated (1.93↔4.6). FAIL.
+  - **#2 — plain AdamW at the Muon-scale LR** (`--no-muon`, peak-lr **1e-3**): ALSO oscillated (loss 3.6↔5.0
+    even at 10M) DESPITE the always-on grad-clip 1.0 (train L643). Diagnosis: 1e-3 is a *Muon-scale* LR
+    (Muon tolerates it via per-step orthogonalization); AdamW needs ~3e-4. FAIL but informative.
+  - **#3 — AdamW lr 3e-4** (warmup 0.10, grad-clip 1.0): **clean monotonic descent** — loss 10.0 → 7.19
+    (step 200) → 4.35 (2000) → 2.90 (4000, warmup complete at peak 3e-4), straight through step ~1400 where
+    Muon spiked to 6.0. STABLE. (GB10 seed-0, full 100M corpus base_tok=156,834,671.)
+- **Finding (POSITIVE, resolves the scale-up blocker):** the 100M-Strict instability is an **optimizer**
+  phenomenon, not an architecture one. **F5's backbone choice (vanilla, routing OFF) holds**; the change is
+  Muon→**AdamW lr 3e-4** at 100M scale. v0.2 100M recipe = vanilla + pure-MLM + RoPE + N-hot + structured
+  masking + **AdamW(3e-4) + warmup 0.10 + grad-clip 1.0**. Muon retired for the 100M track (kept fine at 10M).
+- **Verification plan:** GB10 runs seed-0 to completion + official eval; pod (US-CA-2) runs seed-1 in parallel;
+  seed-2 follows → ≥3-seed finals with CV (the M4 seed-robust gate). Reconciles F4's deferred 100M stability check.
+- **Tarka (honest):** stability ≠ competitiveness — must still confirm AdamW-3e-4's *final* BLiMP beats the
+  GPT-2 baseline (74.53), not merely that it converges. AdamW's conservative LR may converge to a higher loss
+  than a (stable) Muon run would; if seed-0's eval underperforms, the next lever is a slightly higher AdamW LR
+  (5e-4) or a Muon+AdamW hybrid with Muon-LR warmup, not a return to bare Muon@1e-3.
+- **Orchestration cost (honest ledger):** the investigation burned ~$8 of RunPod on churn — 4 overlapping runs
+  from relaunches whose ssh `pkill`s were cut off by 255 disconnects (FIX: lockfile in run_experiments.sh), and
+  ~3 dud pods in US-NC-1 that never assigned a public IP (FIX: pin DC to US-CA-2). Reliable engine = GB10 (local).
