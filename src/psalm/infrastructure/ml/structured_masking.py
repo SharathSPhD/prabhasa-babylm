@@ -45,6 +45,12 @@ class StructuredMaskConfig:
     mask_prob_start: float = 0.40
     mask_prob_end: float = 0.15
     decay_warmup_fraction: float = 0.10  # fraction of total steps for warmup
+    # M2b: Real deprel→kāraka mapping (default OFF for backward compatibility)
+    use_real_deprel: bool = False
+    # M2c: MI-based masking weights (default OFF for backward compatibility)
+    use_mi_weights: bool = False
+    mi_blend: float = 0.0  # [0.0, 1.0]: blend weight for MI component
+    mi_cache_path: str | None = None  # path to cache MI weights
 
     def mask_prob_at_step(self, step: int, total_steps: int) -> float:
         """Cosine decay from mask_prob_start to mask_prob_end."""

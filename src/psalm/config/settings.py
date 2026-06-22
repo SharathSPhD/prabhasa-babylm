@@ -46,6 +46,22 @@ class TrainingConfig(BaseModel):
         default="heuristic",
         description="N-hot morphology mode: 'heuristic' (BPE only) or 'real' (Morfessor segmentation)",
     )
+    # M2b: Real deprel→kāraka mapping (default OFF for backward compatibility)
+    use_real_deprel: bool = Field(
+        default=False,
+        description="Use real spaCy dependency relations for kāraka role mapping (M2b)",
+    )
+    # M2c: MI-based masking weights (default OFF for backward compatibility)
+    use_mi_weights: bool = Field(
+        default=False,
+        description="Use mutual information weighting for token masking (M2c)",
+    )
+    mi_blend: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Blend weight for MI component: p = (1-mi_blend)*p_karaka + mi_blend*p_mi",
+    )
     seeds: list[int] = Field(default_factory=lambda: [0, 1, 2])
 
 

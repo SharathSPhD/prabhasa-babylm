@@ -254,6 +254,30 @@ def main() -> None:
         default=None,
         help="Path to .npy kāraka role lookup (optional; computed from --karaka-mode if absent)",
     )
+    # M2b: Real deprel→kāraka mapping (flag-gated, default OFF for backward compatibility)
+    ap.add_argument(
+        "--use-real-deprel",
+        action="store_true",
+        help="M2b: Use real spaCy dependency relations for kāraka role mapping (opt-in, default OFF)",
+    )
+    # M2c: MI-based masking weights (flag-gated, default OFF for backward compatibility)
+    ap.add_argument(
+        "--use-mi-weights",
+        action="store_true",
+        help="M2c: Use mutual information weighting for token masking (opt-in, default OFF)",
+    )
+    ap.add_argument(
+        "--mi-blend",
+        type=float,
+        default=0.0,
+        help="M2c: Blend weight for MI component [0.0, 1.0]. p = (1-blend)*p_karaka + blend*p_mi",
+    )
+    ap.add_argument(
+        "--mi-cache-path",
+        type=Path,
+        default=None,
+        help="M2c: Path to cached MI weights (.npy file, optional)",
+    )
     ap.add_argument("--vocab", type=int, default=20000)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument(
