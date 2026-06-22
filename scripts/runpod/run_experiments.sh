@@ -39,14 +39,13 @@ job() {
     --no-muon --peak-lr 1e-3 --warmup-frac 0.10 --dropout 0.1 --require-cuda \
     "$@" --out "$CK" || { echo "JOB $TAG TRAIN FAILED"; return 1; }
   if [ -n "${SKIP_EVAL:-}" ]; then echo "########## [$(date +%T)] JOB $TAG TRAIN-ONLY DONE (best_loss: $(python3 -c "import json;print(round(json.load(open(\"$CK/summary.json\")).get(\"best_loss\",-1),4))" 2>/dev/null)) ##########"; return 0; fi
+  setup_eval   # only eval jobs need eval data (probes skip this -> GPU busy immediately, no idle setup)
   RUN uv run --no-sync python scripts/export_hf_model.py --ckpt "$CK/elc.pt" \
     --tokenizer data/tokenizer/strict_small/spm.model --out "$HF" --model-name "$TAG" || echo "[warn] export $TAG"
   RUN uv run --no-sync python scripts/run_official_eval.py "$HF" --track "${TRACK:-strict}" \
     --stage zero-shot --result-stem "$TAG" --out "data/official_scores/${TAG}.json" || echo "[warn] eval $TAG"
   echo "########## [$(date +%T)] JOB $TAG DONE: $(cat data/official_scores/${TAG}.json 2>/dev/null | tr -d '\n') ##########"
 }
-
-setup_eval
 
 # ===== QUEUE (Batch 1): AdamW stability PROBE (3 epochs) — is Muon the 100M instability source? =====
 # Skip eval for the probe (we only need the loss trajectory). If stable -> full 100M next.
