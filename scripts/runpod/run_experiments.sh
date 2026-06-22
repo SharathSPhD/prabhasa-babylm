@@ -13,6 +13,11 @@ UVR() { uv run --no-sync python "$@"; }
 # One-time eval setup (idempotent): eval-pipeline deps + eval data.
 setup_eval() {
   local E=/workspace/psalm/vendor/babylm-evaluation-pipeline-2026/strict
+  if [ ! -d "$E" ]; then
+    echo "=== eval pipeline missing: re-clone ==="
+    git clone --depth 1 https://github.com/babylm-org/babylm-eval.git /workspace/psalm/vendor/babylm-evaluation-pipeline-2026 2>&1 | tail -2
+    sed -i 's/--sequence_length 512/--sequence_length 192/g' "$E/scripts/eval_finetuning.sh" 2>/dev/null || true
+  fi
   [ -f "$E/../.env" ] || echo "WANDB_MODE=disabled" > "$E/../.env"
   if [ ! -d "$E/evaluation_data/full_eval/blimp_filtered" ]; then
     echo "=== eval setup: pip reqs + download_evals ==="
@@ -31,8 +36,9 @@ job() {
     --pos-encoding rope --nhot-embeddings --structured-masking \
     --mask-start 0.40 --mask-end 0.15 --freq-alpha 0.5 \
     --max-seq-len 192 --batch-size 128 --grad-accum 2 --vocab 20000 \
-    --peak-lr 5e-4 --muon-lr 0.01 --warmup-frac 0.10 --dropout 0.1 --require-cuda \
+    --no-muon --peak-lr 1e-3 --warmup-frac 0.10 --dropout 0.1 --require-cuda \
     "$@" --out "$CK" || { echo "JOB $TAG TRAIN FAILED"; return 1; }
+  if [ -n "${SKIP_EVAL:-}" ]; then echo "########## [$(date +%T)] JOB $TAG TRAIN-ONLY DONE (best_loss: $(python3 -c "import json;print(round(json.load(open(\"$CK/summary.json\")).get(\"best_loss\",-1),4))" 2>/dev/null)) ##########"; return 0; fi
   RUN uv run --no-sync python scripts/export_hf_model.py --ckpt "$CK/elc.pt" \
     --tokenizer data/tokenizer/strict_small/spm.model --out "$HF" --model-name "$TAG" || echo "[warn] export $TAG"
   RUN uv run --no-sync python scripts/run_official_eval.py "$HF" --track "${TRACK:-strict}" \
@@ -42,7 +48,8 @@ job() {
 
 setup_eval
 
-# ===== QUEUE (Batch 1): M1 100M backbone-confirm — VANILLA (routing off), effective batch 256 =====
-TRACK=strict job v02_vanilla_strict_seed0 --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 10 --base-dir data/corpora/strict --seed 0
+# ===== QUEUE (Batch 1): AdamW stability PROBE (3 epochs) — is Muon the 100M instability source? =====
+# Skip eval for the probe (we only need the loss trajectory). If stable -> full 100M next.
+SKIP_EVAL=1 TRACK=strict job v02_vanilla_adamw_p3 --no-layer-routing --dose-arms A --dose-epochs 0 --english-epochs 3 --base-dir data/corpora/strict --seed 0
 
 echo "QUEUE_DONE $(date)"
