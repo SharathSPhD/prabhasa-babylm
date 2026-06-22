@@ -160,3 +160,26 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
   committed recipe+seed, to be re-trained at M4 finals.
 - **Next:** M2 ablation battery (redone PROPERLY at 7 epochs on GB10 — Strict-Small 10M) tests whether Morfessor
   N-hot / real deprel / MI masking add to this base; promote only statistically-real wins to the 100M Strict recipe.
+
+## F8 — M2 masking mechanisms do NOT help (null/unwired); optimizer is scale-dependent (cycle 76, 2026-06-22)
+- **Battery (10M Strict-Small, 7 epochs, vanilla + AdamW-3e-4, seed 0, official scorer):**
+  | arm | BLiMP | supp | note |
+  |---|---|---|---|
+  | control | 56.95 | 52.28 | baseline |
+  | morfessor (`--nhot-mode real`) | 56.37 | 55.15 | WIRED, ≈null (−0.58 BLiMP, +2.87 supp) |
+  | deprel (`--use-real-deprel`) | 56.95 | 52.28 | **byte-identical to control → NO-OP** |
+  | mi (`--use-mi-weights --mi-blend 0.3`) | 56.95 | 52.28 | **byte-identical to control → NO-OP** |
+- **Finding (NULL / incomplete, honest):** no M2 masking mechanism yields a BLiMP win. (a) Morfessor N-hot is
+  wired but ≈null on BLiMP (−0.58) — consistent with F2/F3 (kāraka masking causal-NULL). (b) deprel + mi are
+  **not actually wired**: `StructuredMaskConfig` has the fields (structured_masking.py L49-52) but no code consumes
+  them, and `train_submission_model.py` never threads the `--use-real-deprel/--use-mi-weights` CLI flags into the
+  mask config → genuine no-ops (the "regression guard" tests passed trivially because OFF==ON==current behavior).
+  So deprel/mi are UNTESTED, not proven-null. **Decision:** retire/deprioritize the masking mechanisms — given the
+  consistent null pattern (F2/F3 + morfessor), wiring deprel/mi is low-EV; revisit only if M3 + base fall short.
+- **Secondary finding (important, scale-dependent optimizer):** control at 10M-SS = **56.95**, BELOW M1's Muon SS
+  (**62.65**) and v0.1 SS (59.46). So **AdamW-3e-4 UNDERperforms Muon at 10M** — yet OUTperforms (stable+strong) at
+  100M (F7: 72.46). Optimizer choice is scale-dependent (cf. F1). **Recipe split:** Strict-100M → AdamW-3e-4 (72.46);
+  Strict-Small-10M → **Muon** (M1's 62.65, already > v0.1; ~2.4 under SS baseline 65.08).
+- **Implication for the leaderboard:** the Pāṇinian-rigour MASKING is not the lever. The path to beat baselines is
+  the validated bases (F7 Strict 72.46 / M1 Muon SS 62.65) + **M3 ACD circuit-targeting** of the weak paradigms
+  (NPI/filler-gap/islands) — the remaining high-upside novelty — + seed-robust finals (M4).
