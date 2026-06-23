@@ -56,6 +56,11 @@ def upload_milestones(ckpt_dir: Path, hf_local: Path, hf_repo: str, tokenizer: s
             continue
 
         try:
+            from huggingface_hub import create_branch
+            try:
+                create_branch(repo_id=hf_repo, branch=revision, repo_type="model", exist_ok=True)
+            except Exception as be:
+                print(f"  [warn] create_branch {revision}: {be}", flush=True)
             upload_folder(
                 folder_path=str(milestone_dir),
                 repo_id=hf_repo,
