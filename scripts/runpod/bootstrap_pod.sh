@@ -24,7 +24,11 @@ uv run --no-sync python -m spacy download en_core_web_sm 2>&1 | tail -1 || echo 
 uv run --no-sync python -c "import torch,psalm,spacy; print('env OK torch',torch.__version__,'cuda',torch.cuda.is_available())"
 
 echo "=== [4/6] eval pipeline (clone + 192 fix) ==="
-[ -d vendor/babylm-evaluation-pipeline-2026 ] || git clone --depth 1 https://github.com/babylm-org/babylm-eval.git vendor/babylm-evaluation-pipeline-2026
+# Check for actual content (strict/ subdir), not just directory presence — the dir may be a git-tracked empty placeholder
+if [ ! -d vendor/babylm-evaluation-pipeline-2026/strict ]; then
+  rm -rf vendor/babylm-evaluation-pipeline-2026
+  git clone --depth 1 https://github.com/babylm-org/babylm-eval.git vendor/babylm-evaluation-pipeline-2026 2>&1 | tail -3
+fi
 sed -i 's/--sequence_length 512/--sequence_length 192/g' vendor/babylm-evaluation-pipeline-2026/strict/scripts/eval_finetuning.sh 2>/dev/null || true
 
 echo "=== [5/6] reproduce STRICT corpus (pull public BabyLM + tokenize) ==="

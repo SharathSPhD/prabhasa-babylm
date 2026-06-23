@@ -23,6 +23,7 @@ E=/workspace/psalm/vendor/babylm-evaluation-pipeline-2026/strict
 setup_eval() {
   if [ ! -d "$E" ]; then
     echo "=== eval pipeline missing: re-clone ==="
+    rm -rf vendor/babylm-evaluation-pipeline-2026
     git clone --depth 1 https://github.com/babylm-org/babylm-eval.git vendor/babylm-evaluation-pipeline-2026 2>&1 | tail -2
     sed -i 's/--sequence_length 512/--sequence_length 192/g' "$E/scripts/eval_finetuning.sh" 2>/dev/null || true
   fi
