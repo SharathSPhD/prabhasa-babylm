@@ -60,8 +60,9 @@ EOS_ID = 2
 # BabyLM 2026 official checkpoint schedule (word counts, compliant with guidelines)
 # §: "every 1M words until 10M seen, every 10M words until 100M seen"
 _BABYLM_MILESTONES: tuple[int, ...] = (
-    *range(1_000_000, 10_000_001, 1_000_000),  # 1M, 2M, ..., 10M
-    *range(20_000_000, 200_000_001, 10_000_000),  # 20M, 30M, ..., 200M (covers any epoch budget)
+    *range(1_000_000, 10_000_001, 1_000_000),    # 1M, 2M, ..., 10M (per BabyLM 2026 §)
+    *range(20_000_000, 100_000_001, 10_000_000),  # 20M, 30M, ..., 100M
+    *range(200_000_000, 1_100_000_000, 100_000_000),  # 200M..1000M (Strict 10-epoch curve for AoA)
 )
 
 # BPE piece suffix patterns → viśeṣaṇa (modifier) role
