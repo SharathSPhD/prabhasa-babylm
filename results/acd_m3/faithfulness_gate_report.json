@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-06-23T00:00:00Z",
+  "model": "/home/sharaths/projects/PSALM-integration/data/hf_export/v02_adamw5e4_strict_seed1",
+  "gate_type": "faithfulness_via_real_ablation",
+  "top_k": 5,
+  "n_random_seeds": 5,
+  "ablation_method": "head-level forward hook (zeros out top-K by importance)",
+  "scoring_method": "PLL (pseudo-log-likelihood)",
+  "results": {
+    "npi_present_1": {
+      "n_pairs": 50,
+      "baseline_accuracy": 0.68,
+      "targeted_accuracy": 0.64,
+      "targeted_drop": 0.040000000000000036,
+      "targeted_ablation_changed": true,
+      "random_drops": [
+        0.0,
+        0.06000000000000005,
+        -0.05999999999999994,
+        0.020000000000000018,
+        0.06000000000000005
+      ],
+      "random_ablation_changed_list": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "avg_random_drop": 0.016000000000000035,
+      "delta": 0.024,
+      "gate_pass": true
+    },
+    "npi_present_2": {
+      "n_pairs": 50,
+      "baseline_accuracy": 0.62,
+      "targeted_accuracy": 0.48,
+      "targeted_drop": 0.14,
+      "targeted_ablation_changed": true,
+      "random_drops": [
+        0.0,
+        0.14,
+        0.0,
+        0.040000000000000036,
+        0.020000000000000018
+      ],
+      "random_ablation_changed_list": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "avg_random_drop": 0.040000000000000015,
+      "delta": 0.1,
+      "gate_pass": true
+    },
+    "wh_island": {
+      "n_pairs": 50,
+      "baseline_accuracy": 0.38,
+      "targeted_accuracy": 0.4,
+      "targeted_drop": -0.020000000000000018,
+      "targeted_ablation_changed": true,
+      "random_drops": [
+        0.0,
+        -0.020000000000000018,
+        0.020000000000000018,
+        0.06,
+        0.020000000000000018
+      ],
+      "random_ablation_changed_list": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "avg_random_drop": 0.016000000000000004,
+      "delta": -0.03600000000000002,
+      "gate_pass": false
+    }
+  },
+  "summary": {
+    "overall_gate": "FAIL",
+    "interpretation": "GATE FAIL: Targeted ablation does NOT hurt significantly more than random (\u0394 < 2pp across paradigms). Circuits are not sufficiently faithful/real. Stop here and report F10_NULL (documented null finding).",
+    "next_step": "M3 Phase CLOSED: faithfulness gate failed, report F10_NULL",
+    "ablation_validity_issues": []
+  },
+  "ablation_validity": {
+    "npi_present_1": {
+      "targeted_changed": true,
+      "random_all_changed": true
+    },
+    "npi_present_2": {
+      "targeted_changed": true,
+      "random_all_changed": true
+    },
+    "wh_island": {
+      "targeted_changed": true,
+      "random_all_changed": true
+    }
+  }
+}

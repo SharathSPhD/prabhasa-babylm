@@ -1,0 +1,145 @@
+[18:47:38] === M3 ACD FAST PATH (using pre-trained 72.46 base) ===
+[18:47:38] Results dir: /home/sharaths/projects/PSALM-integration/results/acd_m3
+[18:47:38] 
+[18:47:38] STEP 1: FAITHFULNESS GATE
+[18:47:38] Testing whether weak-paradigm circuits are real (ablation validation)
+[18:47:38] 
+Loading model from qbz506/prabhasa-100m-base-strict on cuda...
+Traceback (most recent call last):
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 761, in hf_raise_for_status
+    response.raise_for_status()
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/httpx/_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '404 Not Found' for url 'https://huggingface.co/qbz506/prabhasa-100m-base-strict/resolve/main/config.json'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/utils/hub.py", line 422, in cached_files
+    hf_hub_download(
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1010, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1161, in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1795, in _raise_on_head_call_error
+    raise head_call_error
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1682, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1604, in get_hf_file_metadata
+    response = _httpx_follow_relative_redirects_with_backoff(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 692, in _httpx_follow_relative_redirects_with_backoff
+    hf_raise_for_status(response)
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 835, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response, repo_type=repo_type, repo_id=repo_id) from e
+huggingface_hub.errors.RepositoryNotFoundError: 404 Client Error. (Request ID: Root=1-6a39753c-73c6465e1ae2b1306cd0bf2f;9cfacecb-6df3-406d-9ac5-64ec4d2557eb)
+
+Repository Not Found for url: https://huggingface.co/qbz506/prabhasa-100m-base-strict/resolve/main/config.json.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated and your token has the required permissions.
+For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/models/auto/tokenization_auto.py", line 694, in from_pretrained
+    config = AutoConfig.from_pretrained(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/models/auto/configuration_auto.py", line 374, in from_pretrained
+    config_dict, unused_kwargs = PreTrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/configuration_utils.py", line 683, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/configuration_utils.py", line 738, in _get_config_dict
+    resolved_config_file = cached_file(
+                           ^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/utils/hub.py", line 278, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/utils/hub.py", line 454, in cached_files
+    raise OSError(
+OSError: qbz506/prabhasa-100m-base-strict is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 761, in hf_raise_for_status
+    response.raise_for_status()
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/httpx/_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '404 Not Found' for url 'https://huggingface.co/qbz506/prabhasa-100m-base-strict/resolve/main/config.json'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/utils/hub.py", line 422, in cached_files
+    hf_hub_download(
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1010, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1161, in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1795, in _raise_on_head_call_error
+    raise head_call_error
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1682, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/file_download.py", line 1604, in get_hf_file_metadata
+    response = _httpx_follow_relative_redirects_with_backoff(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 692, in _httpx_follow_relative_redirects_with_backoff
+    hf_raise_for_status(response)
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 835, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response, repo_type=repo_type, repo_id=repo_id) from e
+huggingface_hub.errors.RepositoryNotFoundError: 404 Client Error. (Request ID: Root=1-6a39753d-5d5492df7d5964573f6c1969;1c06ed52-7d03-4f2d-b04a-d673ae44ce25)
+
+Repository Not Found for url: https://huggingface.co/qbz506/prabhasa-100m-base-strict/resolve/main/config.json.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated and your token has the required permissions.
+For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sharaths/projects/PSALM-integration/scripts/acd_m3_faithfulness_gate.py", line 261, in <module>
+    main()
+  File "/home/sharaths/projects/PSALM-integration/scripts/acd_m3_faithfulness_gate.py", line 135, in main
+    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/models/auto/tokenization_auto.py", line 698, in from_pretrained
+    config = PreTrainedConfig.from_pretrained(pretrained_model_name_or_path, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/configuration_utils.py", line 642, in from_pretrained
+    config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/configuration_utils.py", line 683, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/configuration_utils.py", line 738, in _get_config_dict
+    resolved_config_file = cached_file(
+                           ^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/utils/hub.py", line 278, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sharaths/projects/PSALM-integration/.venv/lib/python3.12/site-packages/transformers/utils/hub.py", line 454, in cached_files
+    raise OSError(
+OSError: qbz506/prabhasa-100m-base-strict is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `hf auth login` or by passing `token=<your_token>`

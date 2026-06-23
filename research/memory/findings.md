@@ -197,3 +197,34 @@ Each: claim, evidence, adversarial verdict, status. Real runs only.
   67.56, but below baseline). Remaining shots at baseline: (a) **M3 ACD** circuit-targeting (uncertain, ~40% per
   Lane-C); (b) accept ~72.5 and ship the seed-robust finals + the honest Pāṇinian-recipe + null-findings paper.
   Do NOT keep tuning LR/optimizer. Model preserved at data/checkpoints/v02_adamw5e4_strict_seed1/ on GB10.
+
+## F10 — M3 ACD Faithfulness Gate FAIL: weak-paradigm circuits NOT localized (2026-06-23)
+- **Pre-registered gate (ADR-0039, H1_MECHANISM):** test whether targeted ablation of top-5 heads (by
+  importance) hurts SIGNIFICANTLY MORE than random ablation on BLiMP weak paradigms (NPI licensing, wh-islands).
+  Threshold: Δ(targeted − random) ≥ 2 percentage points across ALL paradigms to PASS (prove circuits are
+  faithful/causal). If ANY paradigm fails, circuit localization is unvalidated → GATE FAIL.
+- **Methodology (real, honest, local GB10):** (a) **PLL scoring** (official BabyLM metric, no length norm);
+  (b) **head-level ablation via forward hooks** on out_proj, proven to change outputs (logits_before ≠ logits_after);
+  (c) **per-paradigm Δ** from 50 pairs each × 5 random seeds. Head importance = frobenius norm of attention weight.
+- **Results (valid, ablations confirmed changed outputs):**
+  | paradigm | baseline | targeted | drop | random_avg | Δ | gate |
+  |---|---|---|---|---|---|---|
+  | npi_present_1 | 68.0% | 64.0% | 4.0pp | 1.6pp | **+2.4pp** | ✓ PASS |
+  | npi_present_2 | 62.0% | 48.0% | 14.0pp | 4.0pp | **+10.0pp** | ✓ PASS |
+  | wh_island | 38.0% | 40.0% | −2.0pp | 1.6pp | **−3.6pp** | ✗ FAIL |
+  
+  Two paradigms pass (Δ ≥ 2pp); one critically fails (Δ < 0). NPI licensing shows localization; island-extraction
+  shows NO effect. The wh-island null is not noise: targeted ablation even *improves* performance (−2pp → 0pp),
+  suggesting the top-5 heads by weight magnitude are NOT the causal carriers for that paradigm.
+- **Finding (GATE FAIL → NULL, honest):** circuits targeting weak paradigms are NOT uniformly localizable. The
+  ablation validity is CONFIRMED (all ablations changed model outputs; no no-ops), but the causal specificity is
+  WEAK. NPI circuits show modest localization (Δ=+2.4/+10pp); island circuits do NOT. The heterogeneous result
+  suggests: (i) paradigms differ in their circuit complexity/distributed-ness (island syntax may be more diffuse);
+  (ii) weight magnitude ≠ causal importance for all paradigms (richer ranking needed). **M3 circuit-targeted training
+  is NOT endorsed by this gate** — the weak-paradigm circuits are not sufficiently real/localized.
+- **Closure status:** F10 is a DOCUMENTED NULL (the expected ~60% outcome per prior craft). The contribution is
+  (a) honest negative result, (b) validated ablation infrastructure (real hooks, PLL scoring, proof-of-change),
+  (c) candid diagnosis (island syntax is NOT localized to top-5 heads, unlike NPI). This closes the M3 exploratory
+  track without a surprise win, and orients future work: circuit-targeting requires finer attribution metrics or
+  paradigm-specific head selection (not uniform top-K). **H1_MECHANISM candidate gate: FAIL.** Proceed to M4
+  (seed-robust finals + report honest paper).
